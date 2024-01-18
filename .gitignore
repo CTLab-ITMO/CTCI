@@ -1,0 +1,5 @@
+data/**
+**.json
+**.pth
+**.pyc
+.DS_STORE
