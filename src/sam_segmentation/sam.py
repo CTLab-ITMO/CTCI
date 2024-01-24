@@ -48,12 +48,12 @@ def sam_segmentation(image, predictor, boxes, prompt_point=True):
     Performs segmentation on the given image using a Segment Anything Model (SAM) predictor
     and bounding boxes.
 
-Args:
-    image: The input image for segmentation.
-    predictor (SamPredictor): An instance of the predictor class for the SAM model.
-    boxes (list): A list of bounding boxes represented as [x_min, y_min, x_max, y_max].
-    prompt_point (bool, optional): If True, prompts a point for each bounding box for segmentation.
-        If False, performs segmentation without prompting a point. Default is True.
+    Args:
+        image: The input image for segmentation.
+        predictor (SamPredictor): An instance of the predictor class for the SAM model.
+        boxes (list): A list of bounding boxes represented as [x_min, y_min, x_max, y_max].
+        prompt_point (bool, optional): If True, prompts a point for each bounding box for segmentation.
+            If False, performs segmentation without prompting a point. Default is True.
     """
     predictor.set_image(image)
     masks_list = []
@@ -75,5 +75,5 @@ Args:
             )
         masks_list.append(masks)
 
-    return masks_list
+    return np.array(masks_list)
 
