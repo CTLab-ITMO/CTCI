@@ -22,6 +22,11 @@ if __name__ == "__main__":
     detector = load_yolov8_detector(custom_yolo_checkpoint_path)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    if device == "cuda":
+        torch.cuda.empty_cache()
+        torch.backends.cudnn.benchmark = True
+
+
     predictor = load_sam_predictor(checkpoint_path=sam_checkpoint, model_type=model_type, device=device)
 
     source_dir = os.path.join(data_dir, folder)

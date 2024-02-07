@@ -56,19 +56,30 @@ def load_sam_predictor(checkpoint_path: str, model_type: str, device: str = "cpu
 
 
 def sam_segmentation(image, predictor, boxes, prompt_points=True, target_length=800):
+    device = predictor.device
+
+    original_image_size = (image.shape[0], image.shape[1])
     transform = ResizeLongestSide(target_length=target_length)
-    predictor.set_image(image=image)
+
+    transformed_image = transform.apply_image(image)
+    transformed_image_torch = torch.as_tensor(transformed_image, device=device)
+    transformed_image_torch = transformed_image_torch.permute(2, 0, 1).contiguous()[None, :, :, :]
+
+    predictor.set_torch_image(
+        transformed_image=transformed_image_torch,
+        original_image_size=original_image_size
+    )
 
     boxes = np.array(boxes)
     boxes = transform.apply_boxes(boxes, (predictor.original_size[0], predictor.original_size[1]))
-    boxes_tensor = torch.Tensor(boxes)
+    boxes_tensor = torch.Tensor(boxes).float().to(device)
 
     if prompt_points:
         points = [np.array([[(box[0] + box[2]) / 2, (box[1] + box[3]) / 2]]) for box in boxes]
         points = np.array(points)
         points = transform.apply_coords(points, (predictor.original_size[0], predictor.original_size[1]))
-        points_tensor = torch.Tensor(points)
-        labels_tensor = torch.ones((points.shape[0], points.shape[1]))
+        points_tensor = torch.Tensor(points).float().to(device)
+        labels_tensor = torch.ones((points.shape[0], points.shape[1])).float().to(device)
         masks_list, _, _ = predictor.predict_torch(
             boxes=boxes_tensor,
             point_coords=points_tensor,
@@ -82,7 +93,7 @@ def sam_segmentation(image, predictor, boxes, prompt_points=True, target_length=
             multimask_output=False
         )
 
-    masks_list = masks_list.numpy()
+    masks_list = masks_list.float().to("cpu").numpy()
     return masks_list
 
 
@@ -160,26 +171,28 @@ def segment_images_from_folder(
 
     if processes_num == 0:
         for image_name in tqdm(images_list):
-            segment_image_from_dir(
-                image_name,
-                masks_list,
-                source_dir,
-                output_dir,
-                detector, predictor,
-                target_length=target_length,
-                narrowing=narrowing,
-                erode_iterations=erode_iterations
-            )
+            with torch.no_grad():
+                segment_image_from_dir(
+                    image_name,
+                    masks_list,
+                    source_dir,
+                    output_dir,
+                    detector, predictor,
+                    target_length=target_length,
+                    narrowing=narrowing,
+                    erode_iterations=erode_iterations
+                )
     else:
-        executor = concurrent.futures.ProcessPoolExecutor(processes_num)
-        futures = [
-            executor.submit(
-                segment_image_from_dir, image_name, masks_list,
-                source_dir, output_dir,
-                detector, predictor,
-                target_length, narrowing, erode_iterations
-            ) for image_name in images_list
-        ]
-        concurrent.futures.wait(futures)
+        with torch.no_grad():
+            executor = concurrent.futures.ProcessPoolExecutor(processes_num)
+            futures = [
+                executor.submit(
+                    segment_image_from_dir, image_name, masks_list,
+                    source_dir, output_dir,
+                    detector, predictor,
+                    target_length, narrowing, erode_iterations
+                ) for image_name in images_list
+            ]
+            concurrent.futures.wait(futures)
 
     print(f"Images from the directory {source_dir} were segmented!")
