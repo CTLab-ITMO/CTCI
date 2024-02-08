@@ -1,22 +1,25 @@
 """
 sam.py
 
-This module provides functions for working with the Segment Anything Model (SAM) and performing segmentation.
+This module provides functions for image segmentation using YOLOv8 object detection
+and the Segment Anything Model (SAM). The functions perform segmentation on individual
+images and process entire folders of images in parallel or sequentially.
 
-Dependencies:
-- numpy as np
-- segment_anything.sam_model_registry
-- segment_anything.SamPredictor
-
-Usage:
-- load_sam_predictor(checkpoint_path, model_type): Loads a SAM model from a checkpoint and creates a predictor instance.
-- sam_segmentation(image, predictor, boxes, prompt_point=True): Performs segmentation on an image using a SAM predictor
-and bounding boxes.
+Functions:
+    - load_sam_predictor: Loads a SAM model from a checkpoint file and creates a predictor instance.
+    - sam_segmentation: Performs segmentation using a SAM predictor on a given image with bounding boxes.
+    - yolo_sam_segmentation: Performs image segmentation using YOLOv8 and SAM.
+    - segment_image_from_dir: Segments an image from a source directory and saves the result to an output directory.
+    - segment_images_from_folder: Segments images in a source directory and saves the results to an output directory.
 
 Notes:
-- The module assumes the existence of sam_model_registry and SamPredictor classes from the 'segment_anything' package.
-
+    - The SAM model is loaded and utilized through the provided predictor.
+    - YOLOv8 is used for object detection before SAM segmentation.
+    - SAM segmentation is applied only if YOLOv8 detects objects in the image.
+    - Segmentation results are saved as masks in the output directory.
+    - Parallel processing is supported using concurrent.futures (only on cpu).
 """
+
 import os.path
 import concurrent.futures
 
@@ -28,6 +31,8 @@ from tqdm import tqdm
 from segment_anything import sam_model_registry, SamPredictor
 from segment_anything.utils.transforms import ResizeLongestSide
 
+from ultralytics import YOLO
+
 from src.processing.watershed import perform_watershed
 from src.sam_segmentation.utils import masks_narrowing, unite_masks
 from src.sam_segmentation.yolo import yolov8_detect
@@ -35,7 +40,6 @@ from src.sam_segmentation.yolo import yolov8_detect
 
 def load_sam_predictor(checkpoint_path: str, model_type: str, device: str = "cpu") -> SamPredictor:
     """
-
     Loads a Segment Anything Model (SAM) from a checkpoint file and creates a predictor instance.
 
     Args:
@@ -55,7 +59,29 @@ def load_sam_predictor(checkpoint_path: str, model_type: str, device: str = "cpu
     return predictor
 
 
-def sam_segmentation(image, predictor, boxes, prompt_points=True, target_length=800):
+def sam_segmentation(
+        image, predictor: SamPredictor,
+        boxes: list, prompt_points: bool = True, target_length: int = 1024
+):
+    """
+    Performs segmentation using a Segment Anything Model (SAM) predictor on the given image with the given prompts.
+
+    Args:
+        image (numpy.ndarray): The input image for segmentation.
+        predictor (SamPredictor): An instance of the predictor class for the SAM model.
+        boxes (list): A list of bounding boxes represented as [x_min, y_min, x_max, y_max].
+        prompt_points (bool, optional): If True, prompts a point for each bounding box for segmentation.
+            If False, performs segmentation without prompting a point. Default is True.
+        target_length (int, optional): The target length for resizing the longest side of the image.
+            Defaults to 1024 pixels.
+
+    Returns:
+        numpy.ndarray: A list of segmentation masks corresponding to each bounding box.
+
+    Notes:
+        The function uses the SAM model through the provided predictor to perform segmentation.
+        If prompt_points is True, a point is prompted for each bounding box to aid segmentation.
+    """
     device = predictor.device
 
     original_image_size = (image.shape[0], image.shape[1])
@@ -97,7 +123,34 @@ def sam_segmentation(image, predictor, boxes, prompt_points=True, target_length=
     return masks_list
 
 
-def yolo_sam_segmentation(image, detector, predictor, target_length=800, narrowing=0.20, erode_iterations=1):
+def yolo_sam_segmentation(
+        image, detector: YOLO, predictor: SamPredictor,
+        target_length: int = 1024, narrowing: float = 0.20, erode_iterations: float = 1
+):
+    """
+    Perform image segmentation using YOLOv8 and Segment Anything Model (SAM).
+
+    Args:
+        image (numpy.ndarray): Input image for segmentation.
+        detector (YOLO): YOLOv8 object detector.
+        predictor (SamPredictor): Instance of the predictor class for the SAM model.
+        target_length (int, optional): Target length for resizing the longest side of the image.
+            Defaults to 1024 pixels.
+        narrowing (float, optional): Narrowing factor for SAM masks. Defaults to 0.20.
+        erode_iterations (int, optional): Number of iterations for eroding the final mask. Defaults to 1.
+
+    Returns:
+        numpy.ndarray: Segmented mask combining YOLOv8 and SAM predictions.
+
+    Notes:
+        - The function detects objects using YOLOv8 and performs segmentation using SAM.
+        - SAM segmentation is applied only if YOLOv8 detects objects.
+        - The final mask is a combination of SAM and watershed segmentation.
+        - The mask is further eroded using morphological operations.
+
+    Example:
+        mask = yolo_sam_segmentation(image, yolo_detector, sam_predictor)
+    """
     boxes = yolov8_detect(image=image, detector=detector, return_objects=False)
     mask_watershed = perform_watershed(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
 
@@ -121,15 +174,38 @@ def yolo_sam_segmentation(image, detector, predictor, target_length=800, narrowi
 
 
 def segment_image_from_dir(
-        image_name,
+        image_name: str,
         masks_list,
-        source_dir,
-        output_dir,
-        detector, predictor,
-        target_length=800,
-        narrowing=0.20,
-        erode_iterations=1
+        source_dir: str,
+        output_dir: str,
+        detector: YOLO, predictor: SamPredictor,
+        target_length: int = 1024,
+        narrowing: float = 0.20,
+        erode_iterations: int = 1
 ):
+    """
+    Perform segmentation on an image from a source directory and save the result to an output directory.
+
+    Args:
+        image_name (str): Name of the image file to be segmented.
+        masks_list (list): List of already segmented image names to avoid duplicate segmentation.
+        source_dir (str): Directory containing the source images.
+        output_dir (str): Directory where the segmented masks will be saved.
+        detector: YOLOv8 object detector.
+        predictor (SamPredictor): Instance of the predictor class for the SAM model.
+        target_length (int, optional): Target length for resizing the longest side of the image.
+            Defaults to 1024 pixels.
+        narrowing (float, optional): Narrowing factor for SAM masks. Defaults to 0.20.
+        erode_iterations (int, optional): Number of iterations for eroding the final mask. Defaults to 1.
+
+    Returns:
+        None
+
+    Notes:
+        - If the image has already been segmented (present in masks_list), the function returns early.
+        - Prints progress information during segmentation.
+        - Saves the segmented mask to the output directory with the same name as the input image.
+    """
     if image_name in masks_list:
         return
 
@@ -154,11 +230,35 @@ def segment_images_from_folder(
         source_dir,
         output_dir,
         detector, predictor,
-        target_length=800,
+        target_length=1024,
         narrowing=0.20,
         erode_iterations=1,
         processes_num=0
 ):
+    """
+    Perform segmentation on images in a source directory and save the results to an output directory.
+
+    Args:
+        source_dir (str): Directory containing the source images.
+        output_dir (str): Directory where the segmented masks will be saved.
+        detector: YOLOv8 object detector.
+        predictor (SamPredictor): Instance of the predictor class for the SAM model.
+        target_length (int, optional): Target length for resizing the longest side of the image.
+            Defaults to 1024 pixels.
+        narrowing (float, optional): Narrowing factor for SAM masks. Defaults to 0.20.
+        erode_iterations (int, optional): Number of iterations for eroding the final mask. Defaults to 1.
+        processes_num (int, optional): Number of parallel processes for segmentation.
+            Defaults to 0 (sequential processing).
+
+    Returns:
+        None
+
+    Notes:
+        - Prints progress information during segmentation.
+        - Saves the segmented masks to the output directory.
+        - If processes_num is set to 0, performs sequential segmentation (allows using debug mode).
+        - If processes_num is greater than 0, performs parallel segmentation using concurrent.futures.
+    """
     if not os.path.isdir(source_dir):
         print("No such directory")
         return "No such directory"
@@ -186,12 +286,14 @@ def segment_images_from_folder(
         with torch.no_grad():
             executor = concurrent.futures.ProcessPoolExecutor(processes_num)
             futures = [
-                executor.submit(
+                executor.submit
+                (
                     segment_image_from_dir, image_name, masks_list,
                     source_dir, output_dir,
                     detector, predictor,
                     target_length, narrowing, erode_iterations
-                ) for image_name in images_list
+                )
+                for image_name in images_list
             ]
             concurrent.futures.wait(futures)
 

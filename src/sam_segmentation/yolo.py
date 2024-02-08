@@ -2,18 +2,6 @@
 yolo.py
 
 This module provides functions for working with YOLOv8 object detection.
-
-Dependencies:
-- matplotlib.pyplot as plt
-- cv2
-- ultralytics.YOLO
-
-Usage:
-- load_yolov8_detector(yolo_path): Loads a YOLO object detector from the specified weights path.
-- yolov8_detect(detector, image, return_objects=False): Performs object detection using a YOLOv8 detector.
-- draw_bounding_boxes(image, boxes, cmap=None, edge_color='red', face_color=(0, 0, 0, 0), lw=2):
-  Draws bounding boxes on the given image.
-
 """
 
 import matplotlib.pyplot as plt
