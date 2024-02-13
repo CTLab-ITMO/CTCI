@@ -1,9 +1,7 @@
 import sys
-sys.path.append('..')
+sys.path.append('../..')
 
-import numpy as np
-import cv2
-from src.processing.preprocessing import *
+from src.models.watershed.preprocessing import *
 
 
 def _get_markers(img: np.array):

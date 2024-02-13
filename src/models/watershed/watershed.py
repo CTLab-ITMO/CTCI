@@ -3,8 +3,8 @@ import cv2
 from scipy import ndimage
 from skimage.feature import peak_local_max
 from skimage.segmentation import watershed
-from src.processing.markers import get_markers
-from src.processing.utils import find_contours
+from src.models.watershed.markers import get_markers
+from src.models.watershed.utils import find_contours
 
 
 def _small_watershed(data: list):

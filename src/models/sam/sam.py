@@ -33,9 +33,9 @@ from segment_anything.utils.transforms import ResizeLongestSide
 
 from ultralytics import YOLO
 
-from src.processing.watershed import perform_watershed
-from src.sam_segmentation.utils import masks_narrowing, unite_masks
-from src.sam_segmentation.yolo import yolov8_detect
+from src.models.watershed.watershed import perform_watershed
+from src.data.weakly_segmentation.masks import masks_narrowing, unite_masks
+from src.models.yolo.yolo import yolov8_detect
 
 
 def load_sam_predictor(checkpoint_path: str, model_type: str, device: str = "cpu") -> SamPredictor:
