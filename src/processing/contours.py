@@ -1,9 +1,13 @@
+"""
+implementation of various contour extraction methods
+"""
 import sys
 sys.path.append('..')
 
 import numpy as np
 import cv2
-from src.processing.preprocessing import get_sobel
+from features.preprocessing import get_sobel
+
 
 def _get_small_contours(mask):
     kernel = np.ones((3,3),np.uint8)

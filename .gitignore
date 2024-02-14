@@ -5,3 +5,4 @@ data/**
 .DS_STORE
 notebooks/cropWatershed.ipynb
 notebooks/cropWatershed_ablation.ipynb
+models/**
