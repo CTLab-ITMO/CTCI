@@ -1,7 +1,5 @@
 """
-
 Implementation of methods used to extract markers from bubble images.
-
 """
 
 import sys

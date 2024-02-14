@@ -1,3 +1,6 @@
+"""
+Utilities for watershed.
+"""
 import numpy as np
 import cv2
 

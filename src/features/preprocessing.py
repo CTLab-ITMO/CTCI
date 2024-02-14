@@ -1,7 +1,5 @@
 """
-
 Implementation of preprocesses used to extract features from homogeneous data images.
-
 """
 
 import cv2

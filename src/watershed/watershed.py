@@ -1,7 +1,5 @@
 """
-
 Watershed segmentation for small bubbles extraction is implemented.
-
 """
 
 import numpy as np
