@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 1
+names: ['Bubbles']
+
+roboflow:
+  workspace: egor-prokopov-ixtjn
+  project: clumped-object-bubbles
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/egor-prokopov-ixtjn/clumped-object-bubbles/dataset/1
