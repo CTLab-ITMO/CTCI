@@ -7,7 +7,6 @@ sys.path.append('..')
 
 import numpy as np
 import cv2
-from features.preprocessing import *
 
 
 def _get_markers(img: np.array):
