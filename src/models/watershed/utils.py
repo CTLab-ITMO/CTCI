@@ -15,7 +15,7 @@ def find_contours(img, labels, markers):
         markers: watershed markers
 
     Return:
-        black: binary image of watershed labels separated by contours
+        np.array: binary image of watershed labels separated by contours
     """
 
     black = np.zeros(img.shape, np.uint8)
