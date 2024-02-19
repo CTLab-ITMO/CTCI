@@ -81,6 +81,8 @@ target/
 
 # exclude data from source control by default
 /data/
+/models/
+/notebooks/
 
 # Mac OS-specific storage files
 .DS_Store
