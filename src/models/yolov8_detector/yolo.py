@@ -1,5 +1,5 @@
 """
-yolo.py
+yolov8_detector.py
 
 This module provides functions for working with YOLOv8 object detection.
 """
