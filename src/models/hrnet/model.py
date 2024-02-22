@@ -1,51 +1,36 @@
-import timm
+import torch
 import torch.nn as nn
-from typing import Union, Dict
+from typing import Dict
+from src.models.hrnet.hrnet_source.arch import get_seg_model
+from src.models.hrnet.hrnet_source.criterion import CrossEntropy
+from bestconfig import Config
 
+config = Config("../src/models/hrnet/hrnet_source/cfg.yaml")
 
 class HRNet(nn.Module):
 
-    def __init__(self, hrnet_type="hrnet_w30", only_classifier=True):
+    def __init__(self, freeze_backbone=True):
         super().__init__()
 
-        self.net = timm.create_model(
-            hrnet_type,
-            pretrained=True,
-            features_only=True,
-            num_classes=1,
-            out_indices=(0,1,2)
-            )
-        self.cls = self._build_classifier()
+        self.net = get_seg_model(config)
+        self.loss_fn = CrossEntropy()
 
-        if only_classifier:
+        if freeze_backbone:
             self.freeze_backbone()
 
-    def _build_classifier(self, in_channels=5):
-        cls = [
-            nn.Conv2d(
-                in_channels=in_channels,  # for pretrained hrnet
-                out_channels=1,
-                kernel_size=1),
-            nn.Sigmoid()
-        ]
-        return nn.Sequential(*cls)
-
     def forward(self, x):
-        features = self.net(x)
-        out = self.cls(features)
+        out = self.net(x)
         return out
 
-    def set_loss_fn(self, loss_fn: Dict[nn.Module, float]):
-        self.loss_fn = loss_fn
-
-    def calc_loss_fn(self, input, target):
-        l = 0
-        for loss, weight in self.loss_fn.items():
-            l += weight * loss(input, target)
-        return l
+    def calc_loss_fn(self, output, target):
+        # badly written code just to start training
+        return self.loss_fn(output, target)
 
     def freeze_backbone(self):
-        self.net.eval()
+        keys = ('cls_head', 'aux_head')
+        for name, param in self.net.named_parameters():
+            if not name.startswith(keys):
+                param.requires_grad = False
 
     def train_on_batch(self, images, target):
         out = self.forward(images)

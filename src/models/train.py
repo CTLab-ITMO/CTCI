@@ -1,4 +1,6 @@
 import torch
+import numpy as np
+from tqdm import tqdm
 from torch.optim import Adam
 
 
@@ -15,22 +17,34 @@ class Trainer():
         self.device = device
 
     def train(self, train_dataloader, val_dataloader):
-
+        train_epoch_loss = []
+        val_epoch_loss = []
         for _ in range(self.epoch_num):
+
+            train_batch_loss = []
+            val_batch_loss = []
+
             # think of training strategy
             # add logger for loss
             self.model.to(self.device)
-            self.model.cls.train()
-            
-            for input, target in train_dataloader:
+            self.model.train()
+            for input, target in tqdm(train_dataloader):
                 input = input.to(self.device)
                 target = target.to(self.device)
 
                 self.optim.zero_grad()
                 loss_train = self.model.train_on_batch(input, target)
+                train_batch_loss.append(loss_train)
                 loss_train.backward()
                 self.optim.step()
 
-            self.model.classifier.eval()
+            self.model.eval()
             for input, target in val_dataloader:
                 loss_val = self.model.train_on_batch(input, target)
+                val_batch_loss.append(loss_val)
+            
+            train_epoch_loss.append(np.mean(train_epoch_loss))
+            val_epoch_loss.append(np.mean(val_epoch_loss))
+
+        return train_epoch_loss, val_epoch_loss
+
