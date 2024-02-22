@@ -1,6 +1,7 @@
 import torch
 from torch.optim import Adam
 
+
 class Trainer():
     def __init__(self,
                  model,
@@ -12,12 +13,11 @@ class Trainer():
         self.epoch_num = 5
         self.device = device
 
-    
     def train(self, train_dataloader, val_dataloader):
 
         for _ in range(self.epoch_num):
-            #think of training strategy
-            #add logger for loss
+            # think of training strategy
+            # add logger for loss
             self.model.classifier.train()
             for input, target in train_dataloader:
                 input = input.to(self.device)
@@ -31,7 +31,3 @@ class Trainer():
             self.model.classifier.eval()
             for input, target in val_dataloader:
                 loss_val = self.model.train_on_batch(input, target)
-
-            
-
-
