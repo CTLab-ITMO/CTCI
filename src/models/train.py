@@ -19,7 +19,8 @@ class Trainer():
         for _ in range(self.epoch_num):
             # think of training strategy
             # add logger for loss
-            self.model.classifier.train()
+            self.model.to(self.device)
+            self.model.cls.train()
             for input, target in train_dataloader:
                 input = input.to(self.device)
                 target = target.to(self.device)

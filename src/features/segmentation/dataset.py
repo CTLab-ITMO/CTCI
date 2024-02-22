@@ -3,6 +3,7 @@ import os.path as osp
 import cv2
 import torch
 from torch.utils.data import Dataset
+from torchvision.transforms import ToTensor
 
 
 class SegmentationDataset(Dataset):
@@ -35,6 +36,8 @@ class SegmentationDataset(Dataset):
         self.image_transform = image_transform
         self.mask_transform = mask_transform
 
+        self.toten = ToTensor()
+
         self.images_list = os.listdir(self.images_dir)
         self.masks_list = os.listdir(self.masks_dir)
 
@@ -45,8 +48,8 @@ class SegmentationDataset(Dataset):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         mask = cv2.imread(osp.join(self.masks_dir, image_name), cv2.IMREAD_GRAYSCALE)
 
-        image = torch.from_numpy(image)
-        mask = torch.from_numpy(mask) / 255  # TODO: make normalization
+        image = self.toten(image)
+        mask = self.toten(mask)
 
         return image, mask
 
