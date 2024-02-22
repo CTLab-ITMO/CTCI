@@ -60,3 +60,6 @@ class SegmentationDataset(Dataset):
             mask = self.mask_transform(mask)
 
         return image, mask
+    
+    def __len__(self):
+        return len(self.images_list)

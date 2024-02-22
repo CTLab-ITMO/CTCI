@@ -6,11 +6,12 @@ class Trainer():
     def __init__(self,
                  model,
                  device,
+                 epoch_num,
                  optim_params: dict) -> None:
 
         self.model = model
         self.optim = Adam(model.parameters(), **optim_params)
-        self.epoch_num = 5
+        self.epoch_num = epoch_num
         self.device = device
 
     def train(self, train_dataloader, val_dataloader):
