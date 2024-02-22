@@ -26,7 +26,7 @@ class HRNet(nn.Module):
     
 
     def forward(self, x):
-        features = self.model(x)
+        features = self.net(x)
         out = self.classification(features)
         return out
     
@@ -43,7 +43,7 @@ class HRNet(nn.Module):
 
 
     def freeze_backbone(self):
-        self.model.eval()
+        self.net.eval()
 
 
     def train_on_batch(self, images, target):
