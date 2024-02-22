@@ -9,7 +9,12 @@ class HRNet(nn.Module):
         super().__init__()
 
         self.net = timm.create_model(
-            hrnet_type, pretrained=True, features_only=True)
+            hrnet_type,
+            pretrained=True,
+            features_only=True,
+            num_classes=1,
+            out_indices=(0,1,2)
+            )
         self.cls = self._build_classifier()
 
         if only_classifier:
