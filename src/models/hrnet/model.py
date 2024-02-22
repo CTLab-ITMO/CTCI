@@ -3,9 +3,11 @@ import torch.nn as nn
 from typing import Union, Dict
 
 class HRNet(nn.Module):
+
     def __init__(self, hrnet_type="hrnet_w30", only_classifier=True):
+        super().__init__()
         
-        self.model = timm.create_model(hrnet_type, pretrained=True, features_only=True)
+        self.net = timm.create_model(hrnet_type, pretrained=True, features_only=True)
         self.classification = self._build_classifier()
 
         if only_classifier:
@@ -38,6 +40,7 @@ class HRNet(nn.Module):
         for loss, weight in self.loss_fn.items():
             l += weight * loss(input, target)
         return l
+
 
     def freeze_backbone(self):
         self.model.eval()
