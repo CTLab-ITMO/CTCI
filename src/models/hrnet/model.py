@@ -32,7 +32,7 @@ class HRNet(nn.Module):
 
     def forward(self, x):
         features = self.net(x)
-        out = self.classification(features)
+        out = self.cls(features)
         return out
 
     def set_loss_fn(self, loss_fn: Dict[nn.Module, float]):

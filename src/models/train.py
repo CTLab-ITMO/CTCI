@@ -21,6 +21,7 @@ class Trainer():
             # add logger for loss
             self.model.to(self.device)
             self.model.cls.train()
+            
             for input, target in train_dataloader:
                 input = input.to(self.device)
                 target = target.to(self.device)
