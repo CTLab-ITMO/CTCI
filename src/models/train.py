@@ -39,7 +39,10 @@ class Trainer():
                 self.optim.step()
 
             self.model.eval()
-            for input, target in val_dataloader:
+            for input, target in tqdm(val_dataloader):
+                input = input.to(self.device)
+                target = target.to(self.device)
+
                 loss_val = self.model.train_on_batch(input, target)
                 val_batch_loss.append(loss_val)
             
