@@ -63,7 +63,7 @@ class OhemCrossEntropy(nn.Module):
         h, w = target.size(1), target.size(2)
         if ph != h or pw != w:
             score = F.interpolate(input=score, size=(
-                h, w), mode='bilinear', align_corners=config.MODEL.ALIGN_CORNERS)
+                h, w), mode='bilinear', align_corners=cfg.MODEL.ALIGN_CORNERS)
 
         loss = self.criterion(score, target)
 
@@ -74,7 +74,7 @@ class OhemCrossEntropy(nn.Module):
         h, w = target.size(1), target.size(2)
         if ph != h or pw != w:
             score = F.interpolate(input=score, size=(
-                h, w), mode='bilinear', align_corners=config.MODEL.ALIGN_CORNERS)
+                h, w), mode='bilinear', align_corners=cfg.MODEL.ALIGN_CORNERS)
         pred = F.softmax(score, dim=1)
         pixel_losses = self.criterion(score, target).contiguous().view(-1)
         mask = target.contiguous().view(-1) != self.ignore_label
@@ -92,10 +92,10 @@ class OhemCrossEntropy(nn.Module):
 
     def forward(self, score, target):
 
-        if config.MODEL.NUM_OUTPUTS == 1:
+        if cfg.MODEL.NUM_OUTPUTS == 1:
             score = [score]
 
-        weights = config.LOSS.BALANCE_WEIGHTS
+        weights = cfg.LOSS.BALANCE_WEIGHTS
         assert len(weights) == len(score)
 
         functions = [self._ce_forward] * \

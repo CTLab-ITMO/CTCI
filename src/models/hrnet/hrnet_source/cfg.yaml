@@ -1,7 +1,7 @@
 MODEL:
   NAME: seg_hrnet_ocr
   NUM_OUTPUTS: 2
-  PRETRAINED: "../models/hrnet_ocr_cs_trainval_8227_torch11.pth"
+  PRETRAINED: "../checkpoints/hrnet_ocr_cs_trainval_8227_torch11.pth"
   ALIGN_CORNERS: True
   EXTRA:
     FINAL_CONV_KERNEL: 1
