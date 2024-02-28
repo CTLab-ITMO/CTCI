@@ -12,14 +12,14 @@ from src.features.segmentation.transformers_dataset import SegmentationDataset
 from src.models.train import TransformerTrainer
 
 
-def draw_results(model, image_processor):
+def draw_results(model, image_processor, device):
     image = Image.open(r"C:\Internship\ITMO_ML\CTCI\data\frame-0.png")
-    pixel_values = image_processor(image, return_tensors="pt").pixel_values.to(torch.get_device(model))
+    pixel_values = image_processor(image, return_tensors="pt").pixel_values.to(device)
     with torch.no_grad():
         outputs = model(pixel_values=pixel_values)
     predicted_segmentation_map = image_processor.post_process_semantic_segmentation(outputs, target_sizes=[image.size[::-1]])[0]
     predicted_segmentation_map = predicted_segmentation_map.cpu().numpy()
-    fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(27, 9))
+    fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(18, 9))
 
     ax[0].imshow(image)
     ax[1].imshow(predicted_segmentation_map, cmap="gray")
@@ -86,7 +86,7 @@ if __name__ == "__main__":
         history = trainer.train(
             train_dataloader=train_dataloader,
             val_dataloader=val_dataloader,
-            epoch_num=3
+            epoch_num=2
         )
 
         mlflow.set_tag('model', 'SegFormer-b2')
@@ -95,7 +95,7 @@ if __name__ == "__main__":
         mlflow.set_tag('train_dataset', 'Weakly segmented ..\\test')
         mlflow.set_tag('val_dataset', 'Weakly segmented ..\\val')
 
-        fig = draw_results(model, image_processor)
+        fig = draw_results(model, image_processor, device)
         mlflow.log_figure(fig, 'segformer-b2_results.png')
 
     torch.save(model.state_dict(), save_path)
