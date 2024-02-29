@@ -1,4 +1,6 @@
 import sys
+
+import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 
@@ -85,11 +87,11 @@ if __name__ == "__main__":
 
     mlflow.set_experiment(experiment_name="segformer")
     mlflow.autolog()
-    with mlflow.start_run(run_name="segformer-b1-test_trainer"):
+    with mlflow.start_run(run_name="segformer-b1-test_metrics"):
         history = trainer.train(
             train_dataloader=train_dataloader,
             val_dataloader=val_dataloader,
-            epoch_num=1
+            epoch_num=3
         )
 
         mlflow.set_tag('model', 'SegFormer-b1')
@@ -100,7 +102,7 @@ if __name__ == "__main__":
 
         fig = draw_results(model)
         mlflow.log_figure(fig, 'segformer-b1_results.png')
-
+        mlflow.log_metric("iou", np.mean(history["metric"]))
         mlflow.end_run()
 
     torch.save(model.state_dict(), save_path)

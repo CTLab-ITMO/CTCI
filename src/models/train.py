@@ -12,14 +12,16 @@ class Trainer:
             self,
             model,
             optimizer,
+            metric,
             device="cpu"
     ) -> None:
 
         self.model = model
         self.optim = optimizer
+        self.metric = metric
         self.device = device
 
-        self.history = {"train": [], "val": []}
+        self.history = {"train": [], "val": [], "metric": []}
 
     def _train_epoch(self, train_dataloader):
         train_batch_loss = []
@@ -40,6 +42,7 @@ class Trainer:
 
     def _val_epoch(self, val_dataloader):
         val_batch_loss = []
+        metric_batch = []
 
         self.model = self.model.to(self.device)
         self.model.eval()
@@ -47,10 +50,11 @@ class Trainer:
             inputs = inputs.to(self.device)
             target = target.to(self.device)
 
-            loss_val = self.model.train_on_batch(inputs, target)
+            loss_val, predicted = self.model.val_on_batch(inputs, target)
+            metric_batch.append(self.metric(target, predicted).item())
             val_batch_loss.append(loss_val.item())
 
-        return val_batch_loss
+        return val_batch_loss, metric_batch
     
     def run_adele(self, tr_dataloader):
         """
@@ -73,8 +77,6 @@ class Trainer:
             )
             data = convert_data_to_dict(names, new_labels)
             write_labels(data)
-            
-
 
     def train(self, train_dataloader, val_dataloader, epoch_num=5, use_adele=False, adele_dataloader=None):
         self.history = {"train": [], "val": []}
@@ -82,10 +84,11 @@ class Trainer:
             print(f"Epoch: {epoch}")
 
             train_batch_loss = self._train_epoch(train_dataloader)
-            val_batch_loss = self._val_epoch(val_dataloader)
+            val_batch_loss, metric_batch = self._val_epoch(val_dataloader)
 
             self.history["train"].append(np.mean(train_batch_loss))
             self.history["val"].append(np.mean(val_batch_loss))
+            self.history["metric"].append(np.mean(metric_batch))
 
             if use_adele:
                 self.run_adele(adele_dataloader)
