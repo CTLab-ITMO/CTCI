@@ -7,8 +7,8 @@ from bestconfig import Config
 
 config = Config("../src/models/hrnet/hrnet_source/cfg.yaml")
 
-class HRNet(nn.Module):
 
+class HRNet(nn.Module):
     def __init__(self, freeze_backbone=True):
         super().__init__()
 
@@ -32,7 +32,7 @@ class HRNet(nn.Module):
             if not name.startswith(keys):
                 param.requires_grad = False
 
-    def train_on_batch(self, images, target):
-        out = self.forward(images)
+    def train_on_batch(self, input, target):
+        out = self.forward(input)
         loss = self.calc_loss_fn(out, target)
         return loss

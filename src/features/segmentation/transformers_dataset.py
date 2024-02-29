@@ -56,4 +56,4 @@ class SegmentationDataset(Dataset):
         for k, v in encoded_inputs.items():
             encoded_inputs[k].squeeze_()
 
-        return encoded_inputs
+        return encoded_inputs["pixel_values"], encoded_inputs["labels"]
