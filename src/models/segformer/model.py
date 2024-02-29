@@ -9,6 +9,12 @@ class SegFormer(nn.Module):
         self.net = net.to(device)
         self.image_processor = image_processor
 
+    def _restore_image_from_logits(self, logits, size):
+        upsampled_logits = nn.functional.interpolate(logits, size=size, mode="bilinear",
+                                                     align_corners=False)
+        predicted_mask = upsampled_logits.argmax(dim=1)
+        return predicted_mask
+
     def forward(self, pixel_values, labels):
         out = self.net(pixel_values=pixel_values, labels=labels)
         return out
@@ -17,6 +23,13 @@ class SegFormer(nn.Module):
         outputs = self.forward(pixel_values, labels)
         loss = outputs.loss
         return loss
+
+    def val_on_batch(self, pixel_values, labels):
+        outputs = self.forward(pixel_values, labels)
+        logits, loss = outputs.logits, outputs.loss
+
+        predicted_mask = self._restore_image_from_logits(logits, labels.shape[-2:])
+        return loss, predicted_mask
 
     def predict(self, image):
         pixel_values = self.image_processor(image, return_tensors="pt").pixel_values

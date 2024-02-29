@@ -11,6 +11,7 @@ import mlflow
 from src.features.segmentation.transformers_dataset import SegmentationDataset
 from src.models.train import Trainer
 from src.models.segformer.model import SegFormer
+from src.models.metrics import IoUMetric
 
 
 def draw_results(model):
@@ -73,9 +74,12 @@ if __name__ == "__main__":
 
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
 
+    metric = IoUMetric().to(device)
+
     trainer = Trainer(
         model=model,
         optimizer=optimizer,
+        metric=metric,
         device=device
     )
 
