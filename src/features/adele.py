@@ -101,7 +101,15 @@ def correct_mask(batch, target, average, confidence_thresh=0.8):
         target : batch of target tensors
         average : tensor of averaged output from scaled prediction
         confidence_thresh (float, optional): average confidence threshold. Defaults to 0.8.
+    Returns:
+        torch.tensor: corrected labels
     """
     indices = average >= confidence_thresh
+    label = torch.argmax(average[indices])
+    new_target = []
     for b in batch:
-        target[b, indices] = torch.argmax(average[indices])
+       new_target.appned(
+           torch.where(indices, target[b], label)
+       )
+    new_target = torch.tensor(new_target)
+    return new_target
