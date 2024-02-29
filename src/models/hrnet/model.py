@@ -13,18 +13,21 @@ class HRNet(nn.Module):
         super().__init__()
 
         self.net = get_seg_model(config)
+        self.last_layer = nn.Sigmoid()
         self.loss_fn = CrossEntropy()
 
         if freeze_backbone:
             self.freeze_backbone()
 
     def forward(self, x):
-        out = self.net(x)
-        return out
+        out_aux, out = self.net(x)
+
+        out_aux = self.last_layer(out_aux)
+        out = self.last_layer(out)
+        return [out_aux, out]
     
     def predict(self, x):
-        #TODO: redo
-        out = self.net(x)
+        _, out = self.net(x)
         return out
 
     def calc_loss_fn(self, output, target):
@@ -41,3 +44,10 @@ class HRNet(nn.Module):
         out = self.forward(input)
         loss = self.calc_loss_fn(out, target)
         return loss
+    
+    def val_on_batch(self, image, target):
+        out = self.forward(image)
+        loss = self.calc_loss_fn(out, target)
+        predicted_mask = out[1]
+
+        return loss, predicted_mask
