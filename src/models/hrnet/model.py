@@ -21,6 +21,11 @@ class HRNet(nn.Module):
     def forward(self, x):
         out = self.net(x)
         return out
+    
+    def predict(self, x):
+        #TODO: redo
+        out = self.net(x)
+        return out
 
     def calc_loss_fn(self, output, target):
         # badly written code just to start training
