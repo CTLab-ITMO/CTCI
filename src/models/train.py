@@ -22,7 +22,7 @@ class Trainer:
         self.device = device
 
         self.history = {"train": [], "val": []}
-        self.metrics_num = dict.fromkeys(self.metrics.keys(), [])
+        self.metrics_num = {k: [] for k in self.metrics.keys()}
 
     def _train_epoch(self, train_dataloader):
         train_batch_loss = []
@@ -43,7 +43,7 @@ class Trainer:
 
     def _val_epoch(self, val_dataloader):
         val_batch_loss = []
-        metrics_batch_num = dict.fromkeys(self.metrics.keys(), [])
+        metrics_batch_num = {k: [] for k in self.metrics.keys()}
 
         self.model = self.model.to(self.device)
         self.model.eval()
@@ -53,8 +53,9 @@ class Trainer:
 
             loss_val, predicted = self.model.val_on_batch(inputs, target)
 
-            for metric_name, metric_history in metrics_batch_num.items():
-                metric_history.append(self.metrics[metric_name](target, predicted).item())
+            for metric_name, _ in metrics_batch_num.items():
+                metric_tensor = self.metrics[metric_name](target, predicted)
+                metrics_batch_num[metric_name].append(metric_tensor.item())
             val_batch_loss.append(loss_val.item())
 
         return val_batch_loss, metrics_batch_num

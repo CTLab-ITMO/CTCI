@@ -86,6 +86,7 @@ class Recall(nn.Module):
 
         return recall
 
+
 class MAP(nn.Module):
     """
     Metric for binary segmentation
