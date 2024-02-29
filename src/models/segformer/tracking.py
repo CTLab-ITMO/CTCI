@@ -13,11 +13,11 @@ import mlflow
 from src.features.segmentation.transformers_dataset import SegmentationDataset
 from src.models.train import Trainer
 from src.models.segformer.model import SegFormer
-from src.models.metrics import IoUMetric
+from src.models.metrics import IoUMetric, DiceMetric, Accuracy, Precision, Recall
 
 
 def draw_results(model):
-    image = Image.open(r"C:\Internship\ITMO_ML\CTCI\data\frame-0.png")
+    image = Image.open(r"C:\Internship\ITMO_ML\CTCI\data\test_data\bubbles\frame-4.png")
     predicted_segmentation_map = model.predict(image)
     predicted_segmentation_map = predicted_segmentation_map.cpu().numpy()
     fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(18, 9))
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     val_masks_dir = sys.argv[4]
     save_path = sys.argv[5]
 
-    train_batch_size = 6
+    train_batch_size = 8
     val_batch_size = 4
     pin_memory = True
     num_workers = 4
@@ -74,35 +74,42 @@ if __name__ == "__main__":
 
     model = SegFormer(net=net, image_processor=image_processor, device=device)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
 
-    metric = IoUMetric().to(device)
+    metrics = {
+        "iou": IoUMetric().to(device),
+        "dice": DiceMetric().to(device),
+        "accuracy": Accuracy().to(device),
+        "precision": Precision().to(device),
+        "recall": Recall().to(device)
+    }
 
     trainer = Trainer(
         model=model,
         optimizer=optimizer,
-        metric=metric,
+        metrics=metrics,
         device=device
     )
 
-    mlflow.set_experiment(experiment_name="segformer")
+    mlflow.set_experiment(experiment_name="segformer-test")
     mlflow.autolog()
     with mlflow.start_run(run_name="segformer-b1-test_metrics"):
-        history = trainer.train(
+        history, metrics_num = trainer.train(
             train_dataloader=train_dataloader,
             val_dataloader=val_dataloader,
-            epoch_num=3
+            epoch_num=2
         )
 
         mlflow.set_tag('model', 'SegFormer-b1')
-        mlflow.set_tag('device', 'cuda')
+        mlflow.set_tag('device', str(device))
         mlflow.set_tag('augmentation', 'None')
-        mlflow.set_tag('train_dataset', 'Weakly segmented ..\\test')
-        mlflow.set_tag('val_dataset', 'Weakly segmented ..\\val')
+        mlflow.set_tag('train_dataset', 'Weakly segmented ..\\train')
+        mlflow.set_tag('val_dataset', 'Weakly segmented ..\\test')
 
         fig = draw_results(model)
         mlflow.log_figure(fig, 'segformer-b1_results.png')
-        mlflow.log_metric("iou", np.mean(history["metric"]))
+        for metric_name, metric_history in metrics_num.items():
+            mlflow.log_metric(metric_name, metric_history[-1])
         mlflow.end_run()
 
     torch.save(model.state_dict(), save_path)
