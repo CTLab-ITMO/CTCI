@@ -3,6 +3,8 @@ import numpy as np
 from tqdm import tqdm
 from torch.optim import Adam
 import torch.nn as nn
+from src.features.adele import correct_mask, predict_average_on_scales
+from src.features.adele_utils import create_labels_artifact, convert_data_to_dict, write_labels
 
 
 class Trainer:
@@ -49,8 +51,30 @@ class Trainer:
             val_batch_loss.append(loss_val.item())
 
         return val_batch_loss
+    
+    def run_adele(self, tr_dataloader):
+        """
+        NO AUGMENTATIONS DATALOADER FOR ADELE!!!!!!!
+        """
+        create_labels_artifact()
 
-    def train(self, train_dataloader, val_dataloader, epoch_num=5):
+        for images, target, names in tr_dataloader:
+            average = predict_average_on_scales(
+                model=self.model,
+                batch=images,
+                scales=[0.75, 1, 1.25]
+            )
+            new_labels = correct_mask(
+                batch=images,
+                target=target,
+                average=average
+            )
+            data = convert_data_to_dict(names, new_labels)
+            write_labels(data)
+            
+
+
+    def train(self, train_dataloader, val_dataloader, epoch_num=5, use_adele=False, adele_dataloader=None):
         self.history = {"train": [], "val": []}
         for epoch in range(epoch_num):
             print(f"Epoch: {epoch}")
@@ -59,5 +83,8 @@ class Trainer:
 
             self.history["train"].append(np.mean(train_batch_loss))
             self.history["val"].append(np.mean(val_batch_loss))
+
+            if use_adele:
+                self.run_adele(adele_dataloader)
 
         return self.history

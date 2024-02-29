@@ -15,6 +15,7 @@ def convert_data_to_dict(filenames, labels):
     data = {}
     for name, label in zip(filenames, labels):
         data[name] = label
+    return data
 
 
 def write_labels(data: dict, path = artifact_path):

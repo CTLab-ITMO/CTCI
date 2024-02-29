@@ -5,7 +5,7 @@ import torch
 from torch.utils.data import Dataset
 from torchvision.transforms import ToTensor
 
-from src.features.adele_utils import read_labels
+from src.features.adele_utils import read_label
 
 class SegmentationDataset(Dataset):
     """
@@ -29,7 +29,8 @@ class SegmentationDataset(Dataset):
             masks_dir: str,
             image_transform=None,
             mask_transform=None,
-            use_adele=False
+            use_adele=False,
+            return_names=False
     ):
         super().__init__()
 
@@ -44,6 +45,7 @@ class SegmentationDataset(Dataset):
         self.masks_list = os.listdir(self.masks_dir)
 
         self.use_adele = use_adele
+        self.return_names = return_names
 
         assert len(self.images_list) == len(self.masks_list), "some images or masks are missing"
 
@@ -53,7 +55,7 @@ class SegmentationDataset(Dataset):
         mask = cv2.imread(osp.join(self.masks_dir, image_name), cv2.IMREAD_GRAYSCALE)
 
         if self.use_adele:
-            corrected = read_labels(image_name)
+            corrected = read_label(image_name)
             mask = mask + corrected
 
         image = self.toten(image)
@@ -69,6 +71,9 @@ class SegmentationDataset(Dataset):
 
         if self.mask_transform:
             mask = self.mask_transform(mask)
+
+        if self.return_names:
+            return image, mask, self.images_list[idx]
 
         return image, mask
     
