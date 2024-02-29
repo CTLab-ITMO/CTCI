@@ -5,7 +5,7 @@ import torch
 from torch.utils.data import Dataset
 from torchvision.transforms import ToTensor
 
-from adele_utils import read_labels
+from src.features.adele_utils import read_labels
 
 class SegmentationDataset(Dataset):
     """
