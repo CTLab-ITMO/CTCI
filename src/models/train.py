@@ -12,13 +12,11 @@ class Trainer:
             self,
             model,
             optimizer,
-            metric,
             device="cpu"
     ) -> None:
 
         self.model = model
         self.optim = optimizer
-        self.metric = metric
         self.device = device
 
         self.history = {"train": [], "val": []}
@@ -42,7 +40,6 @@ class Trainer:
 
     def _val_epoch(self, val_dataloader):
         val_batch_loss = []
-        metric_batch = []
 
         self.model = self.model.to(self.device)
         self.model.eval()
@@ -50,44 +47,48 @@ class Trainer:
             inputs = inputs.to(self.device)
             target = target.to(self.device)
 
-            loss_val, predicted = self.model.val_on_batch(inputs, target)
-            metric_batch.append(self.metric(target, predicted).item())
+            loss_val = self.model.train_on_batch(inputs, target)
             val_batch_loss.append(loss_val.item())
 
-        return val_batch_loss, metric_batch
+        return val_batch_loss
     
     def run_adele(self, tr_dataloader):
         """
         NO AUGMENTATIONS DATALOADER FOR ADELE!!!!!!!
         """
+        print("running adele correction")
         create_labels_artifact()
 
-        for images, target, names in tr_dataloader:
+        for images, target, names in tqdm(tr_dataloader):
+            self.model.to(self.device)
+            images, target = images.to(self.device), target.to(self.device)
             average = predict_average_on_scales(
                 model=self.model,
                 batch=images,
                 scales=[0.75, 1, 1.25]
             )
             new_labels = correct_mask(
-                batch=images,
                 target=target,
                 average=average
             )
             data = convert_data_to_dict(names, new_labels)
             write_labels(data)
+            
+
 
     def train(self, train_dataloader, val_dataloader, epoch_num=5, use_adele=False, adele_dataloader=None):
-        self.history = {"train": [], "val": [], "metric": []}
+        self.history = {"train": [], "val": []}
         for epoch in range(epoch_num):
             print(f"Epoch: {epoch}")
+
             train_batch_loss = self._train_epoch(train_dataloader)
-            val_batch_loss, metric_batch = self._val_epoch(val_dataloader)
+            val_batch_loss = self._val_epoch(val_dataloader)
 
             self.history["train"].append(np.mean(train_batch_loss))
             self.history["val"].append(np.mean(val_batch_loss))
-            self.history["metric"].append(np.mean(metric_batch))
 
             if use_adele:
                 self.run_adele(adele_dataloader)
+                train_dataloader.dataset.use_adele=True
 
         return self.history

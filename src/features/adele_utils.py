@@ -1,6 +1,8 @@
 import os.path as osp
 import json
 
+import numpy as np
+
 
 artifact_path = '../data/temp/_label_corrections.json'
 
@@ -27,4 +29,5 @@ def read_label(filename, path=artifact_path):
     with open(path, "r") as f:
         data = json.load(f)
         label = data[filename]
+        label = np.array(label)
     return label

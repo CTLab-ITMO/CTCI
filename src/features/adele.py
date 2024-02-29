@@ -40,19 +40,21 @@ def if_update(first, last, thresh=0.9):
     return _count_iou_slope(first=first, last=last) > thresh
 
 
-def _interpolate_img(image, scale):
+def _interpolate_img(image, scale=None, size=None):
     """
     wrapper for interpolating image
 
     Args:
         image : input images
         scale : scale value
+        size : tuple to resize to
 
     Returns:
         torch.tensor: interpolated image
     """
-    _, _, h, w = image.shape()
-    return F.interpolate(image, [h*scale, w*scale], mode='bilinear', align_corners=True)
+    if scale:
+        return F.interpolate(image, scale_factor=scale, mode='bilinear', align_corners=True)
+    return F.interpolate(image, size=size, mode='bilinear', align_corners=True)
 
 
 def _predict_on_scale(model, image, scale):
@@ -67,9 +69,10 @@ def _predict_on_scale(model, image, scale):
     Returns:
         torch.tensor: predicted output
     """
+    _, _, h, w = image.size()
     scaled = _interpolate_img(image, scale)
-    res = model(scaled)
-    out = _interpolate_img(res, 1/scale)
+    res = model.predict(scaled)
+    out = _interpolate_img(res, size=(h,w))
     return out
 
 
@@ -88,16 +91,15 @@ def predict_average_on_scales(model, batch, scales):
     preds = []
     for s in scales:
         preds.append(_predict_on_scale(model, batch, s))
-    preds = torch.tensor(preds, dtype=torch.float)
+    preds = torch.stack(preds)
     return torch.mean(preds, dim=0).squeeze(0)
 
 
-def correct_mask(batch, target, average, confidence_thresh=0.8):
+def correct_mask(target, average, confidence_thresh=0.8):
     """
     mask correction method
 
     Args:
-        batch : batch size
         target : batch of target tensors
         average : tensor of averaged output from scaled prediction
         confidence_thresh (float, optional): average confidence threshold. Defaults to 0.8.
@@ -105,11 +107,12 @@ def correct_mask(batch, target, average, confidence_thresh=0.8):
         torch.tensor: corrected labels
     """
     indices = average >= confidence_thresh
-    label = torch.argmax(average[indices])
     new_target = []
-    for b in batch:
-       new_target.appned(
-           torch.where(indices, target[b], label)
+    for t, i, a in zip(target, indices, average):
+       masked = a * i.int().float()
+       label = torch.argmax(masked, dim=0, keepdim=True).float()
+       new_target.append(
+           torch.where(i, t, label)
        )
-    new_target = torch.tensor(new_target)
+    new_target = torch.stack(new_target)
     return new_target
