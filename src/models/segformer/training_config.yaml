@@ -1,12 +1,12 @@
 random_state: 239
 
 dataset:
-  training_datasets:
-    - "/path/to/training_dataset_1"
-  validation_datasets:
-    - "/path/to/validation_dataset"
-  test_datasets:
-    - "/path/to/test_dataset"
+  training_dataset_dirs:
+    - '.\data\weakly_segmented\bubbles_split\test'
+  validation_dataset_dirs:
+    - '.\data\weakly_segmented\bubbles_split\valid'
+  test_dataset_dirs:
+    - '.\data\weakly_segmented\bubbles_split\train'
   image_size:
     width: 256
     height: 256
@@ -19,9 +19,14 @@ dataloader:
   num_workers: 4
 
 model:
-  model_name: "segformer"
-  model_type: "b1"
-  device: "cuda"
+  model_name: 'segformer'
+  model_type: 'b1'
+  device: 'cuda'
+  save_dir: '.\checkpoints\segformer\segformer_b1\run1'
+
+training:
+  adele: False
+  epoch_num: 1
 
 optimizer:
   name: "AdamW"
@@ -35,6 +40,6 @@ mlflow:
 
 history:
   draw_plots: True
-  draw_results: True
+  draw_result: True
   plots_figure_name: "output.png"
   results_figure_name: "results.png"

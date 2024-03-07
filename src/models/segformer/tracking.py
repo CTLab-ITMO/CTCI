@@ -1,115 +1,37 @@
 import sys
+import os.path as osp
 
-import numpy as np
-from PIL import Image
-import matplotlib.pyplot as plt
-
-import torch
 import transformers
-from torch.utils.data import DataLoader
-
-import mlflow
 
 from src.features.segmentation.transformers_dataset import SegmentationDataset
-from src.models.train import Trainer
 from src.models.segformer.model import SegFormer
-from src.models.metrics import IoUMetric, DiceMetric, Accuracy, Precision, Recall
-
-
-def draw_results(model):
-    image = Image.open(r"C:\Internship\ITMO_ML\CTCI\data\test_data\bubbles\frame-4.png")
-    predicted_segmentation_map = model.predict(image)
-    predicted_segmentation_map = predicted_segmentation_map.cpu().numpy()
-    fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(18, 9))
-
-    ax[0].imshow(image)
-    ax[1].imshow(predicted_segmentation_map, cmap="gray")
-    plt.show()
-    return fig
+from src.models.tracking import tracking_experiment
+from src.models.utils.config import read_yaml_config
 
 
 if __name__ == "__main__":
-    train_images_dir = sys.argv[1]
-    train_masks_dir = sys.argv[2]
-    val_images_dir = sys.argv[3]
-    val_masks_dir = sys.argv[4]
-    save_path = sys.argv[5]
+    config_path = sys.argv[1]
+    config_data = read_yaml_config(config_path)
 
-    train_batch_size = 8
-    val_batch_size = 4
-    pin_memory = True
-    num_workers = 4
-
-    image_processor = transformers.SegformerImageProcessor(size={"width": 256, "height": 256})
+    image_processor = transformers.SegformerImageProcessor()
+    net = transformers.SegformerForSemanticSegmentation.from_pretrained(
+        f"nvidia/{config_data['model']['model_name']}-{config_data['model']['model_type']}-finetuned-ade-512-512"
+    )
+    model = SegFormer(net=net, image_processor=image_processor)
 
     train_dataset = SegmentationDataset(
-        images_dir=train_images_dir,
-        masks_dir=train_masks_dir,
-        image_processor=image_processor
+        images_dir=osp.join(config_data['dataset']['training_dataset_dirs'][0], "images"),
+        masks_dir=osp.join(config_data['dataset']['training_dataset_dirs'][0], "masks")
     )
-
     val_dataset = SegmentationDataset(
-        images_dir=val_images_dir,
-        masks_dir=val_masks_dir,
-        image_processor=image_processor
+        images_dir=osp.join(config_data['dataset']['validation_dataset_dirs'][0], "images"),
+        masks_dir=osp.join(config_data['dataset']['validation_dataset_dirs'][0], "masks")
     )
 
-    train_dataloader = DataLoader(
-        train_dataset, batch_size=train_batch_size, shuffle=True,
-        pin_memory=pin_memory, num_workers=num_workers
-    )
-    val_dataloader = DataLoader(
-        val_dataset, batch_size=val_batch_size,
-        pin_memory=pin_memory, num_workers=num_workers
+    tracking_experiment(
+        model,
+        train_dataset, val_dataset,
+        config_data,
+        experiment_name="segformer-test"
     )
 
-    net = transformers.SegformerForSemanticSegmentation.from_pretrained(
-        "nvidia/segformer-b1-finetuned-ade-512-512"
-    )
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    torch.cuda.empty_cache()
-    torch.backends.cuda.matmul.allow_tf32 = False
-    torch.backends.cudnn.benchmark = True
-
-    model = SegFormer(net=net, image_processor=image_processor, device=device)
-
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
-
-    metrics = {
-        "iou": IoUMetric().to(device),
-        "dice": DiceMetric().to(device),
-        "accuracy": Accuracy().to(device),
-        "precision": Precision().to(device),
-        "recall": Recall().to(device)
-    }
-
-    trainer = Trainer(
-        model=model,
-        optimizer=optimizer,
-        metrics=metrics,
-        device=device
-    )
-
-    mlflow.set_experiment(experiment_name="segformer-test")
-    mlflow.autolog()
-    with mlflow.start_run(run_name="segformer-b1-test_metrics"):
-        history, metrics_num = trainer.train(
-            train_dataloader=train_dataloader,
-            val_dataloader=val_dataloader,
-            epoch_num=2
-        )
-
-        mlflow.set_tag('model', 'SegFormer-b1')
-        mlflow.set_tag('device', str(device))
-        mlflow.set_tag('augmentation', 'None')
-        mlflow.set_tag('train_dataset', 'Weakly segmented ..\\train')
-        mlflow.set_tag('val_dataset', 'Weakly segmented ..\\test')
-
-        fig = draw_results(model)
-        mlflow.log_figure(fig, 'segformer-b1_results.png')
-        for metric_name, metric_history in metrics_num.items():
-            mlflow.log_metric(metric_name, metric_history[-1])
-        mlflow.end_run()
-
-    torch.save(model.state_dict(), save_path)
