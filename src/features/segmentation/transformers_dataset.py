@@ -7,8 +7,6 @@ from torch.utils.data import Dataset
 
 
 class SegmentationDataset(Dataset):
-    def __len__(self):
-        return len(self.images_list)
 
     def __init__(
             self,
@@ -42,6 +40,9 @@ class SegmentationDataset(Dataset):
         mask = torch.from_numpy(mask) / 255
 
         return image, mask
+
+    def __len__(self):
+        return len(self.images_list)
 
     def __getitem__(self, idx):
         image, mask = self._read_image_and_mask(self.images_list[idx])
