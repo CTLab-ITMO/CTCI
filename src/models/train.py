@@ -83,7 +83,7 @@ class Trainer:
             write_labels(data)
 
     def train(self, train_dataloader, val_dataloader, epoch_num=5, use_adele=False, adele_dataloader=None):
-        self.history = {"train": [], "val": [], "metric": []}
+        self.history = {"train": [], "val": []}
         for epoch in range(epoch_num):
             print(f"Epoch: {epoch}")
 

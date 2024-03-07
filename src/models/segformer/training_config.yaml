@@ -2,11 +2,11 @@ random_state: 239
 
 dataset:
   training_dataset_dirs:
-    - '.\data\weakly_segmented\bubbles_split\test'
+    - '..\data\weakly_segmented\bubbles_split\test'
   validation_dataset_dirs:
-    - '.\data\weakly_segmented\bubbles_split\valid'
+    - '..\data\weakly_segmented\bubbles_split\valid'
   test_dataset_dirs:
-    - '.\data\weakly_segmented\bubbles_split\train'
+    - '..\data\weakly_segmented\bubbles_split\train'
   image_size:
     width: 256
     height: 256
@@ -26,7 +26,7 @@ model:
 
 training:
   adele: False
-  epoch_num: 1
+  epoch_num: 4
 
 optimizer:
   name: "AdamW"

@@ -1,3 +1,4 @@
+import os
 import os.path as osp
 from PIL import Image
 import matplotlib.pyplot as plt
@@ -11,15 +12,47 @@ from src.models.metrics import Recall, Precision, Accuracy, DiceMetric, IoUMetri
 from src.models.train import Trainer
 
 
-def draw_results(model):
-    image = Image.open(r"C:\Internship\ITMO_ML\CTCI\data\test_data\bubbles\frame-4.png")
-    predicted_segmentation_map = model.predict(image)
-    predicted_segmentation_map = predicted_segmentation_map.cpu().numpy()
+def draw_results(model, show_plot=False):
+    images_dir = '.\\data\\test_data\\bubbles'
+    images_list = os.listdir(images_dir)
+    figs = {image_name: [] for image_name in images_list}
+    for image_name in images_list:
+        image = Image.open(os.path.join(images_dir, image_name))
+        predicted_segmentation_map = model.predict(image)
+        predicted_segmentation_map = predicted_segmentation_map.cpu().numpy()
+        fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(18, 9))
+
+        ax[0].imshow(image)
+        ax[1].imshow(predicted_segmentation_map, cmap="gray")
+        figs[image_name] = fig
+        if show_plot:
+            plt.show()
+    return figs
+
+
+def draw_history(history, metrics_num, show_plot=False):
+    width = 12
     fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(18, 9))
 
-    ax[0].imshow(image)
-    ax[1].imshow(predicted_segmentation_map, cmap="gray")
-    plt.show()
+    ax[0].plot(range(len(history['train'])), history['train'], label="train", width=width)
+    ax[0].plot(range(len(history['val'])), history['val'], 'r--', label="val", width=width)
+    ax[0].set_xlabel("epochs")
+    ax[0].set_title("history")
+    ax[0].tick_params(axis='both', which='major')
+    ax[0].tick_params(axis='both', which='minor')
+    ax[0].grid(True)
+    ax[0].legend()
+
+    for i, (metric_name, metric_value) in enumerate(metrics_num.items()):
+        ax[1].plot(range(len(metric_value)), metric_value, label=metric_name, width=width)
+    ax[1].set_xlabel("epochs")
+    ax[1].set_title("metrics")
+    ax[1].tick_params(axis='both', which='major')
+    ax[1].tick_params(axis='both', which='minor')
+    ax[1].grid(True)
+    ax[1].legend()
+    if show_plot:
+        plt.show()
     return fig
 
 
@@ -67,18 +100,21 @@ def tracking_run(
         mlflow.log_param("lr", optimizer_lr)
 
         if draw_result:
-            results_fig = draw_results(trainer.model)
-            mlflow.log_figure(results_fig, results_figure_name)
-            plt.savefig(osp.join(model_save_dir, results_figure_name))
+            results_figs = draw_results(trainer.model)
+            for image_name, results_fig in results_figs.items():
+                mlflow.log_figure(results_fig, f"{image_name}_{results_figure_name}")
+                results_fig.savefig(osp.join(model_save_dir, f"{image_name}_{results_figure_name}"))
 
         for metric_name, metric_history in metrics_num.items():
             mlflow.log_metric(metric_name, metric_history[-1])
 
         if draw_plots:
-            pass  # TODO: draw, log and save metrics and loss plots
-
+            history_fig = draw_history(history=history, metrics_num=metrics_num)
+            mlflow.log_figure(history_fig, plots_figure_name)
+            history_fig.savefig(osp.join(model_save_dir, plots_figure_name))
         mlflow.end_run()
 
+    # TODO: автоматически создавать папку run'а, если такая (пустая) отсутствует, иначе создавать папку с новым номером
     torch.save(trainer.model.state_dict(), osp.join(model_save_dir, "last.pt"))
 
 
