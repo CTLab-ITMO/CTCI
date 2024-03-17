@@ -87,10 +87,7 @@ def tracking_run(
     if run_name == 'None':
         run_name = f"{model_name}-{model_type}"
     if model_save_dir == 'None':
-        directory = f".\\checkpoints\\{experiment_name}"
-        if not check_dir(directory):
-            create_folder(directory)
-        model_save_dir = create_run_folder(directory)
+        model_save_dir = trainer.save_dir
 
     mlflow.autolog()
     with mlflow.start_run(run_name=run_name):
@@ -177,10 +174,18 @@ def tracking_experiment(
         "recall": Recall().to(device)
     }
 
+    model_save_dir = config_data['model']['save_dir']
+    if model_save_dir == 'None':
+        directory = f".\\checkpoints\\{experiment_name}"
+        if not check_dir(directory):
+            create_folder(directory)
+        model_save_dir = create_run_folder(directory)
+
     trainer = Trainer(
         model=model,
         optimizer=optimizer,
         metrics=metrics,
+        save_dir=model_save_dir,
         device=device
     )
 
