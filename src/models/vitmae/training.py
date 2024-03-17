@@ -9,10 +9,6 @@ from transformers import ViTMAEForPreTraining, AutoImageProcessor
 from src.features.vitmae.dataset import init_pretext_datasets, init_dataloaders
 
 
-def save_model(model, path):
-    torch.save(model.state_dict(), path)
-
-
 def pretext_task_train(
         model, optimizer,
         train_dataloder, val_dataloader,
