@@ -8,10 +8,12 @@ import torch
 import mlflow
 from torch.utils.data import DataLoader
 
+from src.models.utils.dirs import save_model, check_dir, create_folder, create_run_folder
 from src.models.metrics import Recall, Precision, Accuracy, DiceMetric, IoUMetric
 from src.models.train import Trainer
 
 
+# TODO: refactor me
 def draw_results(model, show_plot=False):
     images_dir = '.\\data\\test_data\\bubbles'
     images_list = os.listdir(images_dir)
@@ -30,12 +32,13 @@ def draw_results(model, show_plot=False):
     return figs
 
 
-def draw_history(history, metrics_num, show_plot=False):
-    width = 12
+# TODO: refactor me
+def draw_history(history, metrics_num, show_plot=False, width=8, fontsize=20):
+    # TODO: set fontsize
     fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(18, 9))
 
-    ax[0].plot(range(len(history['train'])), history['train'], label="train", width=width)
-    ax[0].plot(range(len(history['val'])), history['val'], 'r--', label="val", width=width)
+    ax[0].plot(range(len(history['train'])), history['train'], label="train", linewidth=width)
+    ax[0].plot(range(len(history['val'])), history['val'], 'r--', label="val", linewidth=width)
     ax[0].set_xlabel("epochs")
     ax[0].set_title("history")
     ax[0].tick_params(axis='both', which='major')
@@ -44,7 +47,7 @@ def draw_history(history, metrics_num, show_plot=False):
     ax[0].legend()
 
     for i, (metric_name, metric_value) in enumerate(metrics_num.items()):
-        ax[1].plot(range(len(metric_value)), metric_value, label=metric_name, width=width)
+        ax[1].plot(range(len(metric_value)), metric_value, label=metric_name, linewidth=width)
     ax[1].set_xlabel("epochs")
     ax[1].set_title("metrics")
     ax[1].tick_params(axis='both', which='major')
@@ -79,15 +82,23 @@ def tracking_run(
     plots_figure_name = config_data['history']['plots_figure_name']
     results_figure_name = config_data['history']['results_figure_name']
 
-    if run_name is None:
+    experiment_name = config_data["mlflow"]["experiment_name"]
+
+    if run_name == 'None':
         run_name = f"{model_name}-{model_type}"
+    if model_save_dir == 'None':
+        directory = f".\\checkpoints\\{experiment_name}"
+        if not check_dir(directory):
+            create_folder(directory)
+        model_save_dir = create_run_folder(directory)
 
     mlflow.autolog()
     with mlflow.start_run(run_name=run_name):
         history, metrics_num = trainer.train(
             train_dataloader=train_dataloader,
             val_dataloader=val_dataloader,
-            epoch_num=epoch_num
+            epoch_num=epoch_num,
+            use_adele=adele
         )
 
         mlflow.set_tag("model", f"{model_name}-{model_type}")
@@ -114,9 +125,6 @@ def tracking_run(
             history_fig.savefig(osp.join(model_save_dir, plots_figure_name))
         mlflow.end_run()
 
-    # TODO: автоматически создавать папку run'а, если такая (пустая) отсутствует, иначе создавать папку с новым номером
-    torch.save(trainer.model.state_dict(), osp.join(model_save_dir, "last.pt"))
-
 
 def tracking_experiment(
         model,
@@ -124,7 +132,7 @@ def tracking_experiment(
         config_data,
         experiment_name="experiment"
 ):
-    # TODO: возобновляемость экспериментов
+    # TODO: воспроизводимость экспериментов
     random_state = config_data['random_state']
 
     image_size = config_data['dataset']['image_size']
@@ -177,6 +185,7 @@ def tracking_experiment(
     )
 
     mlflow.set_experiment(experiment_name=experiment_name)
+    config_data["mlflow"]["experiment_name"] = experiment_name
     tracking_run(
         trainer=trainer,
         train_dataloader=train_dataloader, val_dataloader=val_dataloader,

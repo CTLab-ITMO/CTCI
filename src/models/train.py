@@ -1,8 +1,7 @@
 import torch
 import numpy as np
 from tqdm import tqdm
-from torch.optim import Adam
-import torch.nn as nn
+from src.models.utils.dirs import save_model
 from src.features.adele import correct_mask, predict_average_on_scales
 from src.features.adele_utils import create_labels_artifact, convert_data_to_dict, write_labels
 
@@ -13,12 +12,16 @@ class Trainer:
             model,
             optimizer,
             metrics,
+            save_dir=None,
+            main_metric_name="iou",
             device="cpu"
     ) -> None:
 
         self.model = model
         self.optim = optimizer
         self.metrics = metrics
+        self.save_dir = save_dir
+        self.main_metric_name = main_metric_name
         self.device = device
 
         self.history = {"train": [], "val": []}
@@ -85,7 +88,7 @@ class Trainer:
     def train(self, train_dataloader, val_dataloader, epoch_num=5, use_adele=False, adele_dataloader=None):
         self.history = {"train": [], "val": []}
         for epoch in range(epoch_num):
-            print(f"Epoch: {epoch}")
+            print(f"\nEpoch: {epoch}")
 
             train_batch_loss = self._train_epoch(train_dataloader)
             val_batch_loss, metrics_batch_num = self._val_epoch(val_dataloader)
@@ -94,10 +97,14 @@ class Trainer:
             self.history["val"].append(np.mean(val_batch_loss))
 
             for metric_name, metric_history in metrics_batch_num.items():
-                self.metrics_num[metric_name].append(np.mean(metric_history))
+                metric_num = np.mean(metric_history)
+                if (epoch_num == 1) or (metric_name == self.main_metric_name and metric_num >= max(self.metrics_num[metric_name])):
+                    save_model(self.model, self.save_dir, "best.pt")
+                self.metrics_num[metric_name].append(metric_num)
 
             if use_adele:
                 self.run_adele(adele_dataloader)
                 train_dataloader.dataset.use_adele = True
 
+        save_model(self.model, self.save_dir, "last.pt")
         return self.history, self.metrics_num
