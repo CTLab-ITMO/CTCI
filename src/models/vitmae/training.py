@@ -61,7 +61,7 @@ def pretext_task_train(
         print(f"Epoch val loss: {epoch_val_loss}\n")
         history["val_epoch"].append(epoch_val_loss)
 
-        save_model(model.to("cpu"), path=os.path.join(save_dir, f"epoch_{epoch + 1}.pt"))
+        # save_model(model.to("cpu"), path=os.path.join(save_dir, f"epoch_{epoch + 1}.pt"))
 
     return history
 
@@ -118,7 +118,7 @@ def downstream_task_train(
         print(f"Epoch val loss: {epoch_val_loss}\n")
         history["val_epoch"].append(epoch_val_loss)
 
-        save_model(model.to("cpu"), path=os.path.join(save_dir, f"epoch_{epoch + 1}.pt"))
+        # save_model(model.to("cpu"), path=os.path.join(save_dir, f"epoch_{epoch + 1}.pt"))
 
     return history
 
