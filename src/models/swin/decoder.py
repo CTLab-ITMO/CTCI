@@ -62,7 +62,7 @@ class RepresentationBlock(nn.Module):
                 [
                     DeconvBlock(out_c, out_c),
                     ResBlock(out_c, out_c)
-                ] * num_layers
+                ]  for _ in range(num_layers)
             )
         else:
             self.blocks = nn.ModuleList(
