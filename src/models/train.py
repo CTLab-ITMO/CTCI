@@ -12,16 +12,16 @@ class Trainer:
             model,
             optimizer,
             metrics,
-            save_dir=None,
             main_metric_name="iou",
+            save_dir=None,
             device="cpu"
     ) -> None:
 
         self.model = model
         self.optim = optimizer
         self.metrics = metrics
-        self.save_dir = save_dir
         self.main_metric_name = main_metric_name
+        self.save_dir = save_dir
         self.device = device
 
         self.history = {"train": [], "val": []}

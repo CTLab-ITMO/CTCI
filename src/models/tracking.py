@@ -8,7 +8,7 @@ import torch
 import mlflow
 from torch.utils.data import DataLoader
 
-from src.models.utils.dirs import save_model, check_dir, create_folder, create_run_folder
+from src.models.utils.dirs import check_dir, create_folder, create_run_folder
 from src.models.metrics import Recall, Precision, Accuracy, DiceMetric, IoUMetric
 from src.models.train import Trainer
 
@@ -34,26 +34,34 @@ def draw_results(model, show_plot=False):
 
 # TODO: refactor me
 def draw_history(history, metrics_num, show_plot=False, width=8, fontsize=20):
-    # TODO: set fontsize
     fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(18, 9))
-
-    ax[0].plot(range(len(history['train'])), history['train'], label="train", linewidth=width)
-    ax[0].plot(range(len(history['val'])), history['val'], 'r--', label="val", linewidth=width)
+    
+    ax[0].plot(
+        range(len(history['train'])), history['train'],
+        label="train", linewidth=width
+    )
+    ax[0].plot(
+        range(len(history['val'])), history['val'], 'r--',
+        label="val", linewidth=width
+    )
     ax[0].set_xlabel("epochs")
     ax[0].set_title("history")
     ax[0].tick_params(axis='both', which='major')
     ax[0].tick_params(axis='both', which='minor')
     ax[0].grid(True)
-    ax[0].legend()
+    ax[0].legend(fontsize=fontsize)
 
     for i, (metric_name, metric_value) in enumerate(metrics_num.items()):
-        ax[1].plot(range(len(metric_value)), metric_value, label=metric_name, linewidth=width)
+        ax[1].plot(
+            range(len(metric_value)), metric_value,
+            label=metric_name, linewidth=width
+        )
     ax[1].set_xlabel("epochs")
     ax[1].set_title("metrics")
     ax[1].tick_params(axis='both', which='major')
     ax[1].tick_params(axis='both', which='minor')
     ax[1].grid(True)
-    ax[1].legend()
+    ax[1].legend(fontsize=fontsize)
     if show_plot:
         plt.show()
     return fig
@@ -79,10 +87,10 @@ def tracking_run(
 
     draw_plots = config_data['history']['draw_plots']
     draw_result = config_data['history']['draw_result']
+    plots_line_width = config_data['history']['plots_line_width']
+    plots_fontsize = config_data['history']['plots_fontsize']
     plots_figure_name = config_data['history']['plots_figure_name']
     results_figure_name = config_data['history']['results_figure_name']
-
-    experiment_name = config_data["mlflow"]["experiment_name"]
 
     if run_name == 'None':
         run_name = f"{model_name}-{model_type}"
@@ -113,13 +121,17 @@ def tracking_run(
                 mlflow.log_figure(results_fig, f"{image_name}_{results_figure_name}")
                 results_fig.savefig(osp.join(model_save_dir, f"{image_name}_{results_figure_name}"))
 
+        if draw_plots:
+            history_fig = draw_history(
+                history=history, metrics_num=metrics_num,
+                width=plots_line_width, fontsize=plots_fontsize
+            )
+            mlflow.log_figure(history_fig, plots_figure_name)
+            history_fig.savefig(osp.join(model_save_dir, plots_figure_name))
+
         for metric_name, metric_history in metrics_num.items():
             mlflow.log_metric(metric_name, metric_history[-1])
 
-        if draw_plots:
-            history_fig = draw_history(history=history, metrics_num=metrics_num)
-            mlflow.log_figure(history_fig, plots_figure_name)
-            history_fig.savefig(osp.join(model_save_dir, plots_figure_name))
         mlflow.end_run()
 
 
@@ -173,6 +185,9 @@ def tracking_experiment(
         "precision": Precision().to(device),
         "recall": Recall().to(device)
     }
+    main_metric_name = config_data["training"]["main_metric"]
+    if main_metric_name not in [str(metric) for metric in metrics]:
+        main_metric_name = "iou"
 
     model_save_dir = config_data['model']['save_dir']
     if model_save_dir == 'None':
@@ -185,6 +200,7 @@ def tracking_experiment(
         model=model,
         optimizer=optimizer,
         metrics=metrics,
+        main_metric_name=main_metric_name,
         save_dir=model_save_dir,
         device=device
     )
@@ -194,6 +210,5 @@ def tracking_experiment(
     tracking_run(
         trainer=trainer,
         train_dataloader=train_dataloader, val_dataloader=val_dataloader,
-        config_data=config_data,
-        run_name=None
+        config_data=config_data
     )
