@@ -29,6 +29,9 @@ class IoUMetric(nn.Module):
 
         return iou
 
+    def __str__(self):
+        return "iou"
+
 
 class DiceMetric(nn.Module):
     """
@@ -47,6 +50,9 @@ class DiceMetric(nn.Module):
         dice = (2.0 * intersection + eps) / (sum + eps)
         return dice
 
+    def __str__(self):
+        return "dice"
+
 
 class Accuracy(nn.Module):
     def __init__(self):
@@ -61,6 +67,9 @@ class Accuracy(nn.Module):
         accuracy = (tp + tn + eps) / (tp + tn + fp + fn + eps)
         return accuracy
 
+    def __str__(self):
+        return "accuracy"
+
 
 class Precision(nn.Module):
     def __init__(self):
@@ -72,6 +81,9 @@ class Precision(nn.Module):
 
         precision = (tp + eps) / (tp + fp + eps)
         return precision
+
+    def __str__(self):
+        return "precision"
 
 
 class Recall(nn.Module):
@@ -86,14 +98,5 @@ class Recall(nn.Module):
 
         return recall
 
-
-class MAP(nn.Module):
-    """
-    Metric for binary segmentation
-    """
-
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, inputs, targets):
-        pass
+    def __str__(self):
+        return "recall"
