@@ -83,6 +83,7 @@ target/
 /data/
 /models/
 /notebooks/
+/mlruns/
 
 # Mac OS-specific storage files
 .DS_Store

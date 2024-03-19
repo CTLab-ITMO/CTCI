@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 import torch.nn as nn
-from src.models.swin.decoder import UNETRDecoder
+from src.models.unetr.decoder import UNETRDecoder
 
 
 class Swin(nn.Module):
