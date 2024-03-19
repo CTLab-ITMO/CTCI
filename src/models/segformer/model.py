@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 
+from src.visualization.visualization import restore_image_from_logits
+
 
 class SegFormer(nn.Module):
     def __init__(self, net, image_processor=None, device="cpu"):
@@ -8,12 +10,6 @@ class SegFormer(nn.Module):
         self.device = device
         self.net = net.to(device)
         self.image_processor = image_processor
-
-    def _restore_image_from_logits(self, logits, size):
-        upsampled_logits = nn.functional.interpolate(logits, size=size, mode="bilinear",
-                                                     align_corners=False)
-        predicted_mask = upsampled_logits.argmax(dim=1)
-        return predicted_mask
 
     def forward(self, pixel_values, labels):
         out = self.net(pixel_values=pixel_values, labels=labels)
@@ -28,7 +24,7 @@ class SegFormer(nn.Module):
         outputs = self.forward(pixel_values, labels)
         logits, loss = outputs.logits, outputs.loss
 
-        predicted_mask = self._restore_image_from_logits(logits, labels.shape[-2:])
+        predicted_mask = restore_image_from_logits(logits, labels.shape[-2:])
         return loss, predicted_mask
 
     def predict(self, image):
