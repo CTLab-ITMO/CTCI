@@ -1,14 +1,15 @@
 import torch
+import numpy as np
 import torch.nn as nn
 
 
 class ConvBlock(nn.Module):
-    def __init__(self, in_c, out_c, kernel_size=3, padding=1, norm=True, act=True):
+    def __init__(self, in_c, out_c, kernel_size=3, padding=1, stride=1, norm=True, act=True):
         super().__init__()
 
         layers = [
             nn.Conv2d(in_c, out_c,
-                      kernel_size=kernel_size, padding=padding)
+                      kernel_size=kernel_size, padding=padding, stride=stride)
         ]
         if norm:
             layers.append(nn.BatchNorm2d(out_c))
@@ -26,15 +27,16 @@ class DeconvBlock(nn.Module):
         super().__init__()
 
         self.deconv = nn.ConvTranspose2d(
-            in_c=in_c,
+            in_channels=in_c,
             out_channels=out_c,
             kernel_size=2,
             stride=2,
             padding=0
         )
+        self.act = nn.ReLU()
 
     def forward(self, x):
-        return self.deconv(x)
+        return self.act(self.deconv(x))
 
 
 class ResBlock(nn.Module):
@@ -42,33 +44,39 @@ class ResBlock(nn.Module):
         super().__init__()
 
         self.conv1 = ConvBlock(in_c, out_c)
-        self.conv2 = ConvBlock(out_c, out_c)
+        self.conv2 = None
         self.act = nn.ReLU()
 
+        self.downsample = in_c != out_c
+        if self.downsample:
+            self.conv2 = ConvBlock(in_c, out_c, kernel_size=1, padding=0, norm=False, act=False)
+
     def forward(self, x):
+        residual = x
         out = self.conv1(x)
-        out = self.conv2(out)
-        res = self.act(x + out)
+        if self.conv2:
+            residual = self.conv2(residual)
+        res = self.act(residual + out)
         return res
 
 
 class RepresentationBlock(nn.Module):
-    def __init__(self, in_c, out_c, res=True, num_layers=2):
+    def __init__(self, in_c, out_c, res=True, num_layers=1):
         super().__init__()
 
         self.upsample = DeconvBlock(in_c, out_c)
         if res:
-            self.blocks = nn.Sequential(
+            self.blocks = nn.ModuleList(
                 [
-                    DeconvBlock(out_c, out_c),
-                    ResBlock(out_c, out_c)
-                ]  for _ in range(num_layers)
+                    nn.Sequential(
+                        ResBlock(out_c, out_c)
+                    ) for _ in range(num_layers)
+                ]
             )
         else:
             self.blocks = nn.ModuleList(
                 [
                     nn.Sequential(
-                        DeconvBlock(out_c, out_c),
                         ConvBlock(out_c, out_c)
                     ) for _ in range(num_layers)
                 ]
@@ -88,9 +96,9 @@ class DecoderBlock(nn.Module):
         self.upsample = DeconvBlock(in_c, out_c)
 
         if res:
-            self.conv = ResBlock(out_c+out_c, out_c)
+            self.conv = ResBlock(out_c + out_c, out_c)
         else:
-            self.conv = ConvBlock(out_c+out_c, out_c)
+            self.conv = ConvBlock(out_c + out_c, out_c)
 
     def forward(self, x, skip):
         out = self.upsample(x)
@@ -100,21 +108,22 @@ class DecoderBlock(nn.Module):
 
 
 class UNETRDecoder(nn.Module):
-    def __init__(self, in_channels=3, out_channels=1, feature_size=48, hidden_size=[48, 96, 192, 384]):
+    def __init__(self, in_channels=3, out_channels=1, feature_size=96, hidden_size=[96, 192, 384, 768]):
         super().__init__()
 
         self.feature = ResBlock(in_channels, feature_size)
         self.encoder1 = RepresentationBlock(
             hidden_size[0],
-            feature_size * 2
+            feature_size
         )
         self.encoder2 = RepresentationBlock(
             hidden_size[1],
-            feature_size * 4
+            feature_size * 2
         )
         self.encoder3 = RepresentationBlock(
             hidden_size[2],
-            feature_size * 8
+            feature_size * 4,
+            num_layers=0
         )
         self.bottleneck = DeconvBlock(
             hidden_size[3],
@@ -145,12 +154,10 @@ class UNETRDecoder(nn.Module):
         )
         self.sigmoid = nn.Sigmoid()
 
-
-
     def forward(self, reshaped_hidden_states, x):
-        
-        im = self.feature(x)
 
+        im = self.feature(x)
+        
         state1 = self.encoder1(reshaped_hidden_states[0])
         state2 = self.encoder2(reshaped_hidden_states[1])
         state3 = self.encoder3(reshaped_hidden_states[2])
@@ -164,6 +171,3 @@ class UNETRDecoder(nn.Module):
         out = self.final_layer(out)
 
         return self.sigmoid(out)
-
-
-
