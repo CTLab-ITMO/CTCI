@@ -24,24 +24,12 @@ class Swin(nn.Module):
     def train_on_batch(self, image, target):
         outputs = self.forward(image)
         loss = self._calc_loss_fn(outputs, target)
-        return outputs
+        return loss
 
-    def val_on_batch(self, pixel_values, labels):
-        outputs = self.forward(pixel_values, labels)
-        logits, loss = outputs.logits, outputs.loss
-
-        predicted_mask = self._restore_image_from_logits(
-            logits, labels.shape[-2:])
-        return loss, predicted_mask
+    def val_on_batch(self, image, target):
+        outputs = self.forward(image)
+        loss = self._calc_loss_fn(outputs, target)
+        return loss, outputs
 
     def predict(self, image):
-        pixel_values = self.image_processor(
-            image, return_tensors="pt").pixel_values
-        pixel_values = pixel_values.to(self.device)
-        with torch.no_grad():
-            outputs = self.net(pixel_values=pixel_values)
-
-        assert self.image_processor is not None, "image processor was missed"
-        predicted_segmentation_map = self.image_processor.post_process_semantic_segmentation(
-            outputs, target_sizes=[image.size[::-1]])[0]
-        return predicted_segmentation_map
+        return self.forward(image)
