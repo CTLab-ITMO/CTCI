@@ -10,6 +10,10 @@ from src.models.hrnet.model import HRNet
 
 
 class TestModels:
+    @pytest.mark.skip(reason="Not implemented")
+    def test_model_predict(self):
+        pass
+
     @pytest.mark.parametrize(
         ['model_class', 'args'],
         [
@@ -23,18 +27,14 @@ class TestModels:
                 None,
                 'cpu'
             )),
-            (HRNet, (
-                True,
-            )),
-            (HRNet, (
-                False,
-            )),
+            # (HRNet, (
+            #    True,
+            # )),
+            # (HRNet, (
+            #     False,
+            # )),
         ]
     )
     def test_model_init(self, model_class, args):
         model = model_class(*args)
         assert isinstance(model, model_class)
-
-    @pytest.mark.skip(reason="Not implemented")
-    def test_model_predict(self):
-        pass

@@ -2,19 +2,20 @@ import os.path as osp
 
 import pytest
 from torch.utils.data import DataLoader
+from transformers import AutoImageProcessor
 
 from src.features.segmentation.transformers_dataset import SegmentationDataset
 
 
 @pytest.fixture(scope="session", autouse=True)
 def train_bubbles_data_path():
-    path = '..\\data\\weakly_segmented\\bubbles_split\\train'
+    path = r"..\data\weakly_segmented\bubbles_split\train"
     return path
 
 
 @pytest.fixture(scope="session", autouse=True)
 def val_bubbles_data_path():
-    path = '..\\data\\weakly_segmented\\bubbles_split\\valid'
+    path = r"..\data\weakly_segmented\bubbles_split\valid"
     return path
 
 

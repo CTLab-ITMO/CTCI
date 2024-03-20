@@ -2,6 +2,7 @@ import os.path as osp
 
 import pytest
 import torch
+from torch.utils.data import DataLoader
 from transformers import SegformerForSemanticSegmentation, SegformerImageProcessor
 
 from src.features.segmentation.transformers_dataset import SegmentationDataset
@@ -9,26 +10,61 @@ from src.models.segformer.model import SegFormer
 from src.models.hrnet.model import HRNet
 
 
-class TestTraining:
-    # TODO: сделать skip по флагу в CLI
-    @pytest.mark.skip(reason="There is no cuda on Mac :(")
+class TestTransformerTraining:
+    # TODO: сделать skip по флагу в CLI не подходящих или долгих тестов
+
     def test_device(self):
         assert torch.cuda.is_available()
 
     @pytest.mark.parametrize(
-        ["model"],
+        ['model_name', 'dataset_name'],
         [
-            # TODO: add models and datasets as cases
-        ],
-        indirect=True
+            ('segformer_model', 'train_dataset'),
+        ]
     )
-    def test_model_train_on_batch(self, model):
-        # TODO: дописать
-        pass
+    def test_transformer_model_train_on_batch(self, model_name, dataset_name, request):
+        model = request.getfixturevalue(model_name)
+        dataset = request.getfixturevalue(dataset_name)
+        (image_processor,) = model.image_processor
+        dataset.image_processor = image_processor
 
-    @pytest.mark.skip(reason="Not implemented")
-    def test_model_val_on_batch(self):
-        pass
+        dataloader = DataLoader(
+            dataset, batch_size=2, shuffle=True,
+            pin_memory=False, num_workers=0
+        )
+
+        for inputs, targets in dataloader:
+            inputs = inputs.to(model.device)
+            targets = targets.to(model.device)
+            res = model.train_on_batch(inputs, targets)
+
+            assert res is not None
+            break
+
+    @pytest.mark.parametrize(
+        ['model_name', 'dataset_name'],
+        [
+            ('segformer_model', 'val_dataset'),
+        ]
+    )
+    def test_transformer_model_val_on_batch(self, model_name, dataset_name, request):
+        model = request.getfixturevalue(model_name)
+        dataset = request.getfixturevalue(dataset_name)
+        (image_processor,) = model.image_processor
+        dataset.image_processor = image_processor
+
+        dataloader = DataLoader(
+            dataset, batch_size=2, shuffle=False,
+            pin_memory=False, num_workers=0
+        )
+
+        for inputs, targets in dataloader:
+            inputs = inputs.to(model.device)
+            targets = targets.to(model.device)
+            res = model.val_on_batch(inputs, targets)
+
+            assert res is not None
+            break
 
     @pytest.mark.skip(reason="Not implemented")
     def test_model_epoch(self):
