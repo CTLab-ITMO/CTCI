@@ -9,6 +9,7 @@ import mlflow
 from torch.utils.data import DataLoader
 
 from src.models.utils.dirs import check_dir, create_folder, create_run_folder
+from src.models.utils.reproducibility import set_seed
 from src.models.metrics import Recall, Precision, Accuracy, DiceMetric, IoUMetric
 from src.models.train import Trainer
 
@@ -35,7 +36,7 @@ def draw_results(model, show_plot=False):
 # TODO: refactor me
 def draw_history(history, metrics_num, show_plot=False, width=8, fontsize=20):
     fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(18, 9))
-    
+
     ax[0].plot(
         range(len(history['train'])), history['train'],
         label="train", linewidth=width
@@ -72,6 +73,8 @@ def tracking_run(
         train_dataloader, val_dataloader,
         config_data, run_name=None
 ):
+    random_seed = config_data['random_seed']
+
     train_batch_size = config_data['dataloader']['train_batch_size']
     val_batch_size = config_data['dataloader']['val_batch_size']
 
@@ -114,6 +117,7 @@ def tracking_run(
         mlflow.log_param("adele", adele)
         mlflow.log_param("epoch_num", epoch_num)
         mlflow.log_param("lr", optimizer_lr)
+        mlflow.log_param("random_seed", random_seed)
 
         if draw_result:
             results_figs = draw_results(trainer.model)
@@ -142,7 +146,8 @@ def tracking_experiment(
         experiment_name="experiment"
 ):
     # TODO: воспроизводимость экспериментов
-    random_state = config_data['random_state']
+    random_seed = config_data['random_seed']
+    set_seed(random_seed)
 
     image_size = config_data['dataset']['image_size']
 
