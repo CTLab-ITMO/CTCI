@@ -1,0 +1,50 @@
+random_seed: 239
+
+dataset:
+  training_dataset_dirs:
+    - '..\data\weakly_segmented\bubbles_split\test'
+  validation_dataset_dirs:
+    - '..\data\weakly_segmented\bubbles_split\valid'
+  test_dataset_dirs:
+    - '..\data\weakly_segmented\bubbles_split\test'
+  image_size:
+    width: 256
+    height: 256
+  augmentation: None
+
+dataloader:
+  train_batch_size: 3
+  val_batch_size: 3
+  pin_memory: True
+  num_workers: 4
+
+model:
+  model_name: 'hrnet'
+  model_type: ''
+  device: 'cuda'
+  # save_dir: '.\checkpoints\hrnet\hrnet_test\run1'
+  save_dir: None
+
+training:
+  adele: False
+  epoch_num: 8
+  main_metric: "iou"
+
+optimizer:
+  name: "AdamW"
+  lr: 0.0001
+  betas:
+    - 0.9  # Beta1
+    - 0.999  # Beta2
+
+mlflow:
+  # experiment_name: "hrnet-256-256-full" # if None, experiment name generating automatically
+  experiment_name: "hrnet-test"
+
+history:
+  draw_plots: True
+  draw_result: True
+  plots_line_width: 8
+  plots_fontsize: 20
+  plots_figure_name: "output.png"
+  results_figure_name: "results.png"
