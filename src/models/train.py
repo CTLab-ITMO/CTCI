@@ -98,7 +98,7 @@ class Trainer:
 
             for metric_name, metric_history in metrics_batch_num.items():
                 metric_num = np.mean(metric_history)
-                if (epoch_num == 1) or (metric_name == self.main_metric_name and metric_num >= max(self.metrics_num[metric_name])):
+                if (epoch == 0) or (metric_name == self.main_metric_name and metric_num >= max(self.metrics_num[metric_name])):
                     save_model(self.model, self.save_dir, "best.pt")
                 self.metrics_num[metric_name].append(metric_num)
 
