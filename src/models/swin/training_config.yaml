@@ -1,12 +1,12 @@
-random_state: 239
+random_seed: 239
 
 dataset:
   training_dataset_dirs:
-    - '..\data\split\test'
+    - './data/split/test'
   validation_dataset_dirs:
-    - '..\data\split\valid'
+    - './data/split/valid'
   test_dataset_dirs:
-    - '..\data\split\train'
+    - './data/split/train'
   image_size:
     width: 256
     height: 256
@@ -27,6 +27,7 @@ model:
 training:
   adele: False
   epoch_num: 4
+  main_metric: "iou"
 
 optimizer:
   name: "AdamW"
@@ -41,5 +42,7 @@ mlflow:
 history:
   draw_plots: True
   draw_result: True
+  plots_line_width: 8
+  plots_fontsize: 20
   plots_figure_name: "output.png"
   results_figure_name: "results.png"

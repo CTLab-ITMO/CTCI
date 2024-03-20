@@ -83,6 +83,7 @@ target/
 /data/
 /models/
 /notebooks/
+/src/mlruns/
 /mlruns/
 
 # Mac OS-specific storage files
