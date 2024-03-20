@@ -2,6 +2,8 @@ import sys
 import os.path as osp
 sys.path.append('..')
 
+import torchvision.transforms as tf
+
 from transformers import AutoImageProcessor, Swinv2Model
 
 from src.features.segmentation.dataset import SegmentationDataset
@@ -22,13 +24,19 @@ if __name__ == "__main__":
 
     model = Swin(net=net, image_processor=image_processor, device=config_data['model']['device'])
 
+    transform = tf.Resize((config_data['dataset']['image_size']['height'], config_data['dataset']['image_size']['width']))
+
     train_dataset = SegmentationDataset(
         images_dir=osp.join(config_data['dataset']['training_dataset_dirs'][0], "images"),
-        masks_dir=osp.join(config_data['dataset']['training_dataset_dirs'][0], "masks")
+        masks_dir=osp.join(config_data['dataset']['training_dataset_dirs'][0], "masks"),
+        image_transform=transform,
+        mask_transform=transform
     )
     val_dataset = SegmentationDataset(
         images_dir=osp.join(config_data['dataset']['validation_dataset_dirs'][0], "images"),
-        masks_dir=osp.join(config_data['dataset']['validation_dataset_dirs'][0], "masks")
+        masks_dir=osp.join(config_data['dataset']['validation_dataset_dirs'][0], "masks"),
+        image_transform=transform,
+        mask_transform=transform
     )
 
     tracking_experiment(

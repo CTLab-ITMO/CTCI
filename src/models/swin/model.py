@@ -21,16 +21,10 @@ class Swin(nn.Module):
     def _calc_loss_fn(self, image, target):
         return self.loss_fn(image, target)
     
-    def _process_input(self, image, target):
-        im = self.image_processor.process(image)
-        tg = self.image_processor.process(target, do_rescale=False, do_normalize=False)
-        return im, tg
 
     def train_on_batch(self, image, target):
-        im, tg = self._process_input(image, target)
-
-        outputs = self.forward(im)
-        loss = self._calc_loss_fn(outputs, tg)
+        outputs = self.forward(image)
+        loss = self._calc_loss_fn(outputs, target)
         return loss
 
     def val_on_batch(self, image, target):

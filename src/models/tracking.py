@@ -172,7 +172,7 @@ def tracking_experiment(
         pin_memory=pin_memory, num_workers=num_workers
     )
 
-    device = torch.device(device_name if torch.cuda.is_available() else "cpu")
+    device = torch.device(device_name)
     if device_name.split(':')[0] == "cuda":
         torch.cuda.empty_cache()
         torch.backends.cuda.matmul.allow_tf32 = False
