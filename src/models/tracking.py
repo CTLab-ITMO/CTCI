@@ -145,7 +145,6 @@ def tracking_experiment(
         config_data,
         experiment_name="experiment"
 ):
-    # TODO: воспроизводимость экспериментов
     random_seed = config_data['random_seed']
     set_seed(random_seed)
 
