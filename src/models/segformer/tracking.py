@@ -17,7 +17,7 @@ if __name__ == "__main__":
     net = transformers.SegformerForSemanticSegmentation.from_pretrained(
         f"nvidia/{config_data['model']['model_name']}-{config_data['model']['model_type']}-finetuned-ade-512-512"
     )
-    model = SegFormer(net=net, image_processor=image_processor)
+    model = SegFormer(net=net, image_processor=image_processor, device=config_data['model']['device'])
 
     train_dataset = SegmentationDataset(
         images_dir=osp.join(config_data['dataset']['training_dataset_dirs'][0], "images"),
