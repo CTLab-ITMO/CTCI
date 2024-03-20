@@ -7,6 +7,7 @@ from torchvision.transforms import ToTensor
 
 from src.features.adele_utils import read_label
 
+
 class SegmentationDataset(Dataset):
     """
     A dataset for bubble segmentation task. 

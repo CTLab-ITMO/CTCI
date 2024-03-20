@@ -23,3 +23,6 @@ def hrnet_model():
     model = HRNet(freeze_backbone=False)
     return model
 
+
+@pytest.fixture(scope='function')
+def

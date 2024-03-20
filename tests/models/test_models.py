@@ -2,11 +2,12 @@ import os.path as osp
 
 import pytest
 import torch
-from transformers import SegformerForSemanticSegmentation, SegformerImageProcessor
+from transformers import SegformerForSemanticSegmentation, Swinv2Model, SegformerImageProcessor, AutoImageProcessor
 
 from src.features.segmentation.transformers_dataset import SegmentationDataset
 from src.models.segformer.model import SegFormer
 from src.models.hrnet.model import HRNet
+from src.models.swin.model import Swin
 
 
 class TestModels:
@@ -27,12 +28,27 @@ class TestModels:
                 None,
                 'cpu'
             )),
-            # (HRNet, (
-            #    True,
-            # )),
-            # (HRNet, (
-            #     False,
-            # )),
+            (Swin, (
+                Swinv2Model.from_pretrained("microsoft/swinv2-tiny-patch4-window16-256"),
+                AutoImageProcessor.from_pretrained("microsoft/swinv2-tiny-patch4-window16-256"),
+                'cpu'
+            )),
+            (Swin, (
+                Swinv2Model.from_pretrained("microsoft/swinv2-tiny-patch4-window16-256"),
+                None,
+                'cpu'
+            )),
+            (Swin, (
+                Swinv2Model.from_pretrained("microsoft/swinv2-tiny-patch4-window16-256"),
+                AutoImageProcessor.from_pretrained("microsoft/swinv2-tiny-patch4-window16-256"),
+                'cuda'
+            )),
+            (HRNet, (
+                True,
+            )),
+            (HRNet, (
+                False,
+            )),
         ]
     )
     def test_model_init(self, model_class, args):

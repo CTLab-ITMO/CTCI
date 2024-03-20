@@ -17,7 +17,7 @@ if __name__ == "__main__":
     image_processor = AutoImageProcessor.from_pretrained(model_str)
     net = Swinv2Model.from_pretrained(model_str)
 
-    model = Swin(net=net, image_processor=image_processor)
+    model = Swin(net=net, image_processor=image_processor, device=config_data['model']['device'])
 
     train_dataset = SegmentationDataset(
         images_dir=osp.join(config_data['dataset']['training_dataset_dirs'][0], "images"),
