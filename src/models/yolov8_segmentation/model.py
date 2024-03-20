@@ -1,16 +1,16 @@
+import torch.nn as nn
 from ultralytics import YOLO
 
 
-def load_model(checkpoint_path: str):
-    model = YOLO(checkpoint_path)
-    return model
+class Yolo(nn.Module):
 
+    def __init__(self):
+        super().__init__()
 
-def init_model(model_yaml_path: str):
-    model = YOLO(model_yaml_path)
-    return model
+        self.net = YOLO("yolov8n-seg.pt")
+    
+    def train_on_batch(self, x, target):
+        pass
 
-
-if __name__ == "__main__":
-    model = load_model("yolov8n.pt")
-
+    def forward(self, x):
+        return self.net(x)
