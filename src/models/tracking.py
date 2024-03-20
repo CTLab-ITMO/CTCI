@@ -157,8 +157,8 @@ def tracking_experiment(
 
     device_name = config_data['model']['device']
 
-    image_processor = model.image_processor
-    if image_processor:
+    if hasattr(model, 'image_processor'):
+        image_processor = model.image_processor
         image_processor.size = image_size
         train_dataset.image_processor = image_processor
         val_dataset.image_processor = image_processor
