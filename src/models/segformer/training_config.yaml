@@ -38,7 +38,7 @@ optimizer:
     - 0.999  # Beta2
 
 mlflow:
-  experiment_name: None # if None, experiment name generating automatically
+  experiment_name: "segformer-test" # if None, experiment name generating automatically
 
 history:
   draw_plots: True

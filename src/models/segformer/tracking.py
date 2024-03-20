@@ -13,12 +13,16 @@ if __name__ == "__main__":
     config_path = sys.argv[1]
     config_data = read_yaml_config(config_path)
 
+    model_name = config_data['model']['model_name']
+    model_type = config_data['model']['model_type']
+
     image_processor = transformers.SegformerImageProcessor()
     net = transformers.SegformerForSemanticSegmentation.from_pretrained(
-        f"nvidia/{config_data['model']['model_name']}-{config_data['model']['model_type']}-finetuned-ade-512-512"
+        f"nvidia/{model_name}-{model_type}-finetuned-ade-512-512"
     )
     model = SegFormer(net=net, image_processor=image_processor, device=config_data['model']['device'])
 
+    # TODO: create a func to init datasets from config_data
     train_dataset = SegmentationDataset(
         images_dir=osp.join(config_data['dataset']['training_dataset_dirs'][0], "images"),
         masks_dir=osp.join(config_data['dataset']['training_dataset_dirs'][0], "masks")
@@ -32,6 +36,6 @@ if __name__ == "__main__":
         model,
         train_dataset, val_dataset,
         config_data,
-        experiment_name="segformer-test"
+        experiment_name=model_name
     )
 
