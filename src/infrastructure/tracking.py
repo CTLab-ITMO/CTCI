@@ -172,11 +172,16 @@ def tracking_experiment(
         pin_memory=pin_memory, num_workers=num_workers
     )
 
-    device = torch.device(device_name)
+    if not torch.cuda.is_avaliable() and device_name.split(':')[0] != 'mps':
+        device_name = 'cpu'
+        print("Couldn't find gpu device. Set cpu as device")
+
     if device_name.split(':')[0] == "cuda":
         torch.cuda.empty_cache()
         torch.backends.cuda.matmul.allow_tf32 = False
         torch.backends.cudnn.benchmark = True
+
+    device = torch.device(device_name)
 
     model.device = device
 
