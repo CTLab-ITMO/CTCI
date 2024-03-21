@@ -4,6 +4,7 @@ import os.path as osp
 import cv2
 import torch
 from torch.utils.data import Dataset
+import albumentations
 
 
 class SegmentationDataset(Dataset):
@@ -36,9 +37,6 @@ class SegmentationDataset(Dataset):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         mask = cv2.imread(osp.join(self.masks_dir, image_name), cv2.IMREAD_GRAYSCALE)
 
-        image = torch.from_numpy(image)
-        mask = torch.from_numpy(mask) / 255
-
         return image, mask
 
     def __len__(self):
@@ -48,13 +46,21 @@ class SegmentationDataset(Dataset):
         image, mask = self._read_image_and_mask(self.images_list[idx])
 
         if self.augmentation_transform:
-            seed = torch.random.seed()
-            torch.manual_seed(seed)
-            image = self.augmentation_transform(image)
-            mask = self.augmentation_transform(image)
+            augmentation_res = self.augmentation_transform(image=image, mask=mask)
+            image = augmentation_res['image']
+            mask = augmentation_res['mask']
+
+        if self.image_transform:
+            image = self.image_transform(image=image)['image']
+
+        if self.mask_transform:
+            mask = self.mask_transform(image=image)['image']
+
+        image = torch.from_numpy(image)
+        mask = torch.from_numpy(mask) / 255
 
         encoded_inputs = self.image_processor(image, mask, return_tensors="pt")
         for k, v in encoded_inputs.items():
             encoded_inputs[k].squeeze_()
 
-        return encoded_inputs["pixel_values"], encoded_inputs["labels"]
+        return encoded_inputs['pixel_values'], encoded_inputs['labels']
