@@ -32,10 +32,14 @@ if __name__ == "__main__":
         masks_dir=osp.join(config_data['dataset']['validation_dataset_dirs'][0], "masks")
     )
 
+    experiment_name = config_data['mlflow']['experiment_name']
+    if experiment_name == "None":
+        experiment_name = model_name
+
     tracking_experiment(
         model,
         train_dataset, val_dataset,
         config_data,
-        experiment_name=model_name
+        experiment_name=experiment_name
     )
 
