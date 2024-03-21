@@ -25,7 +25,7 @@ class TestTransformerTraining:
     def test_transformer_model_train_on_batch(self, model_name, dataset_name, request):
         model = request.getfixturevalue(model_name)
         dataset = request.getfixturevalue(dataset_name)
-        (image_processor,) = model.image_processor
+        image_processor = model.image_processor
         dataset.image_processor = image_processor
 
         dataloader = DataLoader(
@@ -50,7 +50,7 @@ class TestTransformerTraining:
     def test_transformer_model_val_on_batch(self, model_name, dataset_name, request):
         model = request.getfixturevalue(model_name)
         dataset = request.getfixturevalue(dataset_name)
-        (image_processor,) = model.image_processor
+        image_processor = model.image_processor
         dataset.image_processor = image_processor
 
         dataloader = DataLoader(

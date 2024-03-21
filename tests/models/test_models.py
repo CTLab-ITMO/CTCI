@@ -1,4 +1,5 @@
 import os.path as osp
+from PIL import Image
 
 import pytest
 import torch
@@ -11,10 +12,6 @@ from src.models.swin.model import Swin
 
 
 class TestModels:
-    @pytest.mark.skip(reason="Not implemented")
-    def test_model_predict(self):
-        pass
-
     @pytest.mark.parametrize(
         ['model_class', 'args'],
         [
@@ -54,3 +51,20 @@ class TestModels:
     def test_model_init(self, model_class, args):
         model = model_class(*args)
         assert isinstance(model, model_class)
+
+    @pytest.mark.parametrize(
+        ['model_name', 'image_path'],
+        [
+            ('segformer_model', '.\\data\\test_data\\bubbles\\frame-0.png'),
+            ('swin_model', '.\\data\\test_data\\bubbles\\frame-0.png')
+        ]
+    )
+    def test_model_predict(self, model_name, image_path, request):
+        model = request.getfixturevalue(model_name)
+        device = 'cuda'
+        model.device = device
+        model = model.to(device)
+        image = Image.open(image_path)
+
+        predicted_seg_map = model.predict(image)
+        assert predicted_seg_map is not None
