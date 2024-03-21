@@ -39,9 +39,13 @@ if __name__ == "__main__":
         mask_transform=transform
     )
 
+    experiment_name = config_data['mlflow']['experiment_name']
+    if experiment_name == "None":
+        experiment_name = model_name
+
     tracking_experiment(
         model,
         train_dataset, val_dataset,
         config_data,
-        experiment_name=model_name
+        experiment_name=experiment_name
     )
