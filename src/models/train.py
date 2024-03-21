@@ -93,6 +93,7 @@ class Trainer:
             train_batch_loss = self._train_epoch(train_dataloader)
             val_batch_loss, metrics_batch_num = self._val_epoch(val_dataloader)
 
+            print(np.mean(train_batch_loss))
             self.history["train"].append(np.mean(train_batch_loss))
             self.history["val"].append(np.mean(val_batch_loss))
 
