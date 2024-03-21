@@ -21,7 +21,6 @@ class Swin(nn.Module):
     def _calc_loss_fn(self, image, target):
         return self.loss_fn(image, target)
     
-
     def train_on_batch(self, image, target):
         outputs = self.forward(image)
         loss = self._calc_loss_fn(outputs, target)
@@ -33,5 +32,5 @@ class Swin(nn.Module):
         return loss, outputs
 
     def predict(self, image):
-        im = self.image_processor.process(image)
+        im = self.image_processor(image, return_tensors="pt").pixel_values
         return self.forward(im)
