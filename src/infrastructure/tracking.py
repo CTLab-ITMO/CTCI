@@ -1,7 +1,5 @@
-import os
 import os.path as osp
-from PIL import Image
-import matplotlib.pyplot as plt
+import pandas as pd
 
 import torch
 
@@ -56,15 +54,29 @@ def tracking_run(
             use_adele=adele
         )
 
-        mlflow.set_tag("model", f"{model_name}-{model_type}")
-        mlflow.set_tag("optimizer_name", optimizer_name)
+        mlflow.set_tag('model', f"{model_name}-{model_type}")
+        mlflow.set_tag('optimizer_name', optimizer_name)
 
-        mlflow.log_param("train_batch_size", train_batch_size)
-        mlflow.log_param("val_batch_size", val_batch_size)
-        mlflow.log_param("adele", adele)
-        mlflow.log_param("epoch_num", epoch_num)
-        mlflow.log_param("lr", optimizer_lr)
-        mlflow.log_param("random_seed", random_seed)
+        mlflow.log_param('train_batch_size', train_batch_size)
+        mlflow.log_param('val_batch_size', val_batch_size)
+        mlflow.log_param('adele', adele)
+        mlflow.log_param('epoch_num', epoch_num)
+        mlflow.log_param('lr', optimizer_lr)
+        mlflow.log_param('random_seed', random_seed)
+
+        # TODO: Log losses and metrics from all training epoch to DataFrame
+        report_df = pd.DataFrame(metrics_num)
+        report_df['train_loss'] = history['train']
+        report_df['val_loss'] = history['val']
+        report_df.to_csv(osp.join(model_save_dir, f"report.csv"))
+        mlflow.log_artifact(osp.join(model_save_dir, f"report.csv"))
+
+        # TODO: Log loss as metrics
+        mlflow.log_metric('train_loss', history['train'][-1])
+        mlflow.log_metric('val_loss', history['val'][-1])
+
+        for metric_name, metric_history in metrics_num.items():
+            mlflow.log_metric(metric_name, metric_history[-1])
 
         if draw_result:
             results_figs = draw_results(trainer.model)
@@ -79,12 +91,6 @@ def tracking_run(
             )
             mlflow.log_figure(history_fig, plots_figure_name)
             history_fig.savefig(osp.join(model_save_dir, plots_figure_name))
-
-        # TODO: Log losses and metrics from all training epoch to DataFrame
-
-        # TODO: Log loss as metrics
-        for metric_name, metric_history in metrics_num.items():
-            mlflow.log_metric(metric_name, metric_history[-1])
 
         mlflow.end_run()
 
