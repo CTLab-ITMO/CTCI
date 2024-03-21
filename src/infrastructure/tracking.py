@@ -12,60 +12,7 @@ from src.models.utils.dirs import check_dir, create_folder, create_run_folder
 from src.models.utils.reproducibility import set_seed
 from src.models.metrics import Recall, Precision, Accuracy, DiceMetric, IoUMetric
 from src.models.train import Trainer
-
-
-# TODO: refactor me
-def draw_results(model, show_plot=False):
-    images_dir = '.\\data\\test_data\\bubbles'
-    images_list = os.listdir(images_dir)
-    figs = {image_name: [] for image_name in images_list}
-    for image_name in images_list:
-        image = Image.open(os.path.join(images_dir, image_name))
-        predicted_segmentation_map = model.predict(image)
-        predicted_segmentation_map = predicted_segmentation_map.squeeze().cpu().detach().numpy()
-        fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(18, 9))
-
-        ax[0].imshow(image)
-        ax[1].imshow(predicted_segmentation_map, cmap="gray")
-        figs[image_name] = fig
-        if show_plot:
-            plt.show()
-    return figs
-
-
-# TODO: refactor me
-def draw_history(history, metrics_num, show_plot=False, width=8, fontsize=20):
-    fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(18, 9))
-
-    ax[0].plot(
-        range(len(history['train'])), history['train'],
-        label="train", linewidth=width
-    )
-    ax[0].plot(
-        range(len(history['val'])), history['val'], 'r--',
-        label="val", linewidth=width
-    )
-    ax[0].set_xlabel("epochs")
-    ax[0].set_title("history")
-    ax[0].tick_params(axis='both', which='major')
-    ax[0].tick_params(axis='both', which='minor')
-    ax[0].grid(True)
-    ax[0].legend(fontsize=fontsize)
-
-    for i, (metric_name, metric_value) in enumerate(metrics_num.items()):
-        ax[1].plot(
-            range(len(metric_value)), metric_value,
-            label=metric_name, linewidth=width
-        )
-    ax[1].set_xlabel("epochs")
-    ax[1].set_title("metrics")
-    ax[1].tick_params(axis='both', which='major')
-    ax[1].tick_params(axis='both', which='minor')
-    ax[1].grid(True)
-    ax[1].legend(fontsize=fontsize)
-    if show_plot:
-        plt.show()
-    return fig
+from src.visualization.visualization import draw_results, draw_history
 
 
 def tracking_run(
@@ -133,6 +80,9 @@ def tracking_run(
             mlflow.log_figure(history_fig, plots_figure_name)
             history_fig.savefig(osp.join(model_save_dir, plots_figure_name))
 
+        # TODO: Log losses and metrics from all training epoch to DataFrame
+
+        # TODO: Log loss as metrics
         for metric_name, metric_history in metrics_num.items():
             mlflow.log_metric(metric_name, metric_history[-1])
 
@@ -157,11 +107,13 @@ def tracking_experiment(
 
     device_name = config_data['model']['device']
 
+    # START TODO: move to utils function
     if hasattr(model, 'image_processor'):
         image_processor = model.image_processor
         image_processor.size = image_size
         train_dataset.image_processor = image_processor
         val_dataset.image_processor = image_processor
+    # END TODO
 
     train_dataloader = DataLoader(
         train_dataset, batch_size=train_batch_size, shuffle=True,
@@ -172,6 +124,7 @@ def tracking_experiment(
         pin_memory=pin_memory, num_workers=num_workers
     )
 
+    # START TODO: move to utils function
     if not torch.cuda.is_avaliable() and device_name.split(':')[0] != 'mps':
         device_name = 'cpu'
         print("Couldn't find gpu device. Set cpu as device")
@@ -182,6 +135,7 @@ def tracking_experiment(
         torch.backends.cudnn.benchmark = True
 
     device = torch.device(device_name)
+    # END TODO
 
     model.device = device
 
