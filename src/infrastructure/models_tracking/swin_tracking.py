@@ -1,6 +1,6 @@
 import sys
 import os.path as osp
-sys.path.append('..')
+sys.path.append('../../models')
 
 import torchvision.transforms as tf
 
@@ -8,7 +8,7 @@ from transformers import AutoImageProcessor, Swinv2Model
 
 from src.features.segmentation.dataset import SegmentationDataset
 from src.models.swin.model import Swin
-from src.models.tracking import tracking_experiment
+from src.infrastructure.tracking import tracking_experiment
 from src.models.utils.config import read_yaml_config
 
 if __name__ == "__main__":
