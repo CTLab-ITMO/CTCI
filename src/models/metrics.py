@@ -1,6 +1,14 @@
 import torch
 import torch.nn as nn
 
+import torch
+import numpy as np
+from tqdm import tqdm
+from src.models.utils.dirs import save_model
+from src.features.adele import correct_mask, predict_average_on_scales
+from src.features.adele_utils import create_labels_artifact, convert_data_to_dict, write_labels
+
+
 
 class IoUMetric(nn.Module):
     """
@@ -100,3 +108,32 @@ class Recall(nn.Module):
 
     def __str__(self):
         return "recall"
+
+
+class ReportMetrics:
+    def __init__(self, model, metrics, device='cpu'):
+        self.model = model
+        self.metrics = metrics
+        self.metrics_num = {k: [] for k in self.metrics.keys()}
+        self.device = device
+
+    def run_metrics(self, test_dataloader):
+        metrics_batch_num = {k: [] for k in self.metrics.keys()}
+
+        self.model = self.model.to(self.device)
+        self.model.eval()
+
+        for inputs, targets in tqdm(test_dataloader):
+            inputs = inputs.to(self.device)
+            targets = targets.to(self.device)
+
+            _, predicted = self.model.val_on_batch(inputs, targets)
+
+            for metric_name, _ in metrics_batch_num.items():
+                metric_tensor = self.metrics[metric_name](predicted, targets)
+                metrics_batch_num[metric_name].append(metric_tensor.item())
+
+        for metric_name, metric_history in metrics_batch_num.items():
+            self.metrics_num[metric_name].append(np.mean(metric_history))
+
+        return self.metrics_num
