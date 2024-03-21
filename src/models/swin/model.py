@@ -14,13 +14,15 @@ class Swin(nn.Module):
         self.loss_fn = nn.CrossEntropyLoss()
 
     def forward(self, image):
+        image = image.to(self.device)
+
         out = self.encoder(pixel_values=image, output_hidden_states=True)
         out = self.decoder(out.reshaped_hidden_states, image)
         return out
 
     def _calc_loss_fn(self, image, target):
         return self.loss_fn(image, target)
-    
+
     def train_on_batch(self, image, target):
         outputs = self.forward(image)
         loss = self._calc_loss_fn(outputs, target)
