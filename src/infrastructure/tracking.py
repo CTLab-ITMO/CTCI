@@ -125,7 +125,7 @@ def tracking_experiment(
     )
 
     # START TODO: move to utils function
-    if not torch.cuda.is_avaliable() and device_name.split(':')[0] != 'mps':
+    if not torch.cuda.is_available() and device_name.split(':')[0] != 'mps':
         device_name = 'cpu'
         print("Couldn't find gpu device. Set cpu as device")
 
