@@ -2,7 +2,7 @@ random_seed: 239
 
 dataset:
   training_dataset_dirs:
-    - '..\data\weakly_segmented\bubbles_split\test'
+    - '..\data\weakly_segmented\bubbles_split\train'
   validation_dataset_dirs:
     - '..\data\weakly_segmented\bubbles_split\valid'
   test_dataset_dirs:
@@ -38,8 +38,7 @@ optimizer:
     - 0.999  # Beta2
 
 mlflow:
-  # experiment_name: "hrnet-256-256-full" # if None, experiment name generating automatically
-  experiment_name: "hrnet-test"
+  experiment_name: "hrnet-256-256-full" # if None, experiment name generating automatically
 
 history:
   draw_plots: True

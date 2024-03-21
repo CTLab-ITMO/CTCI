@@ -8,22 +8,23 @@ dataset:
   test_dataset_dirs:
     - '..\data\weakly_segmented\bubbles_split\train'
   image_size:
-    width: 256
-    height: 256
+    width: 128
+    height: 128
   augmentation: None
 
 dataloader:
-  train_batch_size: 8
-  val_batch_size: 4
+  train_batch_size: 10
+  val_batch_size: 8
   pin_memory: True
   num_workers: 4
 
 model:
-  model_name: 'segformer'
-  model_type: 'b1'
+  model_name: 'swinv2'
+  model_type: 'tiny-patch4-window16-256'
   device: 'cuda'
-  # save_dir: '.\checkpoints\segformer\segformer_b1\run1'
+  #save_dir: '.\checkpoints\swin\swin_tiny\run1'
   save_dir: None
+  # if None, saves weights and results to automatically generated model_name/run_{number} folder
 
 training:
   adele: False
@@ -38,7 +39,7 @@ optimizer:
     - 0.999  # Beta2
 
 mlflow:
-  experiment_name: "segformer-test" # if None, experiment name generating automatically
+  experiment_name: "swin-test" # if None, experiment name generating automatically
 
 history:
   draw_plots: True
