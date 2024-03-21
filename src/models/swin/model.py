@@ -33,4 +33,5 @@ class Swin(nn.Module):
         return loss, outputs
 
     def predict(self, image):
-        return self.forward(image)
+        im = self.image_processor.process(image)
+        return self.forward(im)
