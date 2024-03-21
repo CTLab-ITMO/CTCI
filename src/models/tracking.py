@@ -22,7 +22,7 @@ def draw_results(model, show_plot=False):
     for image_name in images_list:
         image = Image.open(os.path.join(images_dir, image_name))
         predicted_segmentation_map = model.predict(image)
-        predicted_segmentation_map = predicted_segmentation_map.cpu().numpy()
+        predicted_segmentation_map = predicted_segmentation_map.squeeze().cpu().detach().numpy()
         fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(18, 9))
 
         ax[0].imshow(image)
