@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 
 from src.models.utils.dirs import check_dir, create_folder, create_run_folder
 from src.models.utils.reproducibility import set_seed
+from src.models.utils.models_settings import set_image_processor_to_datasets, set_gpu
 from src.models.metrics import Recall, Precision, Accuracy, DiceMetric, IoUMetric
 from src.models.train import Trainer
 from src.visualization.visualization import draw_results, draw_history
@@ -113,14 +114,7 @@ def tracking_experiment(
 
     device_name = config_data['model']['device']
 
-    # START TODO: move to utils function
-    if hasattr(model, 'image_processor'):
-        image_processor = model.image_processor
-        image_processor.size = image_size
-        train_dataset.image_processor = image_processor
-        val_dataset.image_processor = image_processor
-    # END TODO
-
+    set_image_processor_to_datasets(model, image_size, [train_dataset, val_dataset])
     train_dataloader = DataLoader(
         train_dataset, batch_size=train_batch_size, shuffle=True,
         pin_memory=pin_memory, num_workers=num_workers
@@ -130,19 +124,7 @@ def tracking_experiment(
         pin_memory=pin_memory, num_workers=num_workers
     )
 
-    # START TODO: move to utils function
-    if not torch.cuda.is_available() and device_name.split(':')[0] != 'mps':
-        device_name = 'cpu'
-        print("Couldn't find gpu device. Set cpu as device")
-
-    if device_name.split(':')[0] == "cuda":
-        torch.cuda.empty_cache()
-        torch.backends.cuda.matmul.allow_tf32 = False
-        torch.backends.cudnn.benchmark = True
-
-    device = torch.device(device_name)
-    # END TODO
-
+    device = set_gpu(device_name)
     model.device = device
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
