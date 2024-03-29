@@ -11,7 +11,7 @@ class Swin(nn.Module):
         self.encoder = net.to(device)
         self.decoder = UNETRDecoder()
         self.image_processor = image_processor
-        self.loss_fn = nn.CrossEntropyLoss()
+        self.loss_fn = nn.BCELoss()
 
     def forward(self, image):
         image = image.to(self.device)

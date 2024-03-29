@@ -22,8 +22,8 @@ class HRNet(nn.Module):
     def forward(self, x):
         out_aux, out = self.net(x)
 
-        out_aux = self.last_layer(out_aux)
-        out = self.last_layer(out)
+        # out_aux = self.last_layer(out_aux)
+        # out = self.last_layer(out)
         return [out_aux, out]
     
     def predict(self, x):
