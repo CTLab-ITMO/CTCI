@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+import mlflow
 from tqdm import tqdm
 from src.models.utils.dirs import save_model
 from src.features.adele import correct_mask, predict_average_on_scales
@@ -12,6 +13,7 @@ class Trainer:
             model,
             optimizer,
             metrics,
+            scheduler,
             main_metric_name="iou",
             save_dir=None,
             device="cpu"
@@ -20,6 +22,7 @@ class Trainer:
         self.model = model
         self.optim = optimizer
         self.metrics = metrics
+        self.scheduler = scheduler
         self.main_metric_name = main_metric_name
         self.save_dir = save_dir
         self.device = device
@@ -37,6 +40,7 @@ class Trainer:
 
             self.optim.zero_grad()
             loss_train = self.model.train_on_batch(inputs, target)
+            mlflow.log_metric(key="train_loss", value=loss_train, step=5)
             loss_train.backward()
 
             train_batch_loss.append(loss_train.item())
@@ -92,6 +96,7 @@ class Trainer:
 
             train_batch_loss = self._train_epoch(train_dataloader)
             val_batch_loss, metrics_batch_num = self._val_epoch(val_dataloader)
+            self.scheduler.step()
 
             print(np.mean(train_batch_loss))
             self.history["train"].append(np.mean(train_batch_loss))

@@ -5,6 +5,7 @@ import torch
 
 import mlflow
 from torch.utils.data import DataLoader
+import torch.optim.lr_scheduler as lr_scheduler
 
 from src.models.utils.dirs import check_dir, create_folder, create_run_folder
 from src.models.utils.reproducibility import set_seed
@@ -28,11 +29,11 @@ def tracking_run(
     model_type = config_data['model']['model_type']
     model_save_dir = config_data['model']['save_dir']
 
-    adele = config_data['training']['adele']
-    epoch_num = config_data['training']['epoch_num']
-
     optimizer_name = config_data['optimizer']['name']
     optimizer_lr = config_data['optimizer']['lr']
+
+    adele = config_data['training']['adele']
+    epoch_num = config_data['training']['epoch_num']
 
     draw_plots = config_data['history']['draw_plots']
     draw_result = config_data['history']['draw_result']
@@ -127,7 +128,18 @@ def tracking_experiment(
     device = set_gpu(device_name)
     model.device = device
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
+    optimizer_lr = config_data['optimizer']['lr']
+
+    optimizer = torch.optim.AdamW(model.parameters(), lr=optimizer_lr)
+
+    scheduler = lr_scheduler.SequentialLR(
+        optimizer,
+        schedulers=[
+            lr_scheduler.LinearLR(optimizer),
+            lr_scheduler.CosineAnnealingLR(optimizer, T_max=2000),
+        ],
+        milestones=[2]
+    )
 
     metrics = {
         "iou": IoUMetric().to(device),
@@ -150,6 +162,7 @@ def tracking_experiment(
     trainer = Trainer(
         model=model,
         optimizer=optimizer,
+        scheduler=scheduler,
         metrics=metrics,
         main_metric_name=main_metric_name,
         save_dir=model_save_dir,
