@@ -1,4 +1,6 @@
 import torch
+import torch_directml
+
 
 
 def set_image_processor_to_datasets(model, image_size, datasets: list):
@@ -11,9 +13,12 @@ def set_image_processor_to_datasets(model, image_size, datasets: list):
 
 
 def set_gpu(device_name):
-    if not torch.cuda.is_available() and device_name.split(':')[0] != 'mps':
+    if not torch.cuda.is_available() and device_name.split(':')[0] != 'mps' and device_name != "directml":
         device_name = 'cpu'
         print("Couldn't find gpu device. Set cpu as device")
+    elif device_name == "directml":
+        dml = torch_directml.device()
+        return dml
 
     if device_name.split(':')[0] == "cuda":
         torch.cuda.empty_cache()
