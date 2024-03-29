@@ -49,7 +49,7 @@ class UNETRDecoder(nn.Module):
             out_channels,
             norm=False,
         )
-        self.sigmoid = nn.Sigmoid()
+        self.act = nn.Sigmoid()
 
     def forward(self, reshaped_hidden_states, x):
 
@@ -67,4 +67,6 @@ class UNETRDecoder(nn.Module):
         out = self.decoder0(dec1, im)
         out = self.final_layer(out)
 
-        return self.sigmoid(out)
+        out = self.act(out)
+
+        return out

@@ -1,5 +1,10 @@
 import sys
+import os
+
+sys.path.append(f"../src/")
+
 import os.path as osp
+
 
 from src.features.segmentation.dataset import SegmentationDataset
 from src.models.hrnet.model import HRNet
