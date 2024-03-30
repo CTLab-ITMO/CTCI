@@ -22,7 +22,7 @@ if __name__ == "__main__":
     image_processor = AutoImageProcessor.from_pretrained(model_str)
     net = Swinv2Model.from_pretrained(model_str)
 
-    model = Swin(net=net, image_processor=image_processor)
+    model = Swin(net=net, image_processor=image_processor, freeze_backbone=True)
     transform = tf.Resize((config_data['dataset']['image_size']['height'], config_data['dataset']['image_size']['width']))
 
     train_dataset = SegmentationDataset(

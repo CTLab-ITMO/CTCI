@@ -6,7 +6,7 @@ from src.models.loss.soft_dice_loss import SoftDiceLossV2
 
 
 class Swin(nn.Module):
-    def __init__(self, net, image_processor=None, device="cpu"):
+    def __init__(self, net, image_processor=None, device="cpu", freeze_backbone=False):
         super().__init__()
         self.device = device
         self.encoder = net.to(device)
@@ -14,12 +14,19 @@ class Swin(nn.Module):
         self.image_processor = image_processor
         self.loss_fn = SoftDiceLossV2()
 
+        if freeze_backbone:
+            self.freeze_backbone()
+
     def forward(self, image):
         image = image.to(self.device)
 
         out = self.encoder(pixel_values=image, output_hidden_states=True)
         out = self.decoder(out.reshaped_hidden_states, image)
         return out
+
+    def freeze_backbone(self):
+        for name, param in self.encoder.named_parameters():
+            param.requires_grad = False
 
     def _calc_loss_fn(self, image, target):
         return self.loss_fn(image, target)
