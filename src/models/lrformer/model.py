@@ -4,14 +4,7 @@ import torch.nn as nn
 from torch.linalg import matrix_norm
 
 
-class LRSAttention(nn.Module):
-    """
-    an attention module with specific similarity scoring function
-
-    Args:
-        nn (_type_): _description_
-    """
-
+class Attention(nn.Module):
     def __init__(self, alpha, dim, n_heads, qkv_bias, attn_p=0., proj_p=0.):
         super().__init__()
         self.alpha = alpha
@@ -25,6 +18,42 @@ class LRSAttention(nn.Module):
         self.proj = nn.Linear(dim, dim)
         self.proj_drop = nn.Dropout(proj_p)
 
+    def score(self, q, k):
+        k_t = k.transpose(-2, -1)
+        dp = (q @ k_t) * self. scale
+        return dp.softmax(dim=-1)
+
+    def forward(self, x):
+        batch, n_tokens, dim = x.shape
+
+        qkv = self.qkv(x)
+        qkv = qkv.reshape(
+            batch, n_tokens, 3, self.n_heads, self.head_dim
+        ).permute(2, 0, 3, 1, 4)  # (3, batch, self.n_heads, n_tokens, self.head_dim)
+        q, k, v = qkv.undind(0)
+
+        attn = self.score(q, k)
+        attn = self.attn_drop(attn)
+
+        weighted = attn @ v
+        weighted = weighted.transpose(1, 2).reshape(batch, n_tokens, dim)
+
+        out = self.proj(weighted)
+        out = self.proj_drop(out)
+        return out
+
+
+class LipshitzRSAttention(Attention):
+    """
+    an attention module with specific similarity scoring function
+
+    Args:
+        nn (_type_): _description_
+    """
+
+    def __init__(self):
+        super().__init__()
+
     def score(self, q, k, x):
         k_t = k.transpose(-2, -1)
         x_t = x.transpose(-2, -1)
@@ -34,7 +63,7 @@ class LRSAttention(nn.Module):
                              k_col_2) / (matrix_norm(q) * matrix_norm(x_t, ord='inf'))
         scores = sim.softmax(dim=-1)
         return scores
-
+    
     def forward(self, x):
         batch, n_tokens, dim = x.shape
 
@@ -53,6 +82,11 @@ class LRSAttention(nn.Module):
         out = self.proj(weighted)
         out = self.proj_drop(out)
         return out
+    
+
+class LowRankSAttention(Attention):
+    def __init__(self):
+        super().__init__()
 
 
 class MLP(nn.Module):
@@ -68,7 +102,7 @@ class MLP(nn.Module):
         out = self.drop(out)
         out = self.fc2(out)
         out = self.drop(out)
-        return x
+        return out
 
 
 class PatchEmbed(nn.Module):
@@ -141,7 +175,7 @@ class LRFormer(nn.Module):
             n_heads=12,
             mlp_ratio=4.,
             qkv_bias=True,
-            p=0.,
+            proj_p=0.,
             attn_p=0.
     ):
         super().__init__()
@@ -155,7 +189,7 @@ class LRFormer(nn.Module):
         self.pos_embed = nn.Parameter(
             torch.zeros(1, 1 + self.patch_embed.n_patches, embed_dim)
         )
-        self.pos_drop = nn.Dropot(p=p)
+        self.pos_drop = nn.Dropout(p=p)
 
         self.blocks = nn.ModuleList(
             [
@@ -164,7 +198,7 @@ class LRFormer(nn.Module):
                     n_heads=n_heads,
                     mlp_ratio=mlp_ratio,
                     qkv_bias=qkv_bias,
-                    p=p,
+                    proj_p=p,
                     attn_p=attn_p
                 )
                 for _ in range(depth)
