@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import torch.nn as nn
 from src.models.unetr.decoder import UNETRDecoder
+from src.models.loss.soft_dice_loss import SoftDiceLossV2
 
 
 class Swin(nn.Module):
@@ -11,7 +12,7 @@ class Swin(nn.Module):
         self.encoder = net.to(device)
         self.decoder = UNETRDecoder()
         self.image_processor = image_processor
-        self.loss_fn = nn.BCELoss()
+        self.loss_fn = SoftDiceLossV2()
 
     def forward(self, image):
         image = image.to(self.device)
