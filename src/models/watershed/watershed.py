@@ -7,9 +7,9 @@ import cv2
 from scipy import ndimage
 from skimage.feature import peak_local_max
 from skimage.segmentation import watershed
-from features.preprocessing import preprocess
-from models.watershed.markers import get_markers
-from models.watershed.utils import find_contours
+from src.features.preprocessing import preprocess
+from src.models.watershed.markers import get_markers
+from src.models.watershed.utils import find_contours
 
 
 def _perform_watershed(data: list):
