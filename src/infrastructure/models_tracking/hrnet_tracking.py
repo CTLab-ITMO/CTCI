@@ -1,5 +1,6 @@
 import sys
 import os
+import torchvision.transforms as tf
 
 sys.path.append(f"../src/")
 
@@ -19,14 +20,21 @@ if __name__ == "__main__":
     model_name = config_data['model']['model_name']
     model = HRNet(freeze_backbone=False)
 
+    tr = tf.Resize((config_data['dataset']['image_size']['height'], config_data['dataset']['image_size']['width']))
+
     # TODO: create a func to init datasets from config_data
     train_dataset = SegmentationDataset(
         images_dir=osp.join(config_data['dataset']['training_dataset_dirs'][0], "images"),
-        masks_dir=osp.join(config_data['dataset']['training_dataset_dirs'][0], "masks")
+        masks_dir=osp.join(config_data['dataset']['training_dataset_dirs'][0], "masks"),
+        image_transform=tr,
+        mask_transform=tr
+
     )
     val_dataset = SegmentationDataset(
         images_dir=osp.join(config_data['dataset']['validation_dataset_dirs'][0], "images"),
-        masks_dir=osp.join(config_data['dataset']['validation_dataset_dirs'][0], "masks")
+        masks_dir=osp.join(config_data['dataset']['validation_dataset_dirs'][0], "masks"),
+        image_transform=tr,
+        mask_transform=tr
     )
 
     experiment_name = config_data['mlflow']['experiment_name']
