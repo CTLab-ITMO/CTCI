@@ -32,7 +32,6 @@ Notes:
 import os
 import sys
 import torch
-import torch_directml
 
 from src.models.yolov8_detector.yolo import load_yolov8_detector
 from src.models.sam.sam import load_sam_predictor, segment_images_from_folder
@@ -111,10 +110,10 @@ if __name__ == "__main__":
     target_length = 1024
     narrowing = 0.20
     erode_iterations = 1
-    processes_num = 4
+    processes_num = 8
     prompt_points = False
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = "cpu"
 
     annotation(
         data_dir, folder,
