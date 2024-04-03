@@ -13,7 +13,7 @@ class Trainer:
             model,
             optimizer,
             metrics,
-            scheduler,
+            scheduler=None,
             main_metric_name="iou",
             save_dir=None,
             device="cpu"
@@ -22,7 +22,7 @@ class Trainer:
         self.model = model
         self.optim = optimizer
         self.metrics = metrics
-        self.scheduler = scheduler
+       # self.scheduler = scheduler
         self.main_metric_name = main_metric_name
         self.save_dir = save_dir
         self.device = device
@@ -73,21 +73,21 @@ class Trainer:
         """
         print("running adele correction")
         create_labels_artifact()
-
-        for images, target, names in tqdm(tr_dataloader):
-            self.model.to(self.device)
-            images, target = images.to(self.device), target.to(self.device)
-            average = predict_average_on_scales(
-                model=self.model,
-                batch=images,
-                scales=[0.75, 1, 1.25]
-            )
-            new_labels = correct_mask(
-                target=target,
-                average=average
-            )
-            data = convert_data_to_dict(names, new_labels)
-            write_labels(data)
+        with torch.no_grad():
+            for images, target, names in tqdm(tr_dataloader):
+                self.model.to(self.device)
+                images, target = images.to(self.device), target.to(self.device)
+                average = predict_average_on_scales(
+                    model=self.model,
+                    batch=images,
+                    scales=[0.75, 1, 1.25]
+                )
+                new_labels = correct_mask(
+                    target=target,
+                    average=average
+                )
+                data = convert_data_to_dict(names, new_labels)
+                write_labels(data)
 
     def train(self, train_dataloader, val_dataloader, epoch_num=5, use_adele=False, adele_dataloader=None):
         self.history = {"train": [], "val": []}
@@ -96,7 +96,7 @@ class Trainer:
 
             train_batch_loss = self._train_epoch(train_dataloader)
             val_batch_loss, metrics_batch_num = self._val_epoch(val_dataloader)
-            self.scheduler.step()
+       #     self.scheduler.step()
 
             print(np.mean(train_batch_loss))
             self.history["train"].append(np.mean(train_batch_loss))
