@@ -29,12 +29,7 @@ class HRNetModel(nn.Module):
     def _interpolate_output(self, out):
         h, w = self.image_size
         return F.interpolate(input=out, size=(h, w), mode='bilinear', align_corners=True)
-    
-    def predict(self, x):
-        _, out = self.net(x)
-        out = self.last_layer(out)
-        resized = self._interpolate_output(out)
-        return resized
+
 
     def calc_loss_fn(self, output, target):
         # badly written code just to start training
@@ -50,3 +45,7 @@ class HRNetModel(nn.Module):
         loss = self.calc_loss_fn(out, target)
 
         return loss, out
+
+    def predict(self, x):
+        out = self.forward(x)
+        return out

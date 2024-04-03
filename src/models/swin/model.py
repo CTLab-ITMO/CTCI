@@ -2,24 +2,20 @@ import torch
 import numpy as np
 import torch.nn as nn
 from src.models.unetr.decoder import UNETRDecoder
-from src.models.loss.soft_dice_loss import SoftDiceLossV2
-
+from src.models.loss.focal import FocalLossBin
 
 class Swin(nn.Module):
     def __init__(self, net, image_processor=None, device="cpu", freeze_backbone=False):
         super().__init__()
-        self.device = device
         self.encoder = net.to(device)
         self.decoder = UNETRDecoder()
         self.image_processor = image_processor
-        self.loss_fn = SoftDiceLossV2()
+        self.loss_fn = FocalLossBin()
 
         if freeze_backbone:
             self.freeze_backbone()
 
     def forward(self, image):
-        image = image.to(self.device)
-
         out = self.encoder(pixel_values=image, output_hidden_states=True)
         out = self.decoder(out.reshaped_hidden_states, image)
         return out
@@ -43,4 +39,5 @@ class Swin(nn.Module):
 
     def predict(self, image):
         im = self.image_processor(image, return_tensors="pt").pixel_values
-        return self.forward(im)
+        out = self.forward(im)
+        return out
