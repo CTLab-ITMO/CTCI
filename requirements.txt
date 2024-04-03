@@ -14,8 +14,8 @@ ultralytics == 8.1.35
 transformers == 4.39.1
 segment-anything == 1.0
 opencv-python == 4.9.0.80
-onnxruntime == 1.17.1
-onnxruntime-gpu == 1.17.1
+onnxruntime == 1.16.0
+onnxruntime-gpu == 1.16.0
 albumentations == 1.4.2
 pytest == 8.1.1
 

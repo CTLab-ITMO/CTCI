@@ -1,4 +1,6 @@
 import torch
+import onnxruntime as ort
+import onnxruntime.quantization as quantization
 
 
 def export_model_onnx(
@@ -22,3 +24,29 @@ def export_model_onnx(
         opset_version=config_data_export['opset_version']
     )
 
+
+def quantize_onnx(config_data, weight_type=quantization.QuantType.QInt8):
+    model_path = config_data['export_path']
+    quantized_model_path = config_data['acceleration']['quantization_path']
+
+    quantization.quantize_dynamic(
+        model_path,
+        quantized_model_path,
+        weight_type=weight_type
+    )
+
+
+def init_session(config_data):
+    model_path = config_data['export_path']
+    providers = config_data['runtime']['providers']
+
+    options = ort.SessionOptions()
+    options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+
+    session = ort.InferenceSession(
+        model_path,
+        options,
+        providers
+    )
+
+    return session

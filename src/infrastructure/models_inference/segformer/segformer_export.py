@@ -3,7 +3,7 @@ import sys
 import transformers
 
 from src.models.segformer.model import SegFormer
-from src.models.inference import export_model_onnx
+from src.models.inference import export_model_onnx, quantize_onnx
 from src.models.utils.config import read_yaml_config
 
 
@@ -23,3 +23,7 @@ if __name__ == "__main__":
         model,
         config_data=config_data
     )
+
+    if config_data['acceleration']['quantization']:
+        quantize_onnx(config_data)
+
