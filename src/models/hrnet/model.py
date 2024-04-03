@@ -1,44 +1,44 @@
 import torch
 import torch.nn as nn
-from typing import Dict
-from src.models.hrnet.hrnet_source.arch import get_seg_model
-from src.models.hrnet.hrnet_source.criterion import CrossEntropy
-from bestconfig import Config
-
-config = Config("../src/models/hrnet/hrnet_source/cfg.yaml")
+import torch.nn.functional as F
 
 
-class HRNet(nn.Module):
-    def __init__(self, freeze_backbone=True):
+class HRNetModel(nn.Module):
+    def __init__(self, net=None, image_size=(256, 256)):
         super().__init__()
 
-        self.net = get_seg_model(config)
-        self.last_layer = nn.Sigmoid()
-        self.loss_fn = CrossEntropy()
+        self.net = net
+        self.image_size = image_size
+        total_num_features = sum(self.net.feature_info.channels())
 
-        if freeze_backbone:
-            self.freeze_backbone()
+        self.last_layer = nn.Sequential(
+            nn.Conv2d(in_channels=total_num_features, out_channels=1, kernel_size=1, stride=1, padding=0),
+            nn.Sigmoid()
+        )
+        self.loss_fn = nn.BCELoss()
 
     def forward(self, x):
-        out_aux, out = self.net(x)
+        out = self.net(x)
+        interpolated = []
+        for o in out:
+            interpolated.append(self._interpolate_output(o))
+        out = torch.cat(interpolated, axis=1)
+        out = self.last_layer(out)
+        return out
 
-        # out_aux = self.last_layer(out_aux)
-        # out = self.last_layer(out)
-        return [out_aux, out]
+    def _interpolate_output(self, out):
+        h, w = self.image_size
+        return F.interpolate(input=out, size=(h, w), mode='bilinear', align_corners=True)
     
     def predict(self, x):
         _, out = self.net(x)
-        return out
+        out = self.last_layer(out)
+        resized = self._interpolate_output(out)
+        return resized
 
     def calc_loss_fn(self, output, target):
         # badly written code just to start training
         return self.loss_fn(output, target)
-
-    def freeze_backbone(self):
-        keys = ('cls_head', 'aux_head')
-        for name, param in self.net.named_parameters():
-            if not name.startswith(keys):
-                param.requires_grad = False
 
     def train_on_batch(self, input, target):
         out = self.forward(input)
@@ -48,6 +48,5 @@ class HRNet(nn.Module):
     def val_on_batch(self, image, target):
         out = self.forward(image)
         loss = self.calc_loss_fn(out, target)
-        predicted_mask = out[1]
 
-        return loss, predicted_mask
+        return loss, out
