@@ -19,7 +19,7 @@ if __name__ == "__main__":
     config_data = read_yaml_config(config_path)
 
     model_name = config_data['model']['model_name']
-    net = timm.create_model(model_name, features_only=True, pretrained=False)
+    net = timm.create_model(model_name, features_only=True, pretrained=True)
     model = HRNetModel(net=net)
 
     tr = albu.Compose([

@@ -27,8 +27,7 @@ if __name__ == "__main__":
 
     tr = albu.Compose([
         albu.Resize(config_data['dataset']['image_size']['height'], config_data['dataset']['image_size']['width']),
-        albu.CLAHE(always_apply=True),
-        albu.Normalize(always_apply=True)
+        albu.CLAHE(always_apply=True)
     ])
 
     train_dataset = SegmentationDataset(
