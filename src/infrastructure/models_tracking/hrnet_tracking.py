@@ -19,13 +19,12 @@ if __name__ == "__main__":
     config_data = read_yaml_config(config_path)
 
     model_name = config_data['model']['model_name']
-    net = timm.create_model(model_name, features_only=True, pretrained=True)
+    net = timm.create_model(model_name, features_only=True, pretrained=False)
     model = HRNetModel(net=net)
 
     tr = albu.Compose([
         albu.Resize(config_data['dataset']['image_size']['height'], config_data['dataset']['image_size']['width']),
-        albu.CLAHE(always_apply=True),
-        albu.Normalize()
+        albu.CLAHE(always_apply=True)
     ])
 
     # TODO: create a func to init datasets from config_data
