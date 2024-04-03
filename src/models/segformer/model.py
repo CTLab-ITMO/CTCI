@@ -11,7 +11,7 @@ class SegFormer(nn.Module):
         self.net = net.to(device)
         self.image_processor = image_processor
 
-    def forward(self, pixel_values, labels):
+    def forward(self, pixel_values, labels=None):
         out = self.net(pixel_values=pixel_values, labels=labels)
         return out
 
