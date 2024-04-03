@@ -110,7 +110,7 @@ if __name__ == "__main__":
     target_length = 1024
     narrowing = 0.20
     erode_iterations = 1
-    processes_num = 8
+    processes_num = 3
     prompt_points = False
 
     device = "cpu"

@@ -301,7 +301,7 @@ def segment_images_from_folder(
                     detector, predictor,
                     target_length, narrowing, erode_iterations, prompt_points
                 )
-                for image_name in images_list
+                for image_name in images_list if image_name not in masks_list
             ]
             concurrent.futures.wait(futures)
 
