@@ -17,7 +17,7 @@ from src.visualization.visualization import draw_results, draw_history
 
 def tracking_run(
         trainer,
-        train_dataloader, val_dataloader,
+        train_dataloader, val_dataloader, adele_dataloader,
         config_data, run_name=None
 ):
     random_seed = config_data['random_seed']
@@ -52,6 +52,7 @@ def tracking_run(
         history, metrics_num = trainer.train(
             train_dataloader=train_dataloader,
             val_dataloader=val_dataloader,
+            adele_dataloader=adele_dataloader,
             epoch_num=epoch_num,
             use_adele=adele
         )
@@ -101,10 +102,12 @@ def tracking_experiment(
         model,
         train_dataset, val_dataset,
         config_data,
+        adele_dataset=None,
         experiment_name="experiment"
 ):
     random_seed = config_data['random_seed']
     set_seed(random_seed)
+    adele_dataloader=None
 
     image_size = config_data['dataset']['image_size']
 
@@ -124,22 +127,30 @@ def tracking_experiment(
         val_dataset, batch_size=val_batch_size,
         pin_memory=pin_memory, num_workers=num_workers
     )
+    if adele_dataset:
+        adele_dataloader = DataLoader(
+            adele_dataset, batch_size=train_batch_size,
+            pin_memory=pin_memory, num_workers=num_workers
+        )
 
     device = set_gpu(device_name)
     model.device = device
 
     optimizer_lr = config_data['optimizer']['lr']
+    betas = config_data['optimizer']['betas']
+    weight_decay = config_data['optimizer']['weight_decay']
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=optimizer_lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=optimizer_lr, betas=betas, weight_decay=weight_decay)
 
-    scheduler = lr_scheduler.SequentialLR(
-        optimizer,
-        schedulers=[
-            lr_scheduler.LinearLR(optimizer),
-            lr_scheduler.CosineAnnealingLR(optimizer, T_max=2000),
-        ],
-        milestones=[2]
-    )
+    # scheduler = lr_scheduler.SequentialLR(
+    #     optimizer,
+    #     schedulers=[
+    #         lr_scheduler.LinearLR(optimizer),
+    #         lr_scheduler.CosineAnnealingLR(optimizer, T_max=2000),
+    #     ],
+    #     milestones=[2]
+    # )
+    # scheduler = lr_scheduler.PolynomialLR(optimizer, total_iters=8, power=0.9)
 
     metrics = {
         "iou": IoUMetric().to(device),
@@ -162,7 +173,7 @@ def tracking_experiment(
     trainer = Trainer(
         model=model,
         optimizer=optimizer,
-        scheduler=scheduler,
+#        scheduler=scheduler,
         metrics=metrics,
         main_metric_name=main_metric_name,
         save_dir=model_save_dir,
@@ -174,5 +185,6 @@ def tracking_experiment(
     tracking_run(
         trainer=trainer,
         train_dataloader=train_dataloader, val_dataloader=val_dataloader,
+        adele_dataloader=adele_dataloader,
         config_data=config_data
     )
