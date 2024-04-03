@@ -10,7 +10,7 @@ class ConvBlock(nn.Module):
                       kernel_size=kernel_size, padding=padding, stride=stride)
         ]
         if norm:
-            layers.append(nn.BatchNorm2d(out_c))
+            layers.append(nn.InstanceNorm2d(out_c))
         if act:
             layers.append(nn.ReLU())
 
