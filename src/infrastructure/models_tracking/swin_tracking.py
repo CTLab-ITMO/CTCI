@@ -3,6 +3,7 @@ import os.path as osp
 sys.path.append('../../models')
 
 import torchvision.transforms as tf
+import albumentations as albu
 
 from transformers import AutoImageProcessor, Swinv2Model
 
@@ -23,19 +24,22 @@ if __name__ == "__main__":
     net = Swinv2Model.from_pretrained(model_str)
 
     model = Swin(net=net, image_processor=image_processor, freeze_backbone=True)
-    transform = tf.Resize((config_data['dataset']['image_size']['height'], config_data['dataset']['image_size']['width']))
+
+    tr = albu.Compose([
+        albu.Resize(config_data['dataset']['image_size']['height'], config_data['dataset']['image_size']['width']),
+        albu.CLAHE(always_apply=True),
+        albu.Normalize(always_apply=True)
+    ])
 
     train_dataset = SegmentationDataset(
         images_dir=osp.join(config_data['dataset']['training_dataset_dirs'][0], "images"),
         masks_dir=osp.join(config_data['dataset']['training_dataset_dirs'][0], "masks"),
-        image_transform=transform,
-        mask_transform=transform
+        augmentation_transform=tr
     )
     val_dataset = SegmentationDataset(
         images_dir=osp.join(config_data['dataset']['validation_dataset_dirs'][0], "images"),
         masks_dir=osp.join(config_data['dataset']['validation_dataset_dirs'][0], "masks"),
-        image_transform=transform,
-        mask_transform=transform
+        augmentation_transform=tr
     )
 
     experiment_name = config_data['mlflow']['experiment_name']

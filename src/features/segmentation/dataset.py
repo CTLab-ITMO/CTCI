@@ -30,6 +30,7 @@ class SegmentationDataset(Dataset):
             masks_dir: str,
             image_transform=None,
             mask_transform=None,
+            augmentation_transform=None,
             use_adele=False,
             return_names=False
     ):
@@ -39,6 +40,7 @@ class SegmentationDataset(Dataset):
         self.masks_dir = masks_dir
         self.image_transform = image_transform
         self.mask_transform = mask_transform
+        self.augmentation_transform = augmentation_transform
 
         self.toten = ToTensor()
 
@@ -59,19 +61,24 @@ class SegmentationDataset(Dataset):
             corrected = read_label(image_name)
             mask = mask + corrected
 
-        image = self.toten(image)
-        mask = self.toten(mask)
-
         return image, mask
 
     def __getitem__(self, idx):
         image, mask = self._read_image_and_mask(self.images_list[idx])
 
+        if self.augmentation_transform:
+            augmentation_res = self.augmentation_transform(image=image, mask=mask)
+            image = augmentation_res['image']
+            mask = augmentation_res['mask']
+
         if self.image_transform:
-            image = self.image_transform(image)
+            image = self.image_transform(image=image)['image']
 
         if self.mask_transform:
-            mask = self.mask_transform(mask)
+            mask = self.mask_transform(image=image)['image']
+
+        image = self.toten(image)
+        mask = self.toten(mask)
 
         if self.return_names:
             return image, mask, self.images_list[idx]
