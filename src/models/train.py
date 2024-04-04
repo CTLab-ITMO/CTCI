@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+import torchvision.transforms as transforms
 import mlflow
 from tqdm import tqdm
 from src.models.utils.dirs import save_model
@@ -40,11 +41,14 @@ class Trainer:
 
             self.optim.zero_grad()
             loss_train = self.model.train_on_batch(inputs, target)
-            mlflow.log_metric(key="train_loss", value=loss_train, step=5)
             loss_train.backward()
-
-            train_batch_loss.append(loss_train.item())
             self.optim.step()
+
+            mlflow.log_metric(key="train_loss", value=loss_train.item(), step=5)
+            train_batch_loss.append(loss_train.item())
+
+            self.check_grad_norm()
+            self.check_weight_norm()
 
         return train_batch_loss
 
@@ -66,7 +70,8 @@ class Trainer:
             val_batch_loss.append(loss_val.item())
 
         return val_batch_loss, metrics_batch_num
-    
+
+
     def run_adele(self, tr_dataloader):
         """
         NO AUGMENTATIONS DATALOADER FOR ADELE!!!!!!!
@@ -89,6 +94,38 @@ class Trainer:
                 data = convert_data_to_dict(names, new_labels)
                 write_labels(data)
 
+    def log_intermediate_results(self, sample):
+        #TODO: do it at least beautiful
+        tr = transforms.ToPILImage()
+        with torch.no_grad():
+            self.model.eval()
+            self.model.to("cpu")
+            out = self.model.predict(sample)
+            sample = tr(sample[0])
+            out = tr(out[0]*255)
+            mlflow.log_image(image=sample, artifact_file="input.png")
+            mlflow.log_image(image=out, artifact_file="output.png")
+
+    def check_grad_norm(self):
+        total_norm = 0
+        parameters = [p for p in self.model.parameters() if p.grad is not None and p.requires_grad]
+        for p in parameters:
+            param_norm = p.grad.detach().data.norm(2)
+            total_norm += param_norm.item() ** 2
+        total_norm = total_norm ** 0.5
+        mlflow.log_metric(key="grad_norm", value=total_norm, step=5)
+        return total_norm
+
+    def check_weight_norm(self):
+        total_norm = 0
+        for p in self.model.parameters():
+            param_norm = p.detach().data.norm(2)
+            total_norm += param_norm.item() ** 2
+        total_norm = total_norm ** (1. / 2)
+        mlflow.log_metric(key="weight_norm", value=total_norm, step=5)
+
+
+
     def train(self, train_dataloader, val_dataloader, epoch_num=5, use_adele=False, adele_dataloader=None):
         self.history = {"train": [], "val": []}
         for epoch in range(epoch_num):
@@ -96,11 +133,15 @@ class Trainer:
 
             train_batch_loss = self._train_epoch(train_dataloader)
             val_batch_loss, metrics_batch_num = self._val_epoch(val_dataloader)
+
+      #      self.log_intermediate_results(next(iter(train_dataloader))[0])
        #     self.scheduler.step()
 
             print(np.mean(train_batch_loss))
             self.history["train"].append(np.mean(train_batch_loss))
             self.history["val"].append(np.mean(val_batch_loss))
+
+
 
             for metric_name, metric_history in metrics_batch_num.items():
                 metric_num = np.mean(metric_history)
