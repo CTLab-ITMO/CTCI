@@ -69,7 +69,7 @@ class SoftDiceLossV2Func(torch.autograd.Function):
     '''
     @staticmethod
     @amp.custom_fwd(cast_inputs=torch.float32)
-    def forward(ctx, logits, labels, p, smooth):
+    def forward(ctx, probs, labels, p, smooth):
         '''
         inputs:
             logits: (N, L)
@@ -79,7 +79,7 @@ class SoftDiceLossV2Func(torch.autograd.Function):
         '''
         #  logits = logits.float()
 
-        probs = torch.sigmoid(logits)
+        # probs = torch.sigmoid(logits)
         numer = 2 * (probs * labels).sum(dim=1) + smooth
         denor = (probs.pow(p) + labels.pow(p)).sum(dim=1) + smooth
         loss = 1. - numer / denor
