@@ -24,7 +24,11 @@ if __name__ == "__main__":
 
     tr = albu.Compose([
         albu.Resize(config_data['dataset']['image_size']['height'], config_data['dataset']['image_size']['width']),
-        albu.CLAHE(always_apply=True)
+        albu.CLAHE(always_apply=True),
+        albu.Normalize(always_apply=True),
+        albu.RandomCrop(config_data['dataset']['image_size']['height'],
+                        config_data['dataset']['image_size']['width'], p=0.4),
+        albu.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.05, rotate_limit=30, p=0.5)
     ])
 
     # TODO: create a func to init datasets from config_data
