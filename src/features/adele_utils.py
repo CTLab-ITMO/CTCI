@@ -4,7 +4,7 @@ import json
 import numpy as np
 
 
-artifact_path = '../data/temp/_label_corrections.json'
+artifact_path = r'./data/temp/_label_corrections.json'
 
 
 def create_labels_artifact(path=artifact_path):
@@ -16,7 +16,7 @@ def create_labels_artifact(path=artifact_path):
 def convert_data_to_dict(filenames, labels):
     data = {}
     for name, label in zip(filenames, labels):
-        data[name] = label
+        data[name] = label.cpu().tolist()
     return data
 
 
