@@ -23,11 +23,16 @@ if __name__ == "__main__":
     image_processor = AutoImageProcessor.from_pretrained(model_str)
     net = Swinv2Model.from_pretrained(model_str)
 
-    model = Swin(net=net, image_processor=image_processor, freeze_backbone=True)
+    model = Swin(net=net, image_processor=image_processor, freeze_backbone=False)
 
     tr = albu.Compose([
         albu.Resize(config_data['dataset']['image_size']['height'], config_data['dataset']['image_size']['width']),
-        albu.CLAHE(always_apply=True)
+        albu.CLAHE(always_apply=True),
+        albu.Normalize(always_apply=True),
+        albu.RandomCrop(config_data['dataset']['image_size']['height'],
+                        config_data['dataset']['image_size']['width'], p=0.4),
+        albu.MaskDropout(max_objects=10),
+        albu.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.05, rotate_limit=30, p=0.5)
     ])
 
     train_dataset = SegmentationDataset(
