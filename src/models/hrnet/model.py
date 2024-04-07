@@ -13,6 +13,8 @@ class HRNetModel(nn.Module):
 
         self.last_layer = nn.Sequential(
             nn.Conv2d(in_channels=total_num_features, out_channels=1, kernel_size=1, stride=1, padding=0),
+            nn.Sigmoid(),
+            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=1, stride=1, padding=0),
             nn.Sigmoid()
         )
         self.loss_fn = nn.BCELoss()
@@ -43,9 +45,9 @@ class HRNetModel(nn.Module):
     def val_on_batch(self, image, target):
         out = self.forward(image)
         loss = self.calc_loss_fn(out, target)
-
         return loss, out
 
     def predict(self, x):
         out = self.forward(x)
+        out = out.argmax(dim=1)
         return out
