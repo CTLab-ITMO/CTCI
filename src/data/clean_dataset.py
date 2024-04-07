@@ -13,6 +13,13 @@ def clean_dataset(path):
     images_path = osp.join(path, "images")
     masks_path = osp.join(path, "masks")
 
+    # images_list = os.listdir(images_path)
+    # masks_list = os.listdir(masks_path)
+    #
+    # for mask in masks_list:
+    #     if mask not in images_list:
+    #         os.remove(osp.join(masks_path, mask))
+
     images_list = natsorted(os.listdir(images_path), key=str)
 
     prev = {
