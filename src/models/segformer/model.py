@@ -11,16 +11,19 @@ class SegFormer(nn.Module):
         self.net = net.to(device)
         self.image_processor = image_processor
 
+
     def forward(self, pixel_values, labels=None):
         out = self.net(pixel_values=pixel_values, labels=labels)
         return out
 
     def train_on_batch(self, pixel_values, labels):
+        labels = labels.squeeze(1)
         outputs = self.forward(pixel_values, labels)
         loss = outputs.loss
         return loss
 
     def val_on_batch(self, pixel_values, labels):
+        labels = labels.squeeze(1)
         outputs = self.forward(pixel_values, labels)
         logits, loss = outputs.logits, outputs.loss
 
@@ -28,10 +31,10 @@ class SegFormer(nn.Module):
         return loss, predicted_mask
 
     def predict(self, image):
-        pixel_values = self.image_processor(image, return_tensors="pt").pixel_values
-        pixel_values = pixel_values.to(self.device)
+        # pixel_values = self.image_processor(image, return_tensors="pt").pixel_values
+        # pixel_values = pixel_values.to(self.device)
         with torch.no_grad():
-            outputs = self.net(pixel_values=pixel_values)
+            outputs = self.net(pixel_values=image)
 
         assert self.image_processor is not None, "image processor was missed"
         predicted_segmentation_map = self.image_processor.post_process_semantic_segmentation(outputs, target_sizes=[image.size[::-1]])[0]
