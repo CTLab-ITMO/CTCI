@@ -23,7 +23,7 @@ class Trainer:
         self.model = model
         self.optim = optimizer
         self.metrics = metrics
-       # self.scheduler = scheduler
+        self.scheduler = scheduler
         self.main_metric_name = main_metric_name
         self.save_dir = save_dir
         self.device = device
@@ -47,8 +47,8 @@ class Trainer:
             mlflow.log_metric(key="train_loss", value=loss_train.item(), step=5)
             train_batch_loss.append(loss_train.item())
 
-            self.check_grad_norm()
-            self.check_weight_norm()
+            # self.check_grad_norm()
+            # self.check_weight_norm()
 
         return train_batch_loss
 
@@ -67,6 +67,7 @@ class Trainer:
             for metric_name, _ in metrics_batch_num.items():
                 metric_tensor = self.metrics[metric_name](target, predicted)
                 metrics_batch_num[metric_name].append(metric_tensor.item())
+            mlflow.log_metric(key="val_loss", value=loss_val.item(), step=5)
             val_batch_loss.append(loss_val.item())
 
         return val_batch_loss, metrics_batch_num
@@ -125,7 +126,6 @@ class Trainer:
         mlflow.log_metric(key="weight_norm", value=total_norm, step=5)
 
 
-
     def train(self, train_dataloader, val_dataloader, epoch_num=5, use_adele=False, adele_dataloader=None):
         self.history = {"train": [], "val": []}
         for epoch in range(epoch_num):
@@ -134,13 +134,14 @@ class Trainer:
             train_batch_loss = self._train_epoch(train_dataloader)
             val_batch_loss, metrics_batch_num = self._val_epoch(val_dataloader)
 
-      #      self.log_intermediate_results(next(iter(train_dataloader))[0])
-       #     self.scheduler.step()
+            if self.scheduler:
+                self.scheduler.step()
+
+            self.log_intermediate_results(next(iter(train_dataloader))[0])
 
             print(np.mean(train_batch_loss))
             self.history["train"].append(np.mean(train_batch_loss))
             self.history["val"].append(np.mean(val_batch_loss))
-
 
 
             for metric_name, metric_history in metrics_batch_num.items():

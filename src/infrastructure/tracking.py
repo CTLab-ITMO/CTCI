@@ -102,6 +102,7 @@ def tracking_experiment(
         model,
         train_dataset, val_dataset,
         config_data,
+        scheduler=None,
         adele_dataset=None,
         experiment_name="experiment"
 ):
@@ -140,16 +141,16 @@ def tracking_experiment(
     betas = config_data['optimizer']['betas']
     weight_decay = config_data['optimizer']['weight_decay']
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=optimizer_lr, betas=betas, weight_decay=weight_decay)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=optimizer_lr, betas=betas, weight_decay=weight_decay)
 
-    # scheduler = lr_scheduler.SequentialLR(
-    #     optimizer,
-    #     schedulers=[
-    #         lr_scheduler.LinearLR(optimizer),
-    #         lr_scheduler.CosineAnnealingLR(optimizer, T_max=2000),
-    #     ],
-    #     milestones=[2]
-    # )
+    scheduler = lr_scheduler.SequentialLR(
+        optimizer,
+        schedulers=[
+            lr_scheduler.LinearLR(optimizer),
+            lr_scheduler.CosineAnnealingLR(optimizer, T_max=2000),
+        ],
+        milestones=[2]
+    )
     # scheduler = lr_scheduler.PolynomialLR(optimizer, total_iters=8, power=0.9)
 
     metrics = {
@@ -173,7 +174,7 @@ def tracking_experiment(
     trainer = Trainer(
         model=model,
         optimizer=optimizer,
-#        scheduler=scheduler,
+        scheduler=scheduler,
         metrics=metrics,
         main_metric_name=main_metric_name,
         save_dir=model_save_dir,
