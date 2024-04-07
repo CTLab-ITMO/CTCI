@@ -1,6 +1,6 @@
-path: ./data/yolo_seg_dataset
-train: images/train
-val: images/val
+path: ./bubbles_split/
+train: test/images/
+val: valid/images/
 
 nc: 1
 names:
