@@ -5,37 +5,43 @@ from src.visualization.visualization import restore_image_from_logits
 
 
 class SegFormer(nn.Module):
-    def __init__(self, net, image_processor=None, device="cpu"):
+    def __init__(self, net, image_size=(256, 256), device="cpu"):
         super().__init__()
         self.device = device
-        self.net = net.to(device)
-        self.image_processor = image_processor
+        self.image_size = image_size
 
+        self.net = net.to(device)
+        self.final_layer = nn.Sequential(
+            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=1, stride=1, padding=0),
+            nn.Sigmoid()
+        )
+        self.loss_fn = nn.BCELoss()
 
     def forward(self, pixel_values, labels=None):
-        out = self.net(pixel_values=pixel_values, labels=labels)
+        out = self.net(pixel_values=pixel_values, labels=labels).logits
+        out = self._interpolate_output(out)
+        out = self.final_layer(out)
         return out
 
+    def _interpolate_output(self, out):
+        return nn.functional.interpolate(out, size=self.image_size, mode="bilinear", align_corners=False)
+
+    def _calc_loss_fn(self, output, target):
+        return self.loss_fn(output, target)
+
     def train_on_batch(self, pixel_values, labels):
-        labels = labels.squeeze(1)
-        outputs = self.forward(pixel_values, labels)
-        loss = outputs.loss
+        outputs = self.forward(pixel_values)
+        loss = self._calc_loss_fn(outputs, labels)
         return loss
 
     def val_on_batch(self, pixel_values, labels):
-        labels = labels.squeeze(1)
-        outputs = self.forward(pixel_values, labels)
-        logits, loss = outputs.logits, outputs.loss
-
-        predicted_mask = restore_image_from_logits(logits, labels.shape[-2:])
-        return loss, predicted_mask
+        outputs = self.forward(pixel_values)
+        loss = self._calc_loss_fn(outputs, labels)
+        return loss, outputs
 
     def predict(self, image):
         # pixel_values = self.image_processor(image, return_tensors="pt").pixel_values
         # pixel_values = pixel_values.to(self.device)
         with torch.no_grad():
-            outputs = self.net(pixel_values=image)
-
-        assert self.image_processor is not None, "image processor was missed"
-        predicted_segmentation_map = self.image_processor.post_process_semantic_segmentation(outputs, target_sizes=[image.size[::-1]])[0]
-        return predicted_segmentation_map
+            outputs = self.forward(pixel_values=image)
+        return outputs
