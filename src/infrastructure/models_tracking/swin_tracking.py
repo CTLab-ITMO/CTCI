@@ -20,10 +20,9 @@ if __name__ == "__main__":
     model_type = config_data['model']['model_type']
 
     model_str = rf"microsoft/{model_name}-{model_type}"
-    image_processor = AutoImageProcessor.from_pretrained(model_str)
     net = Swinv2Model.from_pretrained(model_str)
 
-    model = Swin(net=net, image_processor=image_processor, freeze_backbone=False)
+    model = Swin(net=net,freeze_backbone=False)
 
     tr = albu.Compose([
         albu.Resize(config_data['dataset']['image_size']['height'], config_data['dataset']['image_size']['width']),
