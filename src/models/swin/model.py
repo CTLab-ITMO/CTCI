@@ -48,5 +48,4 @@ class Swin(nn.Module):
 
     def predict(self, image):
         out = self.forward(image)
-        out = out.argmax(dim=1)
         return out
