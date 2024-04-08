@@ -17,7 +17,6 @@ if __name__ == "__main__":
     model_name = config_data['model']['model_name']
     model_type = config_data['model']['model_type']
 
-    image_processor = transformers.SegformerImageProcessor()
     net = transformers.SegformerForSemanticSegmentation.from_pretrained(
         f"nvidia/{model_name}-{model_type}-finetuned-ade-512-512",
         num_labels=1,
@@ -25,7 +24,7 @@ if __name__ == "__main__":
         ignore_mismatched_sizes=True
     )
 
-    model = SegFormer(net=net, image_processor=image_processor)
+    model = SegFormer(net=net)
 
     tr = albu.Compose([
         albu.Resize(config_data['dataset']['image_size']['height'], config_data['dataset']['image_size']['width']),
@@ -33,7 +32,7 @@ if __name__ == "__main__":
         albu.Normalize(always_apply=True),
         albu.Downscale(p=0.2),
         albu.RandomCrop(config_data['dataset']['image_size']['height'], config_data['dataset']['image_size']['width'], p=0.4),
-        albu.MaskDropout(max_objects=10)
+        albu.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.05, rotate_limit=30, p=0.5)
     ])
 
     # TODO: create a func to init datasets from config_data
