@@ -49,5 +49,4 @@ class HRNetModel(nn.Module):
 
     def predict(self, x):
         out = self.forward(x)
-        out = out.argmax(dim=1)
         return out
