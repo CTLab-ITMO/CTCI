@@ -46,7 +46,7 @@ class Swin(nn.Module):
         loss = self._calc_loss_fn(outputs, target)
         return loss, outputs
 
-    def predict(self, image):
+    def predict(self, image, conf=0.6):
         out = self.forward(image)
-        out = torch.where(out > 0.6, 1, 0)
+        out = torch.where(out > conf, 1, 0)
         return out

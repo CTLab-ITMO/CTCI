@@ -33,10 +33,7 @@ class DeepLab(nn.Module):
         loss = self._calc_loss_fn(outputs, target)
         return loss, outputs
 
-    def predict(self, image):
-        # pixel_values = self.image_processor(image, return_tensors="pt").pixel_values
-        # pixel_values = pixel_values.to(self.device)
-        with torch.no_grad():
-            out = self.forward(image)
-        out = torch.where(out > 0.6, 1, 0)
+    def predict(self, image, conf=0.6):
+        out = self.forward(image)
+        out = torch.where(out > conf, 1, 0)
         return out

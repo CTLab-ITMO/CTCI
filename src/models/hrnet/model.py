@@ -47,7 +47,7 @@ class HRNetModel(nn.Module):
         loss = self.calc_loss_fn(out, target)
         return loss, out
 
-    def predict(self, x):
-        out = self.forward(x)
-        out = torch.where(out > 0.6, 1, 0)
+    def predict(self, image, conf=0.6):
+        out = self.forward(image)
+        out = torch.where(out > conf, 1, 0)
         return out
