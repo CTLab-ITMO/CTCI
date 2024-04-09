@@ -10,7 +10,7 @@ class Swin(nn.Module):
         self.encoder = net.encoder.to(device)
         self.decoder = UNETRDecoder()
         self.embeddings = net.get_input_embeddings()
-        self.loss_fn = nn.BCELoss()
+        self.loss_fn = SoftDiceLossV2()
 
         if freeze_backbone:
             self.freeze_backbone()
@@ -48,4 +48,5 @@ class Swin(nn.Module):
 
     def predict(self, image):
         out = self.forward(image)
+        out = torch.where(out > 0.6, 1, 0)
         return out

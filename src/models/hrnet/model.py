@@ -49,4 +49,5 @@ class HRNetModel(nn.Module):
 
     def predict(self, x):
         out = self.forward(x)
+        out = torch.where(out > 0.6, 1, 0)
         return out

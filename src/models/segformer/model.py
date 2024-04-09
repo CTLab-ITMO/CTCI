@@ -44,4 +44,5 @@ class SegFormer(nn.Module):
         # pixel_values = pixel_values.to(self.device)
         with torch.no_grad():
             outputs = self.forward(pixel_values=image)
-        return outputs
+        out = torch.where(outputs > 0.6, 1, 0)
+        return out
