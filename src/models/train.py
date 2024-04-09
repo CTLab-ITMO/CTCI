@@ -103,7 +103,7 @@ class Trainer:
             self.model.to("cpu")
             out = self.model.predict(sample)
             sample = tr(sample[0])
-            out = tr(out[0]*255)
+            out = tr(torch.tensor(out[0]*255, dtype=torch.uint8))
             mlflow.log_image(image=sample, artifact_file="input.png")
             mlflow.log_image(image=out, artifact_file="output.png")
 
