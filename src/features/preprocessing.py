@@ -33,7 +33,9 @@ def single_scale_retinex(img, sigma):
     Returns:
         np.array: grayscale image with applied retinex
     """
-    return np.log(img) - np.log(cv2.GaussianBlur(img, (0,0), sigma))
+    img = np.where(img > 0, img, 10e-6)
+    g_img = cv2.GaussianBlur(img, (0,0), sigma)
+    return np.log(img) - np.log(g_img)
 
 
 def bilateral_filtering(img, diameter, sigma_color, sigma_space):
