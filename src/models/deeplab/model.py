@@ -32,25 +32,25 @@ class DeepLab(nn.Module):
         else:
             self.loss_fn = SoftDiceLossV2().to(self.device)
 
-    def forward(self, image):
+    def forward(self, image: torch.Tensor) -> torch.Tensor:
         out = self.net(image)
         out = self.final_layer(out)
         return out
 
-    def _calc_loss_fn(self, output, target):
+    def _calc_loss_fn(self, output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         return self.loss_fn(output, target)
 
-    def train_on_batch(self, image, target):
+    def train_on_batch(self, image: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         outputs = self.forward(image)
         loss = self._calc_loss_fn(outputs, target)
         return loss
 
-    def val_on_batch(self, image, target):
+    def val_on_batch(self, image: torch.Tensor, target: torch.Tensor):
         outputs = self.forward(image)
         loss = self._calc_loss_fn(outputs, target)
         return loss, outputs
 
-    def predict(self, image, conf=0.6):
+    def predict(self, image: torch.Tensor, conf=0.6) -> torch.Tensor:
         out = self.forward(image)
         out = torch.where(out > conf, 1, 0)
         return out

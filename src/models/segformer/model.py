@@ -3,7 +3,6 @@ import torch.nn as nn
 
 import transformers
 
-from src.visualization.visualization import restore_image_from_logits
 from src.models.utils.config import ConfigHandler
 
 
@@ -32,8 +31,8 @@ class SegFormer(nn.Module):
         else:
             self.loss_fn = nn.BCELoss().to(self.device)
 
-    def forward(self, pixel_values, labels=None):
-        out = self.net(pixel_values=pixel_values, labels=labels).logits
+    def forward(self, image: torch.Tensor, labels=None) -> torch.Tensor:
+        out = self.net(pixel_values=image, labels=labels).logits
         out = self._interpolate_output(out)
         out = self.final_layer(out)
         return out
@@ -41,21 +40,21 @@ class SegFormer(nn.Module):
     def _interpolate_output(self, out):
         return nn.functional.interpolate(out, size=self.image_size, mode="bilinear", align_corners=False)
 
-    def _calc_loss_fn(self, output, target):
+    def _calc_loss_fn(self, output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         return self.loss_fn(output, target)
 
-    def train_on_batch(self, pixel_values, labels):
-        outputs = self.forward(pixel_values)
+    def train_on_batch(self, image: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
+        outputs = self.forward(image)
         loss = self._calc_loss_fn(outputs, labels)
         return loss
 
-    def val_on_batch(self, pixel_values, labels):
-        outputs = self.forward(pixel_values)
+    def val_on_batch(self, image: torch.Tensor, labels: torch.Tensor):
+        outputs = self.forward(image)
         loss = self._calc_loss_fn(outputs, labels)
         return loss, outputs
 
-    def predict(self, image, conf=0.6):
-        out = self.forward(pixel_values=image)
+    def predict(self, image: torch.Tensor, conf=0.6) -> torch.Tensor:
+        out = self.forward(image=image)
         out = torch.where(out > conf, 1, 0)
         return out
 

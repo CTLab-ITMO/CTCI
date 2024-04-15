@@ -34,7 +34,7 @@ class Swin(nn.Module):
         if freeze_backbone:
             self.freeze_backbone()
 
-    def forward(self, image):
+    def forward(self, image: torch.Tensor) -> torch.Tensor:
         emb, input_dim = self.embeddings(image)
         out = self.encoder(
             hidden_states=emb,
@@ -52,20 +52,20 @@ class Swin(nn.Module):
         for name, param in self.encoder.named_parameters():
             param.requires_grad = False
 
-    def _calc_loss_fn(self, image, target):
+    def _calc_loss_fn(self, image: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         return self.loss_fn(image, target)
 
-    def train_on_batch(self, image, target):
+    def train_on_batch(self, image: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         outputs = self.forward(image)
         loss = self._calc_loss_fn(outputs, target)
         return loss
 
-    def val_on_batch(self, image, target):
+    def val_on_batch(self, image: torch.Tensor, target: torch.Tensor):
         outputs = self.forward(image)
         loss = self._calc_loss_fn(outputs, target)
         return loss, outputs
 
-    def predict(self, image, conf=0.6):
+    def predict(self, image: torch.Tensor, conf=0.6) -> torch.Tensor:
         out = self.forward(image)
         out = torch.where(out > conf, 1, 0)
         return out
