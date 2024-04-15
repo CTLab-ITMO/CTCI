@@ -9,21 +9,24 @@ from src.models.utils.config import read_yaml_config
 
 if __name__ == "__main__":
     config_path = sys.argv[1]
-    config_data = read_yaml_config(config_path)
+    config_handler = read_yaml_config(config_path)
 
-    # model_path = config_data['checkpoint_path']
     # TODO: load checkpoints
-    net = transformers.SegformerForSemanticSegmentation.from_pretrained("nvidia/segformer-b1-finetuned-ade-512-512")
-    image_processor = transformers.SegformerImageProcessor()
-    model = SegFormer(net=net, image_processor=image_processor)
+    net = transformers.SegformerForSemanticSegmentation.from_pretrained(
+        f"nvidia/segformer-b2-finetuned-ade-512-512",
+        num_labels=1,
+        image_size=256,
+        ignore_mismatched_sizes=True
+    )
+    model = SegFormer(net)
 
-    input_tensor_shape = config_data['input_tensor_shape']
+    input_tensor_shape = config_handler.read('input_tensor_shape')
 
     export_model_onnx(
         model,
-        config_data=config_data
+        config_handler=config_handler
     )
 
-    if config_data['acceleration']['quantization']:
-        quantize_onnx(config_data)
+    if config_handler.read('acceleration', 'quantization'):
+        quantize_onnx(config_handler)
 

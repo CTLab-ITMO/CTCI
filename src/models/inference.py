@@ -1,6 +1,6 @@
 import torch
 import onnxruntime as ort
-import onnxruntime.quantization as quantization
+from onnxruntime.quantization import quantize_dynamic, QuantType
 
 from src.models.utils.config import ConfigHandler
 
@@ -27,11 +27,11 @@ def export_model_onnx(
     )
 
 
-def quantize_onnx(config_handler: ConfigHandler, weight_type=quantization.QuantType.QInt8):
+def quantize_onnx(config_handler: ConfigHandler, weight_type=QuantType.QUInt8):
     model_path = config_handler.read('export_path')
     quantized_model_path = config_handler.read('acceleration', 'quantization_path')
 
-    quantization.quantize_dynamic(
+    quantize_dynamic(
         model_path,
         quantized_model_path,
         weight_type=weight_type
