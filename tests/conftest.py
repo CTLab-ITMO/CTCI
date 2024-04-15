@@ -2,9 +2,9 @@ import os.path as osp
 
 import pytest
 from torch.utils.data import DataLoader
-from transformers import AutoImageProcessor
+import albumentations as albu
 
-from src.features.segmentation.transformers_dataset import SegmentationDataset
+from src.features.segmentation.dataset import SegmentationDataset
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -19,21 +19,31 @@ def val_bubbles_data_path():
     return path
 
 
-# TODO: датасет может быть не только с пузырями
 @pytest.fixture(scope="session", autouse=True)
 def train_dataset(train_bubbles_data_path):
+    transform = albu.Compose([
+        albu.Resize(256, 256)
+    ])
+
     train_dataset = SegmentationDataset(
         images_dir=osp.join(train_bubbles_data_path, "images"),
-        masks_dir=osp.join(train_bubbles_data_path, "masks")
+        masks_dir=osp.join(train_bubbles_data_path, "masks"),
+        augmentation_transform=transform
     )
+
     return train_dataset
 
 
 @pytest.fixture(scope="session", autouse=True)
 def val_dataset(val_bubbles_data_path):
+    transform = albu.Compose([
+        albu.Resize(256, 256)
+    ])
+
     val_dataset = SegmentationDataset(
         images_dir=osp.join(val_bubbles_data_path, "images"),
-        masks_dir=osp.join(val_bubbles_data_path, "masks")
+        masks_dir=osp.join(val_bubbles_data_path, "masks"),
+        augmentation_transform=transform
     )
     return val_dataset
 

@@ -5,9 +5,9 @@ import torch
 from torch.utils.data import DataLoader
 from transformers import SegformerForSemanticSegmentation, SegformerImageProcessor
 
-from src.features.segmentation.transformers_dataset import SegmentationDataset
+from src.features.segmentation.dataset import SegmentationDataset
 from src.models.segformer.model import SegFormer
-from src.models.hrnet.model import HRNet
+from src.models.hrnet.model import HRNetModel
 
 
 class TestTransformerTraining:
@@ -25,8 +25,6 @@ class TestTransformerTraining:
     def test_transformer_model_train_on_batch(self, model_name, dataset_name, request):
         model = request.getfixturevalue(model_name)
         dataset = request.getfixturevalue(dataset_name)
-        image_processor = model.image_processor
-        dataset.image_processor = image_processor
 
         dataloader = DataLoader(
             dataset, batch_size=2, shuffle=True,
@@ -50,8 +48,6 @@ class TestTransformerTraining:
     def test_transformer_model_val_on_batch(self, model_name, dataset_name, request):
         model = request.getfixturevalue(model_name)
         dataset = request.getfixturevalue(dataset_name)
-        image_processor = model.image_processor
-        dataset.image_processor = image_processor
 
         dataloader = DataLoader(
             dataset, batch_size=2, shuffle=False,
