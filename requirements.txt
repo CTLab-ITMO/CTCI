@@ -12,6 +12,8 @@ torch == 2.2.2
 torchvision == 0.17.2
 ultralytics == 8.1.35
 transformers == 4.39.1
+segmentation-models-pytorch == 0.3.3
+timm == 0.9.2
 segment-anything == 1.0
 opencv-python == 4.9.0.80
 onnxruntime == 1.16.0
