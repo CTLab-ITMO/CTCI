@@ -42,7 +42,7 @@ class SegmentationDataset(Dataset):
         self.mask_transform = mask_transform
         self.augmentation_transform = augmentation_transform
 
-        self.toten = ToTensor()
+        self.to_tensor = ToTensor()
 
         self.images_list = os.listdir(self.images_dir)
         self.masks_list = os.listdir(self.masks_dir)
@@ -77,8 +77,8 @@ class SegmentationDataset(Dataset):
         if self.mask_transform:
             mask = self.mask_transform(image=image)['image']
 
-        image = self.toten(image)
-        mask = self.toten(mask)
+        image = self.to_tensor(image)
+        mask = self.to_tensor(mask)
 
         if self.return_names:
             return image, mask, self.images_list[idx]
