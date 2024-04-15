@@ -1,19 +1,36 @@
 import torch
 import torch.nn as nn
 
+import segmentation_models_pytorch as smp
+
 from src.models.loss.soft_dice_loss import SoftDiceLossV2
+from src.models.utils.config import ConfigHandler
 
 
 class DeepLab(nn.Module):
-    def __init__(self, net, device="cpu"):
+    def __init__(
+            self, net, mask_head=None, loss_fn=None,
+            image_size=(256, 256), device="cpu"
+    ):
         super().__init__()
+
         self.device = device
-        self.net = net.to(device)
-        self.final_layer = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=1, kernel_size=1, stride=1, padding=0),
-            nn.Sigmoid()
-        )
-        self.loss_fn = SoftDiceLossV2()
+        self.image_size = image_size
+
+        self.net = net.to(self.device)
+
+        if mask_head:
+            self.final_layer = mask_head.to(self.device)
+        else:
+            self.final_layer = nn.Sequential(
+                nn.Conv2d(in_channels=1, out_channels=1, kernel_size=1, stride=1, padding=0),
+                nn.Sigmoid()
+            ).to(self.device)
+
+        if loss_fn:
+            self.loss_fn = loss_fn.to(self.device)
+        else:
+            self.loss_fn = SoftDiceLossV2().to(self.device)
 
     def forward(self, image):
         out = self.net(image)
@@ -37,3 +54,31 @@ class DeepLab(nn.Module):
         out = self.forward(image)
         out = torch.where(out > conf, 1, 0)
         return out
+
+    def __str__(self):
+        return "deeplabv3"
+
+
+def build_deeplab(config_handler: ConfigHandler):
+    device = config_handler.read('model', 'device')
+
+    model_name = config_handler.read('model', 'model_name')
+
+    image_size_width = config_handler.read('dataset', 'image_size', 'width')
+    image_size_height = config_handler.read('dataset', 'image_size', 'height')
+    image_size = (image_size_width, image_size_height)
+
+    net = smp.DeepLabV3Plus(encoder_name=model_name)
+    final_layer = nn.Sequential(
+        nn.Conv2d(in_channels=1, out_channels=1, kernel_size=1, stride=1, padding=0),
+        nn.Sigmoid()
+    )
+    loss_fn = SoftDiceLossV2()
+
+    deeplab = DeepLab(
+        net=net, mask_head=final_layer, loss_fn=loss_fn,
+        image_size=image_size, device=device
+    )
+
+    return deeplab
+
