@@ -3,11 +3,12 @@ import torch.nn as nn
 
 import segmentation_models_pytorch as smp
 
+from src.models.base_model import BaseModel
 from src.models.loss.soft_dice_loss import SoftDiceLossV2
 from src.models.utils.config import ConfigHandler
 
 
-class DeepLab(nn.Module):
+class DeepLab(BaseModel):
     def __init__(
             self, net, mask_head=None, loss_fn=None,
             image_size=(256, 256), device="cpu"

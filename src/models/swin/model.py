@@ -3,12 +3,13 @@ import torch.nn as nn
 
 from transformers import Swinv2Model
 
+from src.models.base_model import BaseModel
 from src.models.unetr.decoder import UNETRDecoder
 from src.models.loss.soft_dice_loss import SoftDiceLossV2
 from src.models.utils.config import ConfigHandler
 
 
-class Swin(nn.Module):
+class Swin(BaseModel):
     def __init__(
             self, net, mask_head=None, loss_fn=None,
             image_size=(256, 256), device="cpu", freeze_backbone=False

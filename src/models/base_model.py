@@ -7,39 +7,23 @@ import torch.nn as nn
 
 class BaseModel(nn.Module):
 
-    def __init__(self, modules: torch.nn.ModuleList) -> None:
+    def __init__(self):
         super().__init__()
-        """
-        self.modules is list of model modules
-        """
-        self.modules = modules
 
-    def forward(self, x) -> torch.tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         just a forward pass with all the logic implemented
         """
         pass
 
-    def forward(self, x, labels) -> torch.tensor:
+    def _calc_loss_fn(self, output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         """
-        just a forward pass with all the logic implemented
-        """
-        pass
-
-    def predict(self, x) -> torch.tensor:
-        """
-        a predict method which returns a mask (for our task)
+        this method calculates the loss_fn according to
+        self.loss_fn. takes the module and weight from dict
         """
         pass
 
-    def freeze_params(self) -> None:
-        # TODO: how to freeze parameters
-        """
-        freezes part of parameters of the model
-        """
-        pass
-
-    def train_on_batch(self, inputs, target) -> torch.tensor:
+    def train_on_batch(self, x: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         """
         this method implements a part of training loop
         which is where the model gives output and then the
@@ -68,20 +52,17 @@ class BaseModel(nn.Module):
         """
         pass
 
-    def val_on_batch(self, inputs, target) -> torch.tensor:
-        # TODO: docstring me
-        pass
-
-    def _set_loss_fn(self, loss_fn: dict) -> None:
+    def val_on_batch(self, x: torch.Tensor, target: torch.Tensor):
         """
-        sets loss function as a property of a model
-        should be dict like {nn.Module: weight}
+        this method implements a part of training loop
+        which is where the model gives output and then the
+        validation loss and metrics are calculated
         """
         pass
 
-    def _calc_loss_fn(self, inputs, target) -> torch.tensor:
+    def predict(self, x: torch.Tensor, conf=0.6) -> torch.Tensor:
         """
-        this method calculates the loss_fn according to
-        self.loss_fn. takes the module and weight from dict
+        a predict method which returns a mask (for our task)
         """
         pass
+

@@ -4,10 +4,11 @@ import torch.nn.functional as F
 
 import timm
 
+from src.models.base_model import BaseModel
 from src.models.utils.config import ConfigHandler
 
 
-class HRNetModel(nn.Module):
+class HRNetModel(BaseModel):
     def __init__(
             self, net, mask_head=None, loss_fn=None,
             image_size=(256, 256), device="cpu"
