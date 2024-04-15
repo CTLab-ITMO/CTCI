@@ -107,7 +107,7 @@ def tracking_experiment(
 ):
     random_seed = config_handler.read('random_seed')
     set_seed(random_seed)
-    adele_dataloader = None
+    adele_dataloader = None  # TODO: fix adele
 
     image_size = config_handler.read('dataset', 'image_size')
 
@@ -150,6 +150,7 @@ def tracking_experiment(
         ],
         milestones=[2]
     )
+    # TODO: fix scheduler
     # scheduler = lr_scheduler.PolynomialLR(optimizer, total_iters=8, power=0.9)
 
     metrics = {
