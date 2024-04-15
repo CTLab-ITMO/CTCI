@@ -1,4 +1,4 @@
-data: ./src/infrastructure/configs/training_configs/data_yolov8_seg.yaml
+data: ./src/infrastructure/configs/training/data_yolov8_seg.yaml
 checkpoint_path: None
 model_type: 'nano'
 
