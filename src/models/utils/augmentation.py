@@ -26,5 +26,13 @@ def get_augmentations(
     ])
 
 
+def get_resize(height, width):
+    return albu.Resize(height=height, width=width)
+
+
+def get_resize_from_config(config):
+    return get_resize(config.read('dataset', 'image_height'), config.read('dataset', 'image_width'))
+
+
 def get_augmentations_from_config(config):
     return get_augmentations(**config.read('dataset', 'augmentation'))

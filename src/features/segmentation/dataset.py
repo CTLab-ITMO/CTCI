@@ -28,8 +28,7 @@ class SegmentationDataset(Dataset):
             self,
             images_dir: str,
             masks_dir: str,
-            image_transform=None,
-            mask_transform=None,
+            transform=None,
             augmentation_transform=None,
             use_adele=False,
             return_names=False
@@ -38,8 +37,7 @@ class SegmentationDataset(Dataset):
 
         self.images_dir = images_dir
         self.masks_dir = masks_dir
-        self.image_transform = image_transform
-        self.mask_transform = mask_transform
+        self.transform = transform
         self.augmentation_transform = augmentation_transform
 
         self.to_tensor = ToTensor()
@@ -63,19 +61,17 @@ class SegmentationDataset(Dataset):
 
         return image, mask
 
+    def _apply_transform(self, transform, image, mask):
+        res = transform(image=image, mask=mask)
+        return res['image'], res['mask']
+
     def __getitem__(self, idx):
         image, mask = self._read_image_and_mask(self.images_list[idx])
 
+        if self.transform:
+            image, mask = self._apply_transform(self.transform, image, mask)
         if self.augmentation_transform:
-            augmentation_res = self.augmentation_transform(image=image, mask=mask)
-            image = augmentation_res['image']
-            mask = augmentation_res['mask']
-
-        if self.image_transform:
-            image = self.image_transform(image=image)['image']
-
-        if self.mask_transform:
-            mask = self.mask_transform(image=image)['image']
+            image, mask = self._apply_transform(self.augmentation_transform, image, mask)
 
         # totensor is used for the mask as the task is binary segmentation
         image = self.to_tensor(image)
