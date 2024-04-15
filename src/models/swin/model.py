@@ -17,7 +17,7 @@ class Swin(nn.Module):
         self.device = device
         self.image_size = image_size
 
-        self.encoder = net.to(self.device)
+        self.encoder = net.encoder.to(self.device)
 
         if mask_head:
             self.decoder = mask_head.to(self.device)

@@ -10,7 +10,7 @@ from src.features.adele_utils import read_label
 
 class SegmentationDataset(Dataset):
     """
-    A dataset for bubble segmentation task. 
+    A dataset for bubble binary segmentation task.
         Dataset folder should have the structure as given below:
 
         data/
@@ -77,6 +77,7 @@ class SegmentationDataset(Dataset):
         if self.mask_transform:
             mask = self.mask_transform(image=image)['image']
 
+        # totensor is used for the mask as the task is binary segmentation
         image = self.to_tensor(image)
         mask = self.to_tensor(mask)
 
