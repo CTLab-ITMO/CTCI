@@ -2,32 +2,34 @@ import torch
 import onnxruntime as ort
 import onnxruntime.quantization as quantization
 
+from src.models.utils.config import ConfigHandler
+
 
 def export_model_onnx(
         model,
-        config_data
+        config_handler: ConfigHandler
 ):
-    config_data_export = config_data['export']
+    config_export_handler = ConfigHandler(config_handler.read('export'))
 
     model.eval()
-    input_tensor = torch.rand(*config_data['input_tensor_shape'])
+    input_tensor = torch.rand(*config_handler.read('input_tensor_shape'))
     torch.onnx.export(
         model,
         input_tensor,
-        config_data['export_path'],
-        export_params=config_data_export['export_params'],
-        do_constant_folding=config_data_export['do_constant_folding'],
-        verbose=config_data_export['verbose'],
-        input_names=config_data['input_names'],
-        output_names=config_data['output_names'],
-        dynamic_axes=config_data_export['dynamic_axes'],
-        opset_version=config_data_export['opset_version']
+        config_handler.read('export_path'),
+        export_params=config_export_handler.read('export_params'),
+        do_constant_folding=config_export_handler.read('do_constant_folding'),
+        verbose=config_export_handler.read('verbose'),
+        input_names=config_handler.read('input_names'),
+        output_names=config_handler.read('output_names'),
+        dynamic_axes=config_export_handler.read('dynamic_axes'),
+        opset_version=config_export_handler.read('opset_version')
     )
 
 
-def quantize_onnx(config_data, weight_type=quantization.QuantType.QInt8):
-    model_path = config_data['export_path']
-    quantized_model_path = config_data['acceleration']['quantization_path']
+def quantize_onnx(config_handler: ConfigHandler, weight_type=quantization.QuantType.QInt8):
+    model_path = config_handler.read('export_path')
+    quantized_model_path = config_handler.read('acceleration', 'quantization_path')
 
     quantization.quantize_dynamic(
         model_path,
@@ -36,9 +38,9 @@ def quantize_onnx(config_data, weight_type=quantization.QuantType.QInt8):
     )
 
 
-def init_session(config_data):
-    model_path = config_data['export_path']
-    providers = config_data['runtime']['providers']
+def init_onnx_session(config_handler):
+    model_path = config_handler.read('export_path')
+    providers = config_handler.read('runtime', 'providers')
 
     options = ort.SessionOptions()
     options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
