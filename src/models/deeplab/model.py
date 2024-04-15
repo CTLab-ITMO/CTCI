@@ -17,13 +17,12 @@ class DeepLab(BaseModel):
 
         self.device = device
         self.image_size = image_size
-
         self.net = net.to(self.device)
 
         if mask_head:
-            self.final_layer = mask_head.to(self.device)
+            self.mask_head = mask_head.to(self.device)
         else:
-            self.final_layer = nn.Sequential(
+            self.mask_head = nn.Sequential(
                 nn.Conv2d(in_channels=1, out_channels=1, kernel_size=1, stride=1, padding=0),
                 nn.Sigmoid()
             ).to(self.device)
@@ -35,7 +34,7 @@ class DeepLab(BaseModel):
 
     def forward(self, image: torch.Tensor) -> torch.Tensor:
         out = self.net(image)
-        out = self.final_layer(out)
+        out = self.mask_head(out)
         return out
 
     def _calc_loss_fn(self, output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
@@ -46,7 +45,7 @@ class DeepLab(BaseModel):
         loss = self._calc_loss_fn(outputs, target)
         return loss
 
-    def val_on_batch(self, image: torch.Tensor, target: torch.Tensor):
+    def val_on_batch(self, image: torch.Tensor, target: torch.Tensor) -> (torch.Tensor, torch.Tensor):
         outputs = self.forward(image)
         loss = self._calc_loss_fn(outputs, target)
         return loss, outputs

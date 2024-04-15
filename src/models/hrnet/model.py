@@ -17,7 +17,6 @@ class HRNetModel(BaseModel):
 
         self.device = device
         self.image_size = image_size
-
         self.net = net.to(self.device)
         total_num_features = sum(self.net.feature_info.channels())
 
@@ -36,8 +35,8 @@ class HRNetModel(BaseModel):
         else:
             self.loss_fn = nn.BCELoss().to(self.device)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        out = self.net(x)
+    def forward(self, image: torch.Tensor) -> torch.Tensor:
+        out = self.net(image)
         interpolated = []
         for o in out:
             interpolated.append(self._interpolate_output(o))
@@ -45,9 +44,9 @@ class HRNetModel(BaseModel):
         out = self.mask_head(out)
         return out
 
-    def _interpolate_output(self, out: torch.Tensor):
+    def _interpolate_output(self, output: torch.Tensor) -> torch.Tensor:
         h, w = self.image_size
-        return F.interpolate(input=out, size=(h, w), mode='bilinear', align_corners=True)
+        return F.interpolate(input=output, size=(h, w), mode='bilinear', align_corners=True)
 
     def calc_loss_fn(self, output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         # TODO: badly written code just to start training, need to refactor
@@ -58,7 +57,7 @@ class HRNetModel(BaseModel):
         loss = self.calc_loss_fn(out, target)
         return loss
     
-    def val_on_batch(self, image: torch.Tensor, target: torch.Tensor):
+    def val_on_batch(self, image: torch.Tensor, target: torch.Tensor) -> (torch.Tensor, torch.Tensor):
         out = self.forward(image)
         loss = self.calc_loss_fn(out, target)
         return loss, out
@@ -67,6 +66,9 @@ class HRNetModel(BaseModel):
         out = self.forward(image)
         out = torch.where(out > conf, 1, 0)
         return out
+
+    def __str__(self):
+        return "hrnet"
 
 
 def build_hrnet(config_handler: ConfigHandler):

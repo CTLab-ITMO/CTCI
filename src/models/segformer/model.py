@@ -13,16 +13,15 @@ class SegFormer(BaseModel):
             image_size=(256, 256), device="cpu"
     ):
         super().__init__()
+
         self.device = device
-
         self.image_size = image_size
-
         self.net = net.to(self.device)
 
         if mask_head:
-            self.final_layer = mask_head.to(self.device)
+            self.mask_head = mask_head.to(self.device)
         else:
-            self.final_layer = nn.Sequential(
+            self.mask_head = nn.Sequential(
                 nn.Conv2d(in_channels=1, out_channels=1, kernel_size=1, stride=1, padding=0),
                 nn.Sigmoid()
             ).to(self.device)
@@ -35,11 +34,11 @@ class SegFormer(BaseModel):
     def forward(self, image: torch.Tensor, labels=None) -> torch.Tensor:
         out = self.net(pixel_values=image, labels=labels).logits
         out = self._interpolate_output(out)
-        out = self.final_layer(out)
+        out = self.mask_head(out)
         return out
 
-    def _interpolate_output(self, out):
-        return nn.functional.interpolate(out, size=self.image_size, mode="bilinear", align_corners=False)
+    def _interpolate_output(self, output) -> torch.Tensor:
+        return nn.functional.interpolate(output, size=self.image_size, mode="bilinear", align_corners=False)
 
     def _calc_loss_fn(self, output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         return self.loss_fn(output, target)
@@ -49,7 +48,7 @@ class SegFormer(BaseModel):
         loss = self._calc_loss_fn(outputs, labels)
         return loss
 
-    def val_on_batch(self, image: torch.Tensor, labels: torch.Tensor):
+    def val_on_batch(self, image: torch.Tensor, labels: torch.Tensor) -> (torch.Tensor, torch.Tensor):
         outputs = self.forward(image)
         loss = self._calc_loss_fn(outputs, labels)
         return loss, outputs
