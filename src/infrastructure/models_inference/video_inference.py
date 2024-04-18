@@ -1,8 +1,12 @@
 import time
+import sys
+
 import numpy as np
 import cv2
-
 import torchvision.transforms as transforms
+
+from src.models.inference import init_onnx_session
+from src.models.utils.config import read_yaml_config
 
 
 def draw_mask(image, mask):
@@ -40,14 +44,14 @@ def video_onnx_inference(video_path, onnx_session):
 
         outputs = onnx_session.run(None, inputs)[0][0]
         outputs = np.transpose(outputs, (1, 2, 0))
-        ret, outputs = cv2.threshold(outputs, 0.5, 1, cv2.THRESH_BINARY)
+        ret, outputs = cv2.threshold(outputs, 0.3, 1, cv2.THRESH_BINARY)
         outputs = outputs * 255
 
-        # outputs = cv2.cvtColor(outputs, cv2.COLOR_GRAY2BGR)
+        outputs = cv2.cvtColor(outputs, cv2.COLOR_GRAY2RGB)
         outputs = cv2.resize(outputs, (width, height))
-        # frame = draw_mask(frame, outputs)
+        frame = draw_mask(frame, outputs)
 
-        cv2.imshow('Bubbles', outputs)
+        cv2.imshow('Bubbles', frame)
 
         t2 = time.time()
         print(t2-t1)
@@ -59,3 +63,10 @@ def video_onnx_inference(video_path, onnx_session):
     vid_capture.release()
     cv2.destroyAllWindows()
 
+
+if __name__ == "__main__":
+    config_path = sys.argv[1]
+    config_handler = read_yaml_config(config_path)
+
+    session = init_onnx_session(config_handler)
+    video_onnx_inference(r"..\data\test_data\bubbles\video_0.mp4", session)
