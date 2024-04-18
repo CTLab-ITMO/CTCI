@@ -16,7 +16,7 @@ if __name__ == "__main__":
     net = timm.create_model("hrnet_w18_small_v2", features_only=True, pretrained=True)
 
     model = HRNetModel(net=net)
-    model = model.load_state_dict(torch.load(model_checkpoint_path))
+    model.load_state_dict(torch.load(model_checkpoint_path))
 
     input_tensor_shape = config_handler.read('input_tensor_shape')
 

@@ -21,8 +21,7 @@ if __name__ == "__main__":
     )
 
     model = SegFormer(net)
-    model = model.load_state_dict(torch.load(model_checkpoint_path))
-
+    model.load_state_dict(torch.load(model_checkpoint_path))
     input_tensor_shape = config_handler.read('input_tensor_shape')
 
     export_model_onnx(
