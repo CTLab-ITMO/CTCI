@@ -11,6 +11,9 @@ def get_augmentations(
         random_flip=0.5,
         shift_limit=0.05,
         scale_limit=0.05,
+        crop_height=256,
+        crop_width=256,
+        crop_p=0.4,
         rotate_limit=30,
         scale_rotate_p=0.5
 
@@ -19,6 +22,7 @@ def get_augmentations(
         albu.CLAHE(always_apply=apply_clahe),
         albu.Normalize(always_apply=apply_norm),
         albu.Flip(p=random_flip),
+        albu.RandomCrop(crop_height, crop_width, p=crop_p),
         albu.ShiftScaleRotate(shift_limit=shift_limit,
                               scale_limit=scale_limit,
                               rotate_limit=rotate_limit,
@@ -31,7 +35,7 @@ def get_resize(height, width):
 
 
 def get_resize_from_config(config):
-    return get_resize(config.read('dataset', 'image_height'), config.read('dataset', 'image_width'))
+    return get_resize(config.read('dataset', 'image_size', 'height'), config.read('dataset', 'image_size', 'width'))
 
 
 def get_augmentations_from_config(config):
