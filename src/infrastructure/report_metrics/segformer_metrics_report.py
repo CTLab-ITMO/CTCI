@@ -2,10 +2,9 @@ import sys
 import os.path as osp
 
 from torch.utils.data import DataLoader
-import transformers
 
-from src.features.segmentation.transformers_dataset import SegmentationDataset
-from src.models.segformer.model import SegFormer
+from src.features.segmentation.dataset import SegmentationDataset
+from src.models.segformer.model import build_segformer
 from src.models.metrics import Recall, Precision, Accuracy, DiceMetric, IoUMetric, ReportMetrics
 from src.models.utils.config import read_yaml_config
 from src.models.utils.models_settings import set_image_processor_to_datasets, set_gpu
@@ -14,30 +13,25 @@ from src.models.utils.models_settings import set_image_processor_to_datasets, se
 # TODO: create metrics report function for
 if __name__ == "__main__":
     config_path = sys.argv[1]
-    config_data = read_yaml_config(config_path)
+    config_handler = read_yaml_config(config_path)
 
-    model_name = config_data['model']['model_name']
-    model_type = config_data['model']['model_type']
+    model_name = config_handler.read('model', 'model_name')
+    model_type = config_handler.read('model', 'model_type')
 
-    image_processor = transformers.SegformerImageProcessor()
-    net = transformers.SegformerForSemanticSegmentation.from_pretrained(
-        f"nvidia/{model_name}-{model_type}-finetuned-ade-512-512"
-    )
-    model = SegFormer(net=net, image_processor=image_processor, device=config_data['model']['device'])
+    model = build_segformer(config_handler)
 
     test_dataset = SegmentationDataset(
-        images_dir=osp.join(config_data['dataset']['test_dataset_dirs'][0], "images"),
-        masks_dir=osp.join(config_data['dataset']['test_dataset_dirs'][0], "masks"),
-        image_processor=image_processor
+        images_dir=osp.join(config_handler.read('dataset', 'test_dataset_dirs')[0], "images"),
+        masks_dir=osp.join(config_handler.read('dataset', 'test_dataset_dirs')[0], "masks"),
     )
 
-    image_size = config_data['dataset']['image_size']
+    image_size = config_handler.read('dataset', 'image_size')
 
-    batch_size = config_data['dataloader']['train_batch_size']
-    pin_memory = config_data['dataloader']['pin_memory']
-    num_workers = config_data['dataloader']['num_workers']
+    batch_size = config_handler.read('dataloader', 'train_batch_size')
+    pin_memory = config_handler.read('dataloader', 'pin_memory')
+    num_workers = config_handler.read('dataloader', 'num_workers')
 
-    device_name = config_data['model']['device']
+    device_name = config_handler.read('model', 'device')
 
     set_image_processor_to_datasets(model, image_size, [test_dataset])
 

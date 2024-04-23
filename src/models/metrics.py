@@ -1,13 +1,8 @@
-import torch
 import torch.nn as nn
 
 import torch
 import numpy as np
 from tqdm import tqdm
-from src.models.utils.dirs import save_model
-from src.features.adele import correct_mask, predict_average_on_scales
-from src.features.adele_utils import create_labels_artifact, convert_data_to_dict, write_labels
-
 
 
 class IoUMetric(nn.Module):
@@ -108,95 +103,6 @@ class Recall(nn.Module):
 
     def __str__(self):
         return "recall"
-
-
-class CosineSim(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, mask_1, mask_2):
-        mask_1 = mask_1.reshape(-1)
-        mask_2 = mask_2.reshape(-1)
-
-        scalar_product = torch.sum(mask_1 * mask_2)
-        mask_1_norm = torch.linalg.norm(mask_1, dim=0, ord=0)
-        mask_2_norm = torch.linalg.norm(mask_2, dim=0, ord=0)
-
-        cosine_sim = scalar_product / (mask_1_norm * mask_2_norm)
-        return cosine_sim
-
-    def __str__(self):
-        return "cosine_sim"
-
-
-class CosineUnionSim(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-        self.cosine_sim = CosineSim()
-
-    def forward(self, mask_1, mask_2):
-        mask_1 = mask_1.reshape(-1)
-        mask_2 = mask_2.reshape(-1)
-        mask_union = mask_1 + mask_2 - mask_1 * mask_2
-
-        cosine_sim_1 = self.cosine_sim(mask_union, mask_1)
-        cosine_sim_2 = self.cosine_sim(mask_union, mask_2)
-
-        cosine_union_sim = 1.0/2.0 * (cosine_sim_1 + cosine_sim_2)
-        return cosine_union_sim
-
-    def __str__(self):
-        return "cosine_union_sim"
-
-
-class AverageMetric(nn.Module):
-    def __init__(self, metric):
-        super().__init__()
-        self.metric = metric
-
-    def forward(self, mask_1, target_1, mask_2, target_2):
-        num_metric_1 = self.metric(mask_1, target_1)
-        num_metric_2 = self.metric(mask_2, target_2)
-
-        return 1.0/2.0 * (num_metric_1 + num_metric_2)
-
-    def __str__(self):
-        return "average_metric"
-
-
-class CosineStability(nn.Module):
-    def __init__(self, metric):
-        super().__init__()
-        self.metric = metric
-        self.average_metric = AverageMetric(self.metric)
-        self.cosine_sim = CosineSim()
-
-    def forward(self, mask_1, target_1, mask_2, target_2):
-        cosine_sim_num = self.cosine_sim(mask_1, mask_2)
-        average_metric_num = self.average_metric(mask_1, target_1, mask_2, target_2)
-        cosine_stability = cosine_sim_num * average_metric_num
-        return cosine_stability
-
-    def __str__(self):
-        return "cosine_stability"
-
-
-class CosineUnionStability(nn.Module):
-    def __init__(self, metric):
-        super().__init__()
-        self.metric = metric
-        self.average_metric = AverageMetric(self.metric)
-        self.cosine_sim = CosineUnionSim()
-
-    def forward(self, mask_1, target_1, mask_2, target_2):
-        cosine_sim_num = self.cosine_sim(mask_1, mask_2)
-        average_metric_num = self.average_metric(mask_1, target_1, mask_2, target_2)
-        cosine_stability = cosine_sim_num * average_metric_num
-        return cosine_stability
-
-    def __str__(self):
-        return "cosine_union_stability"
 
 
 class ReportMetrics:

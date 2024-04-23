@@ -4,7 +4,7 @@ from transformers import Swinv2Model
 
 from src.models.base_model import BaseModel
 from src.models.unetr.decoder import UNETRDecoder
-from src.models.loss.soft_dice_loss import SoftDiceLossV2
+from src.models.loss import SoftDiceLossV2
 from src.models.utils.config import ConfigHandler
 
 

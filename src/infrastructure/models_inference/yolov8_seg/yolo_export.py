@@ -1,7 +1,6 @@
 import sys
 
 from src.models.yolov8_segmentation.model import load_yolov8_segment
-from src.models.inference import export_model_onnx
 from src.models.utils.config import read_yaml_config
 
 

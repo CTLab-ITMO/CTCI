@@ -61,20 +61,23 @@ def video_onnx_inference(video_path, onnx_session):
         cv2.imshow('Bubbles', frame)
 
         t2 = time.time()
-        times.append(t2)
+        times.append(t2-t1)
 
         key = cv2.waitKey(60)
         if (key == ord('q')) or key == 27:
             break
 
+        if len(times) > 20:
+            print("fps:", 1 / (sum(times[-20:-1]) / len(times[-20:-1])))
+
     vid_capture.release()
     cv2.destroyAllWindows()
-    print(sum(times)/len(times))
+
 
 if __name__ == "__main__":
     config_path = sys.argv[1]
     config_handler = read_yaml_config(config_path)
 
     session = init_onnx_session(config_handler)
-    video_onnx_inference(r"..\data\test_data\bubbles\video_0.mp4", session)
+    video_onnx_inference(r"C:\Internship\ITMO_ML\CTCI\data\test_data\bubbles\video_0.mp4", session)
 

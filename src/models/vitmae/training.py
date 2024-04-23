@@ -1,9 +1,8 @@
 import os
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 import torch
-from tqdm import tqdm
-
 from transformers import ViTMAEForPreTraining, AutoImageProcessor
 
 from src.features.vitmae.dataset import init_pretext_datasets, init_dataloaders

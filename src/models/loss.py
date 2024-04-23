@@ -1,15 +1,32 @@
-#!/usr/bin/python
-# -*- encoding: utf-8 -*-
-
-
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.cuda.amp as amp
 
-## Soft Dice Loss for binary segmentation
-##
-# v1: pytorch autograd
+
+class FocalLossBin(nn.Module):
+    def __init__(self, alpha=0.8, gamma=2, smooth=1):
+        super().__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+        self.smooth = smooth
+
+    def forward(self, outputs, targets):
+        outputs = outputs.view(-1)
+        targets = targets.view(-1)
+
+        criterion = nn.BCELoss(reduction='mean')
+
+        bce = criterion(outputs, targets)
+        bce_exp = torch.exp(-bce)
+        focal_loss = self.alpha * (1 - bce_exp) ** self.gamma * bce
+
+        return focal_loss
+
+    def __repr__(self):
+        description = f"Focal loss for binary segmentation"
+        return description
+
+
 class SoftDiceLossV1(nn.Module):
     '''
     soft-dice loss, useful in binary segmentation
@@ -36,11 +53,10 @@ class SoftDiceLossV1(nn.Module):
         return loss
 
 
-##
-# v2: self-derived grad formula
 class SoftDiceLossV2(nn.Module):
     '''
     soft-dice loss, useful in binary segmentation
+    v2: self-derived grad formula
     '''
     def __init__(self,
                  p=1,
@@ -104,4 +120,3 @@ class SoftDiceLossV2Func(torch.autograd.Function):
         grads = term2.sub_(term1).mul_(grad_output)
 
         return grads, None, None, None
-

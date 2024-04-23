@@ -3,10 +3,11 @@ Implementation of methods used to extract markers from bubble images.
 """
 
 import sys
-sys.path.append('..')
 
 import numpy as np
 import cv2
+
+sys.path.append('..')
 
 
 def _get_markers(img: np.array):
@@ -70,9 +71,9 @@ def get_markers(marker_type: str, img: np.array):
 
     markers = _get_markers(img)
 
-    if marker_type=='all':
+    if marker_type == 'all':
         return markers
-    elif marker_type=='big':
+    elif marker_type == 'big':
         return _get_big_markers(markers)
-    elif marker_type=='small':
+    elif marker_type == 'small':
         return _get_small_markers(markers)
