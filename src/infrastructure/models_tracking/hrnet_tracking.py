@@ -1,3 +1,18 @@
+"""
+Tracking Script
+
+This script runs a segmentation experiment based on the provided configuration file.
+It initializes a segmentation model, prepares the training and validation datasets,
+    and tracks the experiment using MLflow.
+
+Usage:
+    python <model>_tracking.py <config_path>
+
+Args:
+    config_path (str): Path to the YAML configuration file containing experiment parameters.
+
+"""
+
 import sys
 
 import timm

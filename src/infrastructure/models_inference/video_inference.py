@@ -1,3 +1,23 @@
+"""
+ONNX Model Inference on Video Script
+
+This script performs inference using an ONNX model on a video file. It reads frames from the video, applies inference
+    to each frame, and displays the result in real-time.
+
+Usage:
+    python video_inference.py <config_path>
+
+Args:
+    config_path (str): Path to the YAML configuration file containing model and inference parameters.
+
+The script initializes an ONNX session using the `init_onnx_session` function, which loads the model
+    from the specified path in the configuration file.
+It then reads frames from the video file, preprocesses them, performs inference using the ONNX session,
+    and displays the result with the mask overlayed on the original frame.
+The processing time for each frame and the average frames per second (FPS) are also printed.
+
+"""
+
 import time
 import sys
 
@@ -11,6 +31,16 @@ from src.models.utils.config import read_yaml_config
 
 
 def draw_mask(image, mask):
+    """
+    Draws the mask on the input image.
+
+    Args:
+        image (numpy.ndarray): Input image.
+        mask (numpy.ndarray): Mask to be overlayed on the image.
+
+    Returns:
+        numpy.ndarray: Image with mask overlayed.
+    """
     for c in (0, 1):
         mask[:, :, c] = np.zeros_like(mask[:, :, c])
     alpha_m = 1.0
@@ -21,6 +51,13 @@ def draw_mask(image, mask):
 
 
 def video_onnx_inference(video_path, onnx_session):
+    """
+    Performs inference on a video using the provided ONNX session.
+
+    Args:
+        video_path (str): Path to the input video file.
+        onnx_session (onnxruntime.InferenceSession): ONNX inference session.
+    """
     vid_capture = cv2.VideoCapture(video_path)
 
     to_tensor = transforms.ToTensor()
@@ -79,5 +116,5 @@ if __name__ == "__main__":
     config_handler = read_yaml_config(config_path)
 
     session = init_onnx_session(config_handler)
-    video_onnx_inference(r".\CTCI\data\test_data\bubbles\video_0.mp4", session)
+    video_onnx_inference(r".\data\test_data\bubbles\video_0.mp4", session)
 

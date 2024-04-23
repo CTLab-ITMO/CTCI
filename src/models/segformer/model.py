@@ -1,3 +1,8 @@
+"""
+This module contains the implementation of a Segformer segmentation model
+    and related functions for building the model.
+
+"""
 import torch
 import torch.nn as nn
 
@@ -8,6 +13,16 @@ from src.models.utils.config import ConfigHandler
 
 
 class SegFormer(BaseModel):
+    """
+    SegFormer segmentation model.
+
+    Args:
+        net: SegFormer network architecture.
+        mask_head: Layers for producing segmentation mask.
+        loss_fn: Loss function for training the model.
+        image_size (tuple): Input image size.
+        device (str): Device for model computation.
+    """
     def __init__(
             self, net, mask_head=None, loss_fn=None,
             image_size=(256, 256), device="cpu"
@@ -32,28 +47,87 @@ class SegFormer(BaseModel):
             self.loss_fn = nn.BCELoss().to(self.device)
 
     def forward(self, image: torch.Tensor, labels=None) -> torch.Tensor:
+        """
+        Forward pass of the model.
+
+        Args:
+            image (torch.Tensor): Input image tensor.
+
+        Returns:
+            torch.Tensor: Segmentation mask tensor.
+        """
         out = self.net(pixel_values=image, labels=labels).logits
         out = self._interpolate_output(out)
         out = self.mask_head(out)
         return out
 
     def _interpolate_output(self, output) -> torch.Tensor:
+        """
+        Interpolates the output tensor to match the input image size.
+
+        Args:
+            output (torch.Tensor): Tensor representing the model output.
+
+        Returns:
+            torch.Tensor: Interpolated output tensor.
+        """
         return nn.functional.interpolate(output, size=self.image_size, mode="bilinear", align_corners=False)
 
     def _calc_loss_fn(self, output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        """
+        Calculates the loss function.
+
+        Args:
+            output (torch.Tensor): Predicted segmentation mask tensor.
+            target (torch.Tensor): Ground truth segmentation mask tensor.
+
+        Returns:
+            torch.Tensor: Loss tensor.
+        """
         return self.loss_fn(output, target)
 
     def train_on_batch(self, image: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
+        """
+        Performs a training iteration on a batch of data.
+
+        Args:
+            image (torch.Tensor): Input image tensor.
+            target (torch.Tensor): Ground truth segmentation mask tensor.
+
+        Returns:
+            torch.Tensor: Loss tensor.
+        """
         outputs = self.forward(image)
         loss = self._calc_loss_fn(outputs, labels)
         return loss
 
     def val_on_batch(self, image: torch.Tensor, labels: torch.Tensor) -> (torch.Tensor, torch.Tensor):
+        """
+        Performs evaluation on a batch of data.
+
+        Args:
+            image (torch.Tensor): Input image tensor.
+            target (torch.Tensor): Ground truth segmentation mask tensor.
+
+        Returns:
+            torch.Tensor: Loss tensor.
+            torch.Tensor: Predicted segmentation mask tensor.
+        """
         outputs = self.forward(image)
         loss = self._calc_loss_fn(outputs, labels)
         return loss, outputs
 
     def predict(self, image: torch.Tensor, conf=0.6) -> torch.Tensor:
+        """
+        Performs predict on an input image.
+
+        Args:
+            image (torch.Tensor): Input image tensor.
+            conf (float): Confidence threshold for binarizing the output mask.
+
+        Returns:
+            torch.Tensor: Predicted segmentation mask tensor.
+        """
         out = self.forward(image=image)
         out = torch.where(out > conf, 1, 0)
         return out
@@ -63,6 +137,15 @@ class SegFormer(BaseModel):
 
 
 def build_segformer(config_handler: ConfigHandler):
+    """
+    Builds a SegFormer segmentation model based on configuration file.
+
+    Args:
+        config_handler (ConfigHandler): Configuration file handler.
+
+    Returns:
+        SegFormer: SegFormer segmentation model.
+    """
     device = config_handler.read('model', 'device')
 
     model_name = config_handler.read('model', 'model_name')

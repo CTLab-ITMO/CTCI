@@ -1,3 +1,7 @@
+"""
+This module provides functions to model reproducibility
+
+"""
 import random
 import torch
 import numpy as np

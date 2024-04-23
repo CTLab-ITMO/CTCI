@@ -1,10 +1,24 @@
+"""
+This module contains the implementation of UNETR Decoder architecture.
+
+"""
+from typing import List
+
 import torch
-import numpy as np
-import torch.nn as nn
+
 from src.models.unetr.blocks import *
 
 
 class UNETRDecoder(nn.Module):
+    """
+    Decoder module for the UNETR architecture.
+
+    Args:
+        in_channels (int): Number of input channels. Default is 3.
+        out_channels (int): Number of output channels. Default is 1.
+        feature_size (int): Size of the feature maps. Default is 96.
+        hidden_size (List[int]): List containing sizes of hidden layers. Default is [192, 384, 768, 768].
+    """
     def __init__(self, in_channels=3, out_channels=1, feature_size=96, hidden_size=[192, 384, 768, 768]):
         super().__init__()
 
@@ -72,8 +86,17 @@ class UNETRDecoder(nn.Module):
         )
         self.act = nn.Sigmoid()
 
-    def forward(self, reshaped_hidden_states, image):
+    def forward(self, reshaped_hidden_states: List[torch.Tensor], image: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass.
 
+        Args:
+            reshaped_hidden_states (List[torch.Tensor]): List of hidden states.
+            image (torch.Tensor): Input image tensor.
+
+        Returns:
+            torch.Tensor: Output tensor.
+        """
         im = self.features(image)
 
         p = self.patch_features(reshaped_hidden_states[0])
@@ -81,9 +104,9 @@ class UNETRDecoder(nn.Module):
         state1 = self.encoder1(reshaped_hidden_states[1])
         state2 = self.encoder2(reshaped_hidden_states[2])
         state3 = self.encoder3(reshaped_hidden_states[3])
-        btlnck = self.bottleneck(reshaped_hidden_states[4])
+        bottleneck = self.bottleneck(reshaped_hidden_states[4])
 
-        dec3 = self.decoder3(btlnck, state3)
+        dec3 = self.decoder3(bottleneck, state3)
         dec2 = self.decoder2(dec3, state2)
         dec1 = self.decoder1(dec2, state1)
 

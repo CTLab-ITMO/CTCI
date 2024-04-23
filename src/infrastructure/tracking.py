@@ -1,3 +1,10 @@
+"""
+Tracking Experiment Module
+
+This module provides functions for tracking and logging experiments using MLflow.
+It includes functions for initializing and training models, tracking metrics, and logging results.
+"""
+
 import os.path as osp
 import pandas as pd
 
@@ -7,9 +14,10 @@ import mlflow
 from torch.utils.data import DataLoader
 import torch.optim.lr_scheduler as lr_scheduler
 
+from src.models.base_model import BaseModel
 from src.models.utils.dirs import check_dir, create_folder, create_run_folder
 from src.models.utils.reproducibility import set_seed
-from src.models.utils.models_settings import set_image_processor_to_datasets, set_gpu
+from src.models.utils.models_settings import set_gpu
 from src.models.utils.config import ConfigHandler
 from src.models.metrics import Recall, Precision, Accuracy, DiceMetric, IoUMetric
 from src.models.train import Trainer
@@ -17,10 +25,24 @@ from src.visualization.visualization import draw_results, draw_history
 
 
 def tracking_run(
-        trainer,
-        train_dataloader, val_dataloader, adele_dataloader,
+        trainer: Trainer,
+        train_dataloader: torch.utils.data.DataLoader, val_dataloader: torch.utils.data.DataLoader,
+        adele_dataloader: torch.utils.data.DataLoader,
         config_handler: ConfigHandler, run_name=None
 ):
+    """
+    Tracks a single run within an experiment using MLflow.
+
+    Args:
+        trainer (Trainer): Trainer object containing the model, optimizer, and other training parameters.
+        train_dataloader (DataLoader): DataLoader for the training dataset.
+        val_dataloader (DataLoader): DataLoader for the validation dataset.
+        adele_dataloader (DataLoader): DataLoader for the ADELE dataset.
+        config_handler (ConfigHandler): ConfigHandler object containing experiment configuration.
+        run_name (str, optional): Name of the run. If None, a default name is used.
+
+    """
+
     random_seed = config_handler.read('random_seed')
 
     train_batch_size = config_handler.read('dataloader', 'train_batch_size')
@@ -98,18 +120,29 @@ def tracking_run(
 
 
 def tracking_experiment(
-        model,
-        train_dataset, val_dataset,
+        model: BaseModel,
+        train_dataset: torch.utils.data.Dataset, val_dataset: torch.utils.data.Dataset,
         config_handler: ConfigHandler,
         scheduler=None,
         adele_dataset=None,
         experiment_name="experiment"
 ):
+    """
+    Tracks and logs an experiment using MLflow.
+
+    Args:
+        model (BaseModel): Segmentation model to be trained.
+        train_dataset (Dataset): Training dataset.
+        val_dataset (Dataset): Validation dataset.
+        config_handler (ConfigHandler): ConfigHandler object containing experiment configuration.
+        scheduler: Learning rate scheduler.
+        adele_dataset: ADELE dataset.
+        experiment_name (str, optional): Name of the experiment.
+
+    """
     random_seed = config_handler.read('random_seed')
     set_seed(random_seed)
     adele_dataloader = None  # TODO: fix adele
-
-    image_size = config_handler.read('dataset', 'image_size')
 
     train_batch_size = config_handler.read('dataloader', 'train_batch_size')
     val_batch_size = config_handler.read('dataloader', 'val_batch_size')
@@ -118,7 +151,6 @@ def tracking_experiment(
 
     device_name = config_handler.read('model', 'device')
 
-    set_image_processor_to_datasets(model, image_size, [train_dataset, val_dataset])
     train_dataloader = DataLoader(
         train_dataset, batch_size=train_batch_size, shuffle=True,
         pin_memory=pin_memory, num_workers=num_workers

@@ -1,3 +1,7 @@
+"""
+This module implements metrics realization for segmentation task
+"""
+
 import torch.nn as nn
 
 import torch
@@ -21,12 +25,24 @@ class IoUMetric(nn.Module):
     def __init__(self):
         super().__init__()
 
-    def forward(self, inputs, targets, smooth=1e-6):
-        inputs = inputs.reshape(-1)
+    def forward(self, outputs: torch.Tensor, targets: torch.Tensor, smooth=1e-6) -> torch.Tensor:
+        """
+        Forward pass of IoU metric
+
+        Args:
+            outputs (torch.Tensor): Predicted inputs.
+            targets (torch.Tensor): Target labels.
+            smooth (float): Smoothing factor to avoid division by zero.
+
+        Returns:
+            torch.Tensor: score.
+
+        """
+        outputs = outputs.reshape(-1)
         targets = targets.reshape(-1)
 
-        intersection = (inputs * targets).sum()
-        total = (inputs + targets).sum()
+        intersection = (outputs * targets).sum()
+        total = (outputs + targets).sum()
         union = total - intersection
         iou = (intersection + smooth) / (union + smooth)
 
@@ -39,17 +55,30 @@ class IoUMetric(nn.Module):
 class DiceMetric(nn.Module):
     """
     Metric for binary segmentation
+
     """
 
     def __init__(self):
         super().__init__()
 
-    def forward(self, inputs, targets, eps=1e-5):
-        inputs = inputs.reshape(-1)
+    def forward(self, outputs: torch.Tensor, targets: torch.Tensor, eps=1e-5) -> torch.Tensor:
+        """
+        Forward pass of dice metric
+
+        Args:
+            outputs (torch.Tensor): Predicted inputs.
+            targets (torch.Tensor): Target labels.
+            smooth (float): Smoothing factor to avoid division by zero.
+
+        Returns:
+            torch.Tensor: score.
+
+        """
+        outputs = outputs.reshape(-1)
         targets = targets.reshape(-1)
 
-        sum = inputs.sum() + targets.sum()
-        intersection = (inputs * targets).sum()
+        sum = outputs.sum() + targets.sum()
+        intersection = (outputs * targets).sum()
         dice = (2.0 * intersection + eps) / (sum + eps)
         return dice
 
@@ -58,14 +87,30 @@ class DiceMetric(nn.Module):
 
 
 class Accuracy(nn.Module):
+    """
+    Accuracy metric counts tp and tn pixels and divide this number by number of all pixels
+
+    """
     def __init__(self):
         super().__init__()
 
-    def forward(self, inputs, targets, eps=1e-5):
-        tp = torch.sum(inputs * targets)
-        fp = torch.sum(inputs * (1 - targets))
-        fn = torch.sum((1 - inputs) * targets)
-        tn = torch.sum((1 - inputs) * (1 - targets))
+    def forward(self, outputs: torch.Tensor, targets: torch.Tensor, eps=1e-5) -> torch.Tensor:
+        """
+        Forward pass of accuracy metric.
+
+        Args:
+            outputs (torch.Tensor): Predicted inputs.
+            targets (torch.Tensor): Target labels.
+            eps (float): Smoothing factor to avoid division by zero.
+
+        Returns:
+            torch.Tensor: score.
+
+        """
+        tp = torch.sum(outputs * targets)
+        fp = torch.sum(outputs * (1 - targets))
+        fn = torch.sum((1 - outputs) * targets)
+        tn = torch.sum((1 - outputs) * (1 - targets))
 
         accuracy = (tp + tn + eps) / (tp + tn + fp + fn + eps)
         return accuracy
@@ -75,12 +120,27 @@ class Accuracy(nn.Module):
 
 
 class Precision(nn.Module):
+    """
+    Precision metric counts tp pixels and divide this number by all positive pixels
+    """
     def __init__(self):
         super().__init__()
 
-    def forward(self, inputs, targets, eps=1e-5):
-        tp = torch.sum(inputs * targets)
-        fp = torch.sum(inputs * (1 - targets))
+    def forward(self, outputs: torch.Tensor, targets: torch.Tensor, eps=1e-5) -> torch.Tensor:
+        """
+        Forward pass of precision metric.
+
+        Args:
+            outputs (torch.Tensor): Predicted inputs.
+            targets (torch.Tensor): Target labels.
+            eps (float): Smoothing factor to avoid division by zero.
+
+        Returns:
+            torch.Tensor: score.
+
+        """
+        tp = torch.sum(outputs * targets)
+        fp = torch.sum(outputs * (1 - targets))
 
         precision = (tp + eps) / (tp + fp + eps)
         return precision
@@ -90,12 +150,27 @@ class Precision(nn.Module):
 
 
 class Recall(nn.Module):
+    """
+    Recall metric counts tp pixels and divide this number by tp + fn pixels
+    """
     def __init__(self):
         super().__init__()
 
-    def forward(self, inputs, targets, eps=1e-5):
-        tp = torch.sum(inputs * targets)
-        fn = torch.sum((1 - inputs) * targets)
+    def forward(self, outputs: torch.Tensor, targets: torch.Tensor, eps=1e-5) -> torch.Tensor:
+        """
+        Forward pass of Recall metric.
+
+        Args:
+            outputs (torch.Tensor): Predicted inputs.
+            targets (torch.Tensor): Target labels.
+            eps (float): Smoothing factor to avoid division by zero.
+
+        Returns:
+            torch.Tensor: score.
+
+        """
+        tp = torch.sum(outputs * targets)
+        fn = torch.sum((1 - outputs) * targets)
 
         recall = (tp + eps) / (tp + fn + eps)
 
@@ -106,13 +181,30 @@ class Recall(nn.Module):
 
 
 class ReportMetrics:
-    def __init__(self, model, metrics, device='cpu'):
+    """
+    Initialize the ReportMetrics class.
+
+    Args:
+        model (torch.nn.Module): The model to evaluate.
+        metrics (dict): Dictionary containing metric names as keys and corresponding metric functions as values.
+        device (str): Device to run the evaluation on. Default is 'cpu'.
+    """
+    def __init__(self, model: torch.nn.Module, metrics: dict, device='cpu'):
         self.model = model
         self.metrics = metrics
         self.metrics_num = {k: [] for k in self.metrics.keys()}
         self.device = device
 
-    def run_metrics(self, test_dataloader):
+    def run_metrics(self, test_dataloader: torch.utils.data.DataLoader) -> dict:
+        """
+        Run evaluation metrics on the test data.
+
+        Args:
+            test_dataloader (torch.utils.data.DataLoader): DataLoader for the test dataset.
+
+        Returns:
+            dict: Dictionary containing the computed metrics.
+        """
         metrics_batch_num = {k: [] for k in self.metrics.keys()}
 
         self.model = self.model.to(self.device)

@@ -1,28 +1,46 @@
+"""
+This module implements the BaseModel interface
+"""
 import torch
 import torch.nn as nn
 
 
 class BaseModel(nn.Module):
+    """
+    Base class for neural network models.
 
+    """
     def __init__(self):
         super().__init__()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        just a forward pass with all the logic implemented
+        Performs a forward pass through the network.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            torch.Tensor: Output tensor.
         """
         pass
 
     def _calc_loss_fn(self, output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         """
-        this method calculates the loss_fn according to
-        self.loss_fn. takes the module and weight from dict
+        Calculates the loss function.
+
+        Args:
+            output (torch.Tensor): Predicted tensor.
+            target (torch.Tensor): Ground truth tensor.
+
+        Returns:
+            torch.Tensor: Loss tensor.
         """
         pass
 
     def train_on_batch(self, x: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         """
-        this method implements a part of training loop
+        This method implements a part of training loop
         which is where the model gives output and then the
         loss is calculated
 
@@ -51,15 +69,24 @@ class BaseModel(nn.Module):
 
     def val_on_batch(self, x: torch.Tensor, target: torch.Tensor):
         """
-        this method implements a part of training loop
-        which is where the model gives output and then the
-        validation loss and metrics are calculated
+        Performs evaluation on a batch of data.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+            target (torch.Tensor): Ground truth tensor.
         """
         pass
 
     def predict(self, x: torch.Tensor, conf=0.6) -> torch.Tensor:
         """
-        a predict method which returns a mask (for our task)
+        Performs prediction on an input data.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+            conf (float): Confidence threshold.
+
+        Returns:
+            torch.Tensor: Predicted tensor.
         """
         pass
 

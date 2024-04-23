@@ -10,7 +10,7 @@ import cv2
 sys.path.append('..')
 
 
-def _get_markers(img: np.array):
+def _get_markers(img: np.array) -> np.array:
     """
     The threshold is set for a preprocessed image and is not meant to be changed.
 
@@ -24,7 +24,7 @@ def _get_markers(img: np.array):
     return all
 
 
-def _get_big_markers(markers):
+def _get_big_markers(markers: np.array) -> np.array:
     """
     Extract big bubble markers by morphological operations.
 
@@ -40,7 +40,7 @@ def _get_big_markers(markers):
     return big 
 
 
-def _get_small_markers(markers):
+def _get_small_markers(markers: np.array) -> np.array:
     """
     Extract small bubbles as difference between all bubble markers and big markers.
 
@@ -57,7 +57,7 @@ def _get_small_markers(markers):
     return np.where(inv_big == 255, markers, 0)
 
 
-def get_markers(marker_type: str, img: np.array):
+def get_markers(marker_type: str, img: np.array) -> np.array:
     """
     Extract bubble markers by threshold.
 

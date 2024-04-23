@@ -12,7 +12,7 @@ from src.models.watershed.markers import get_markers
 from src.models.watershed.utils import find_contours
 
 
-def _perform_watershed(data: list):
+def _perform_watershed(data: list) -> tuple:
     """
     Extract labels for bubbles using watershed algorithm.
     
@@ -32,7 +32,7 @@ def _perform_watershed(data: list):
     return labels, markers
 
 
-def perform_watershed(img):
+def perform_watershed(img: np.array) -> np.array:
     """
     Apply watershed to the bubble image to extract small bubbles masks separated by
     contours. Image is converted to grayscale and processed. After that,

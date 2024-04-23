@@ -1,3 +1,14 @@
+"""
+YOLOv8 Segmentation Experiment Script
+
+This script is used for running a segmentation experiment using the YOLOv8 architecture.
+It loads or initializes a YOLOv8-based segmentation model, trains the model based on the provided configuration file,
+    and prints out the metrics obtained during training.
+
+Usage:
+    python yolo_tracking.py <config_path>
+"""
+
 import sys
 
 from src.models.yolov8_segmentation.model import load_yolov8_segment, init_yolov8_segment, train_yolov8_segment

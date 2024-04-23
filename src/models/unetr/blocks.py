@@ -1,9 +1,25 @@
+"""
+This module contains various building blocks used in UNETRDecoder.
+
+"""
 import torch
 import torch.nn as nn
 
 
 class ConvBlock(nn.Module):
-    def __init__(self, in_c, out_c, kernel_size=3, padding=1, stride=1, norm=True, act=True):
+    """
+    Convolutional block consisting of a convolutional layer, optional instance normalization, and ReLU activation.
+
+    Args:
+        in_c (int): Number of input channels.
+        out_c (int): Number of output channels.
+        kernel_size (int): Size of the convolutional kernel. Default is 3.
+        padding (int): Amount of padding. Default is 1.
+        stride (int): Stride of the convolution. Default is 1.
+        norm (bool): Whether to apply instance normalization. Default is True.
+        act (bool): Whether to apply ReLU activation. Default is True.
+    """
+    def __init__(self, in_c: int, out_c: int, kernel_size=3, padding=1, stride=1, norm=True, act=True):
         super().__init__()
 
         layers = [
@@ -17,12 +33,28 @@ class ConvBlock(nn.Module):
 
         self.conv = nn.Sequential(*layers)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            torch.Tensor: output tensor.
+        """
         return self.conv(x)
 
 
 class DeconvBlock(nn.Module):
-    def __init__(self, in_c, out_c):
+    """
+    Deconvolutional block consisting of a transpose convolutional layer followed by ReLU activation.
+
+    Args:
+        in_c (int): Number of input channels.
+        out_c (int): Number of output channels.
+    """
+    def __init__(self, in_c: int, out_c: int):
         super().__init__()
 
         self.deconv = nn.ConvTranspose2d(
@@ -34,12 +66,28 @@ class DeconvBlock(nn.Module):
         )
         self.act = nn.ReLU()
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            torch.Tensor: output tensor.
+        """
         return self.act(self.deconv(x))
 
 
 class ResBlock(nn.Module):
-    def __init__(self, in_c, out_c):
+    """
+    Residual block consisting of two convolutional blocks and a skip connection.
+
+    Args:
+        in_c (int): Number of input channels.
+        out_c (int): Number of output channels.
+    """
+    def __init__(self, in_c: int, out_c: int):
         super().__init__()
 
         self.conv1 = ConvBlock(in_c, out_c)
@@ -50,7 +98,16 @@ class ResBlock(nn.Module):
         if self.downsample:
             self.conv2 = ConvBlock(in_c, out_c, kernel_size=1, padding=0, norm=False, act=False)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            torch.Tensor: output tensor.
+        """
         residual = x
         out = self.conv1(x)
         if self.conv2:
@@ -60,7 +117,16 @@ class ResBlock(nn.Module):
 
 
 class RepresentationBlock(nn.Module):
-    def __init__(self, in_c, out_c, res=True, num_layers=1):
+    """
+    Representation block consisting of an upsampling operation followed by multiple convolutional or residual blocks.
+
+    Args:
+        in_c (int): Number of input channels.
+        out_c (int): Number of output channels.
+        res (bool): Whether to use residual blocks. Default is True.
+        num_layers (int): Number of convolutional or residual blocks. Default is 1.
+    """
+    def __init__(self, in_c: int, out_c: int, res=True, num_layers=1):
         super().__init__()
 
         self.upsample = DeconvBlock(in_c, out_c)
@@ -81,7 +147,16 @@ class RepresentationBlock(nn.Module):
                 ]
             )
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            torch.Tensor: output tensor.
+        """
         out = self.upsample(x)
         for block in self.blocks:
             out = block(out)
@@ -89,7 +164,15 @@ class RepresentationBlock(nn.Module):
 
 
 class DecoderBlock(nn.Module):
-    def __init__(self, in_c, out_c, res=True):
+    """
+    Decoder block consisting of an upsampling operation followed by a convolutional or residual block.
+
+    Args:
+        in_c (int): Number of input channels.
+        out_c (int): Number of output channels.
+        res (bool): Whether to use residual blocks. Default is True.
+    """
+    def __init__(self, in_c: int, out_c: int, res=True):
         super().__init__()
 
         self.upsample = DeconvBlock(in_c, out_c)
@@ -99,7 +182,17 @@ class DecoderBlock(nn.Module):
         else:
             self.conv = ConvBlock(out_c + out_c, out_c)
 
-    def forward(self, x, skip):
+    def forward(self, x: torch.Tensor, skip: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+            skip (torch.Tensor): Skip connection tensor.
+
+        Returns:
+            torch.Tensor: output tensor.
+        """
         out = self.upsample(x)
         out = torch.cat((out, skip), dim=1)
         out = self.conv(out)
