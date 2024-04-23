@@ -1,11 +1,13 @@
 import os
 import os.path as osp
+
 import cv2
-import torch
+import albumentations as albu
 from torch.utils.data import Dataset
 from torchvision.transforms import ToTensor
 
 from src.features.adele_utils import read_label
+from src.models.utils.config import ConfigHandler
 
 
 class SegmentationDataset(Dataset):
@@ -73,7 +75,7 @@ class SegmentationDataset(Dataset):
         if self.augmentation_transform:
             image, mask = self._apply_transform(self.augmentation_transform, image, mask)
 
-        # totensor is used for the mask as the task is binary segmentation
+        # to tensor is used for the mask as the task is binary segmentation
         image = self.to_tensor(image)
         mask = self.to_tensor(mask)
 
@@ -84,3 +86,34 @@ class SegmentationDataset(Dataset):
     
     def __len__(self):
         return len(self.images_list)
+
+
+def get_transform_by_config(config_handler: ConfigHandler):
+    transform = albu.Compose([
+        albu.Resize(config_handler.read('dataset', 'image_size', 'height'),
+                    config_handler.read('dataset', 'image_size', 'width')),
+        albu.CLAHE(always_apply=True),
+        albu.Normalize(always_apply=True),
+        albu.RandomCrop(config_handler.read('dataset', 'image_size', 'height'),
+                        config_handler.read('dataset', 'image_size', 'width'), p=0.4),
+        albu.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.05, rotate_limit=30, p=0.5)
+    ])
+    return transform
+
+
+def get_train_dataset_by_config(config_handler: ConfigHandler, transform):
+    train_dataset = SegmentationDataset(
+        images_dir=osp.join(config_handler.read('dataset', 'training_dataset_dirs')[0], "images"),
+        masks_dir=osp.join(config_handler.read('dataset', 'training_dataset_dirs')[0], "masks"),
+        augmentation_transform=transform
+    )
+    return train_dataset
+
+
+def get_val_dataset_by_config(config_handler: ConfigHandler, transform):
+    val_dataset = SegmentationDataset(
+        images_dir=osp.join(config_handler.read('dataset', 'validation_dataset_dirs')[0], "images"),
+        masks_dir=osp.join(config_handler.read('dataset', 'validation_dataset_dirs')[0], "masks"),
+        augmentation_transform=transform
+    )
+    return val_dataset
