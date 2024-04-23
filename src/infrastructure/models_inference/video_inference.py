@@ -79,5 +79,5 @@ if __name__ == "__main__":
     config_handler = read_yaml_config(config_path)
 
     session = init_onnx_session(config_handler)
-    video_onnx_inference(r"C:\Internship\ITMO_ML\CTCI\data\test_data\bubbles\video_0.mp4", session)
+    video_onnx_inference(r".\CTCI\data\test_data\bubbles\video_0.mp4", session)
 
