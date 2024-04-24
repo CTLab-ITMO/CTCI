@@ -1,9 +1,9 @@
 """
 This module implements neural networks losses
 
+Copied from https://github.com/CoinCheung/pytorch-loss/blob/master/soft_dice_loss.py
+
 """
-# TODO: Дошик, напиши сверху, откуда ты код софт дайса взяла
-# TODO: Чаще всего по лицензиям надо указывать это
 import torch
 import torch.nn as nn
 import torch.cuda.amp as amp
