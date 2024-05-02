@@ -2,11 +2,13 @@
 This module implements metrics realization for segmentation task
 """
 
-import torch.nn as nn
-
-import torch
 import numpy as np
 from tqdm import tqdm
+
+import torch
+import torch.nn as nn
+import torchvision
+import torch.nn.functional as F
 
 
 class IoUMetric(nn.Module):
@@ -178,6 +180,48 @@ class Recall(nn.Module):
 
     def __str__(self):
         return "recall"
+
+
+# TODO: check this
+class TemporalConsistency(nn.Module):
+    def __init__(self, device='cpu'):
+        super().__init__()
+        self.device = device
+        self.iou = IoUMetric()
+
+    @staticmethod
+    def warp_frame(frame, flow):
+        _, _, height, width = frame.shape
+        grid_x, grid_y = torch.meshgrid(torch.arange(height), torch.arange(width))
+        grid_x = grid_x.float()
+        grid_y = grid_y.float()
+
+        # Add flow to grid
+        flow_x = grid_x + flow[:, 0]
+        flow_y = grid_y + flow[:, 1]
+
+        # Normalize grid to [-1, 1]
+        grid_normalized = torch.stack([(2 * flow_x / (width - 1)) - 1, (2 * flow_y / (height - 1)) - 1], dim=-1)
+
+        # Perform sampling
+        warped_frame = F.grid_sample(frame, grid_normalized.unsqueeze(0), mode='bilinear', padding_mode='zeros')
+
+        return warped_frame
+
+    def forward(
+            self, frame_prev: torch.Tensor, frame_cur: torch.Tensor
+    ):
+        # Calculating optical flow (check raft)
+        flow = torch.zeros_like(frame_prev).repeat(1, 2, 1, 1)
+        raft_model = torchvision.models.optical_flow.raft_large(pretrained=True)
+        raft_model.eval()
+        with torch.no_grad():
+            flow[:, :2] = raft_model(frame_prev.to(self.device), frame_cur.to(self.device))
+
+        # Calculating
+        warped_frame = self.warp_frame(frame_prev, flow)
+        temporal_consistency = self.iou(warped_frame, frame_cur)
+        return temporal_consistency
 
 
 class ReportMetrics:
