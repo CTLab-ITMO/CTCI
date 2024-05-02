@@ -4,6 +4,7 @@ adele implementation for c=1
 
 import torch
 import torch.nn.functional as F
+import torchvision.transforms.functional as TF
 
 
 def _count_iou_slope(first, last):
@@ -42,7 +43,7 @@ def if_update(first, last, thresh=0.9):
 
 def _interpolate_img(image, scale=None, size=None):
     """
-    wrapper for interpolating image
+    wrapper for interpolating images
 
     Args:
         image : input images
@@ -50,16 +51,17 @@ def _interpolate_img(image, scale=None, size=None):
         size : tuple to resize to
 
     Returns:
-        torch.tensor: interpolated image
+        torch.tensor: interpolated images
     """
     if scale:
-        return F.interpolate(image, scale_factor=scale, mode='bilinear', align_corners=True)
-    return F.interpolate(image, size=size, mode='bilinear', align_corners=True)
+        size = tuple(map(lambda x: int(x*scale), size))
+        return TF.resize(image, size=size)
+    return TF.resize(image, size=size)
 
 
 def _predict_on_scale(model, image, scale):
     """
-    return model output on interpolated image and then rescale it back
+    return model output on interpolated images and then rescale it back
 
     Args:
         model : model to predict
@@ -70,8 +72,8 @@ def _predict_on_scale(model, image, scale):
         torch.tensor: predicted output
     """
     _, _, h, w = image.size()
-    scaled = _interpolate_img(image, scale)
-    res = model.predict(scaled)
+    scaled = _interpolate_img(image, scale=scale, size=(h,w))
+    res = model.predict(scaled).float()
     out = _interpolate_img(res, size=(h,w))
     return out
 
@@ -95,24 +97,19 @@ def predict_average_on_scales(model, batch, scales):
     return torch.mean(preds, dim=0).squeeze(0)
 
 
-def correct_mask(target, average, confidence_thresh=0.8):
+def correct_mask(target, average, confidence_thresh=0.6):
     """
     mask correction method
 
     Args:
         target : batch of target tensors
         average : tensor of averaged output from scaled prediction
-        confidence_thresh (float, optional): average confidence threshold. Defaults to 0.8.
+        confidence_thresh (float, optional): average confidence threshold. Defaults to 0.6.
     Returns:
         torch.tensor: corrected labels
     """
-    indices = average >= confidence_thresh
     new_target = []
-    for t, i, a in zip(target, indices, average):
-       masked = a * i.int().float()
-       label = torch.argmax(masked, dim=0, keepdim=True).float()
-       new_target.append(
-           torch.where(i, t, label)
-       )
+    for t in target:
+        new_target.append(torch.where(average > confidence_thresh, 1, t))
     new_target = torch.stack(new_target)
     return new_target

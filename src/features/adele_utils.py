@@ -1,33 +1,37 @@
+import os
 import os.path as osp
 import json
 
 import numpy as np
+import cv2
+
+from src.models.utils.augmentation import get_resize
+
+artifact_path = r'./data/temp/_label_corrections/'
 
 
-artifact_path = r'./data/temp/_label_corrections.json'
-
-
-def create_labels_artifact(path=artifact_path):
-    if not osp.exists(path):
-        with open(artifact_path, "w") as f:
-            json.dump({}, f)
+def create_labels_artifact():
+    if not osp.exists(artifact_path):
+        os.mkdir(artifact_path)
 
 
 def convert_data_to_dict(filenames, labels):
     data = {}
     for name, label in zip(filenames, labels):
-        data[name] = label.cpu().tolist()
+        data[name] = label.cpu().numpy().transpose(1, 2, 0) * 255
     return data
 
 
-def write_labels(data: dict, path = artifact_path):
-     with open(path, "w") as f:
-         json.dump(data, f)
+def write_labels(data: dict, path=artifact_path):
+    for name, label in data.items():
+        cv2.imwrite(
+            osp.join(path, name),
+            label
+        )
 
 
 def read_label(filename, path=artifact_path):
-    with open(path, "r") as f:
-        data = json.load(f)
-        label = data[filename]
-        label = np.array(label)
-    return label
+    return cv2.imread(
+        osp.join(path, filename),
+        0
+    )
