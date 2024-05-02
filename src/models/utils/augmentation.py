@@ -42,8 +42,8 @@ def get_augmentations(
         albumentations.Compose: Composition of augmentations.
     """
     return albu.Compose([
-        albu.CLAHE(always_apply=apply_clahe),
-        albu.Normalize(always_apply=apply_norm),
+        #     albu.CLAHE(always_apply=apply_clahe),
+        #     albu.Normalize(always_apply=apply_norm),
         albu.Flip(p=random_flip),
         albu.RandomCrop(crop_height, crop_width, p=crop_p),
         albu.ShiftScaleRotate(shift_limit=shift_limit,
@@ -94,3 +94,11 @@ def get_resize_from_config(config_handler: ConfigHandler) -> albu.Resize:
         config_handler.read('dataset', 'image_size', 'height'),
         config_handler.read('dataset', 'image_size', 'width')
     )
+
+
+def get_preprocess_from_config(config_handler: ConfigHandler):
+    return albu.Compose([
+        get_resize_from_config(config_handler),
+        albu.CLAHE(always_apply=True),
+        albu.Normalize(always_apply=True),
+    ])
