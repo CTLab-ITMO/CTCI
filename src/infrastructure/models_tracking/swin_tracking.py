@@ -20,7 +20,7 @@ sys.path.append('../../models')
 from src.features.segmentation.dataset import get_train_dataset_by_config, get_val_dataset_by_config
 from src.models.swin.model import build_swin
 from src.infrastructure.tracking import tracking_experiment
-from src.models.utils.augmentation import get_augmentations_from_config, get_preprocess_from_config
+from src.features.segmentation.augmentation import get_augmentations_from_config, get_preprocess_from_config
 from src.models.utils.config import read_yaml_config
 
 
