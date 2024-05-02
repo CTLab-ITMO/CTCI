@@ -11,7 +11,7 @@ import mlflow
 
 from src.models.base_model import BaseModel
 from src.models.utils.dirs import save_model
-from src.features.adele import correct_mask, predict_average_on_scales
+from src.features.adele.adele import correct_mask, predict_average_on_scales
 from src.features.adele.utils import create_labels_artifact, convert_data_to_dict, write_labels
 
 
