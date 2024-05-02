@@ -15,14 +15,13 @@ Args:
 
 import sys
 
-import timm
+sys.path.append(f"../src/")
 
-from src.features.segmentation.dataset import get_transform_by_config, get_train_dataset_by_config, get_val_dataset_by_config
-from src.models.hrnet.model import HRNetModel
+from src.features.segmentation.dataset import get_train_dataset_by_config, get_val_dataset_by_config
+from src.models.utils.augmentation import get_augmentations_from_config, get_preprocess_from_config
+from src.models.hrnet.model import build_hrnet
 from src.infrastructure.tracking import tracking_experiment
 from src.models.utils.config import read_yaml_config
-
-sys.path.append(f"../src/")
 
 
 if __name__ == "__main__":
@@ -30,12 +29,28 @@ if __name__ == "__main__":
     config_handler = read_yaml_config(config_path)
 
     model_name = config_handler.read('model', 'model_name')
-    net = timm.create_model(model_name, features_only=True, pretrained=True)
-    model = HRNetModel(net=net)
+    model = build_hrnet(config_handler)
 
-    transform = get_transform_by_config(config_handler)
-    train_dataset = get_train_dataset_by_config(config_handler, transform)
-    val_dataset = get_val_dataset_by_config(config_handler, transform)
+    tr = get_preprocess_from_config(config_handler)
+    aug = get_augmentations_from_config(config_handler)
+
+    train_dataset = get_train_dataset_by_config(
+        config_handler,
+        transform=tr,
+        augmentation_transform=aug
+    )
+    val_dataset = get_val_dataset_by_config(
+        config_handler,
+        transform=tr,
+        augmentation_transform=aug
+    )
+    adele_dataset = get_train_dataset_by_config(
+        config_handler,
+        transform=tr,
+        augmentation_transform=None
+    )
+
+    adele_dataset.return_names = True
 
     experiment_name = config_handler.read('mlflow', 'experiment_name')
     if experiment_name == "None":

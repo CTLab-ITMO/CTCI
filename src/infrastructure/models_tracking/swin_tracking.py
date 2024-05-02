@@ -28,6 +28,7 @@ if __name__ == "__main__":
     config_path = sys.argv[1]
     config_handler = read_yaml_config(config_path)
 
+    model_name = config_handler.read('model', 'model_name')
     model = build_swin(config_handler)
 
     tr = get_preprocess_from_config(config_handler)
@@ -53,7 +54,7 @@ if __name__ == "__main__":
 
     experiment_name = config_handler.read('mlflow', 'experiment_name')
     if experiment_name == "None":
-        experiment_name = "swinv2"
+        experiment_name = model_name
 
     tracking_experiment(
         model,
