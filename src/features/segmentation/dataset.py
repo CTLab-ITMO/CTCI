@@ -20,6 +20,7 @@ import os
 import os.path as osp
 
 import cv2
+import numpy as np
 import albumentations as albu
 from torch.utils.data import Dataset
 from torchvision.transforms import ToTensor
@@ -83,6 +84,11 @@ class SegmentationDataset(Dataset):
 
         assert len(self.images_list) == len(self.masks_list), "some images or masks are missing"
 
+    def _correct_mask(self, mask, image_name):
+        corrected = read_label(image_name)
+        cond = corrected == 255
+        return np.where(cond, corrected, mask)
+
     def _read_image_and_mask(self, image_name):
         """
         Reads an image and its corresponding mask.
@@ -96,10 +102,6 @@ class SegmentationDataset(Dataset):
         image = cv2.imread(osp.join(self.images_dir, image_name))
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         mask = cv2.imread(osp.join(self.masks_dir, image_name), cv2.IMREAD_GRAYSCALE)
-
-        if self.use_adele:
-            corrected = read_label(image_name)
-            mask = mask + corrected
 
         return image, mask
 
@@ -132,6 +134,10 @@ class SegmentationDataset(Dataset):
 
         if self.transform:
             image, mask = self._apply_transform(self.transform, image, mask)
+
+        if self.use_adele:
+            mask = self._correct_mask(mask, self.images_list[idx])
+
         if self.augmentation_transform:
             image, mask = self._apply_transform(self.augmentation_transform, image, mask)
 
@@ -175,7 +181,7 @@ def get_transform_by_config(config_handler: ConfigHandler):
     return transform
 
 
-def get_train_dataset_by_config(config_handler: ConfigHandler, transform):
+def get_train_dataset_by_config(config_handler: ConfigHandler, transform, augmentation_transform=None):
     """
     Creates a training dataset based on the provided configuration and transformation.
 
@@ -189,12 +195,13 @@ def get_train_dataset_by_config(config_handler: ConfigHandler, transform):
     train_dataset = SegmentationDataset(
         images_dir=osp.join(config_handler.read('dataset', 'training_dataset_dirs')[0], "images"),
         masks_dir=osp.join(config_handler.read('dataset', 'training_dataset_dirs')[0], "masks"),
-        augmentation_transform=transform
+        transform=transform,
+        augmentation_transform=augmentation_transform
     )
     return train_dataset
 
 
-def get_val_dataset_by_config(config_handler: ConfigHandler, transform):
+def get_val_dataset_by_config(config_handler: ConfigHandler, transform, augmentation_transform=None):
     """
     Creates a validation dataset based on the provided configuration and transformation.
 
@@ -208,6 +215,7 @@ def get_val_dataset_by_config(config_handler: ConfigHandler, transform):
     val_dataset = SegmentationDataset(
         images_dir=osp.join(config_handler.read('dataset', 'validation_dataset_dirs')[0], "images"),
         masks_dir=osp.join(config_handler.read('dataset', 'validation_dataset_dirs')[0], "masks"),
-        augmentation_transform=transform
+        transform=transform,
+        augmentation_transform=augmentation_transform
     )
     return val_dataset
