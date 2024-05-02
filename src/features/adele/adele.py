@@ -3,7 +3,6 @@ adele implementation for c=1
 """
 
 import torch
-import torch.nn.functional as F
 import torchvision.transforms.functional as TF
 
 

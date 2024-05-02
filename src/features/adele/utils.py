@@ -1,11 +1,7 @@
 import os
 import os.path as osp
-import json
 
-import numpy as np
 import cv2
-
-from src.models.utils.augmentation import get_resize
 
 artifact_path = r'./data/temp/_label_corrections/'
 

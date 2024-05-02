@@ -25,7 +25,7 @@ import albumentations as albu
 from torch.utils.data import Dataset
 from torchvision.transforms import ToTensor
 
-from src.features.adele_utils import read_label
+from src.features.adele.utils import read_label
 from src.models.utils.config import ConfigHandler
 
 
