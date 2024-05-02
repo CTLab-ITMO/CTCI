@@ -11,8 +11,6 @@ from src.models.utils.config import ConfigHandler
 
 
 def get_augmentations(
-        apply_clahe=True,
-        apply_norm=True,
         random_flip=0.5,
         shift_limit=0.05,
         scale_limit=0.05,
@@ -27,8 +25,6 @@ def get_augmentations(
     Returns a composition of augmentations.
 
     Args:
-        apply_clahe (bool): Whether to apply Contrast Limited Adaptive Histogram Equalization (CLAHE). Default is True.
-        apply_norm (bool): Whether to apply normalization. Default is True.
         random_flip (float): Probability of applying random horizontal flip. Default is 0.5.
         shift_limit (float): Maximum shift in either direction for ShiftScaleRotate augmentation. Default is 0.05.
         scale_limit (float): Maximum scaling factor for ShiftScaleRotate augmentation. Default is 0.05.
@@ -42,8 +38,6 @@ def get_augmentations(
         albumentations.Compose: Composition of augmentations.
     """
     return albu.Compose([
-        #     albu.CLAHE(always_apply=apply_clahe),
-        #     albu.Normalize(always_apply=apply_norm),
         albu.Flip(p=random_flip),
         albu.RandomCrop(crop_height, crop_width, p=crop_p),
         albu.ShiftScaleRotate(shift_limit=shift_limit,
