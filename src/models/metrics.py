@@ -182,7 +182,6 @@ class Recall(nn.Module):
         return "recall"
 
 
-# TODO: check this
 class TemporalConsistency(nn.Module):
     def __init__(self, device='cpu'):
         super().__init__()
@@ -201,27 +200,27 @@ class TemporalConsistency(nn.Module):
         flow_y = grid_y + flow[:, 1]
 
         # Normalize grid to [-1, 1]
-        grid_normalized = torch.stack([(2 * flow_x / (width - 1)) - 1, (2 * flow_y / (height - 1)) - 1], dim=-1)
+        grid_normalized = torch.stack([(2 * flow_y / (flow_y.max() - 1)) - 1, (2 * flow_x / (flow_x.max() - 1)) - 1], dim=-1)
 
         # Perform sampling
-        warped_frame = F.grid_sample(frame, grid_normalized.unsqueeze(0), mode='bilinear', padding_mode='zeros')
+        warped_frame = F.grid_sample(frame, grid_normalized, mode='bilinear', padding_mode='zeros')
 
         return warped_frame
 
+    # TODO: remove image output
     def forward(
-            self, frame_prev: torch.Tensor, frame_cur: torch.Tensor
-    ):
+            self, frame_prev: torch.Tensor, frame_cur: torch.Tensor,
+            mask_prev: torch.Tensor, mask_cur: torch.Tensor
+    ): #-> torch.Tensor:
         # Calculating optical flow (check raft)
-        flow = torch.zeros_like(frame_prev).repeat(1, 2, 1, 1)
         raft_model = torchvision.models.optical_flow.raft_large(pretrained=True)
-        raft_model.eval()
         with torch.no_grad():
-            flow[:, :2] = raft_model(frame_prev.to(self.device), frame_cur.to(self.device))
+            flow = raft_model(frame_prev.to(self.device), frame_cur.to(self.device))[5]
 
-        # Calculating
-        warped_frame = self.warp_frame(frame_prev, flow)
-        temporal_consistency = self.iou(warped_frame, frame_cur)
-        return temporal_consistency
+        # Calculating temporal consistency
+        warped_frame = self.warp_frame(mask_prev, flow)
+        temporal_consistency = self.iou(warped_frame, mask_cur)
+        return temporal_consistency, warped_frame
 
 
 class ReportMetrics:
