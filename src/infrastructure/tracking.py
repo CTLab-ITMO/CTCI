@@ -55,7 +55,11 @@ def tracking_run(
     optimizer_name = config_handler.read('optimizer', 'name')
     optimizer_lr = config_handler.read('optimizer', 'lr')
 
-    adele = config_handler.read('training', 'adele')
+    adele = config_handler.check_key('training', 'adele')
+    adele_epoch = None
+    if adele:
+        adele_epoch = config_handler.read('training', 'adele', 'epoch')
+
     epoch_num = config_handler.read('training', 'epoch_num')
 
     draw_plots = config_handler.read('history', 'draw_plots')
@@ -77,7 +81,8 @@ def tracking_run(
             val_dataloader=val_dataloader,
             adele_dataloader=adele_dataloader,
             epoch_num=epoch_num,
-            use_adele=adele
+            use_adele=adele,
+            adele_epoch=adele_epoch
         )
 
         mlflow.set_tag('model', f"{model_name}-{model_type}")
@@ -161,7 +166,7 @@ def tracking_experiment(
     )
     if adele_dataset:
         adele_dataloader = DataLoader(
-            adele_dataset, batch_size=train_batch_size,
+            adele_dataset, batch_size=1,
             pin_memory=pin_memory, num_workers=num_workers
         )
 
@@ -183,7 +188,7 @@ def tracking_experiment(
         milestones=[2]
     )
     # TODO: fix scheduler
-    # scheduler = lr_scheduler.PolynomialLR(optimizer, total_iters=8, power=0.9)
+    #scheduler = lr_scheduler.PolynomialLR(optimizer, total_iters=8, power=0.9)
 
     metrics = {
         "iou": IoUMetric().to(device),
