@@ -31,17 +31,16 @@ Notes:
 
 import os
 import sys
-
 import torch
 
-from src.models.yolo.yolo import load_yolov8_detector
+from src.models.yolov8_detector.yolo import load_yolov8_detector
 from src.models.sam.sam import load_sam_predictor, segment_images_from_folder
 
 
 def annotation(
         data_dir: str, folder: str,
         custom_yolo_checkpoint_path: str, sam_checkpoint: str, sam_model_type: str,
-        target_length: int = 1024, narrowing: float = 0.20, erode_iterations: int = 1, processes_num: int = 0,
+        target_length: int = 1024, narrowing: float = 0.20, erode_iterations: int = 1, processes_num: int = 0, prompt_points: bool = True,
         device: str = "cpu"
 ):
     """
@@ -93,7 +92,8 @@ def annotation(
         target_length=target_length,
         narrowing=narrowing,
         erode_iterations=erode_iterations,
-        processes_num=processes_num
+        processes_num=processes_num,
+        prompt_points=prompt_points
     )
 
 
@@ -110,14 +110,15 @@ if __name__ == "__main__":
     target_length = 1024
     narrowing = 0.20
     erode_iterations = 1
-    processes_num = 0
+    processes_num = 3
+    prompt_points = False
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = "cpu"
 
     annotation(
         data_dir, folder,
         custom_yolo_checkpoint_path, sam_checkpoint, sam_model_type,
         target_length=target_length,  narrowing=narrowing,
-        erode_iterations=erode_iterations, processes_num=processes_num,
+        erode_iterations=erode_iterations, processes_num=processes_num, prompt_points=prompt_points,
         device=device
     )

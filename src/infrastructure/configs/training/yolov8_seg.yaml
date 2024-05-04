@@ -1,0 +1,9 @@
+data: ./src/infrastructure/configs/training/data_yolov8_seg.yaml
+checkpoint_path: None
+model_type: 'nano'
+
+batch_size: 4
+save_period: 1
+save_json: True
+num_epochs: 2
+pretrained: True

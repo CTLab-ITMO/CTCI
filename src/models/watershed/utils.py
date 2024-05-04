@@ -5,14 +5,14 @@ import numpy as np
 import cv2
 
 
-def find_contours(img, labels, markers):
+def find_contours(img: np.ndarray, labels: np.ndarray, markers: np.ndarray) -> np.ndarray:
     """
     draw a binary mask of contours between watershed labels
 
     Args:
-        img: grayscale image
-        labels: watershed labels
-        markers: watershed markers
+        img (np.ndarray): grayscale image
+        labels (np.ndarray): watershed labels
+        markers (np.ndarray): watershed markers
 
     Return:
         np.array: binary image of watershed labels separated by contours

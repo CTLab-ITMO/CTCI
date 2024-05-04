@@ -1,16 +1,11 @@
 import os
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 import torch
-from tqdm import tqdm
-
 from transformers import ViTMAEForPreTraining, AutoImageProcessor
 
 from src.features.vitmae.dataset import init_pretext_datasets, init_dataloaders
-
-
-def save_model(model, path):
-    torch.save(model.state_dict(), path)
 
 
 def pretext_task_train(
@@ -65,7 +60,7 @@ def pretext_task_train(
         print(f"Epoch val loss: {epoch_val_loss}\n")
         history["val_epoch"].append(epoch_val_loss)
 
-        save_model(model.to("cpu"), path=os.path.join(save_dir, f"epoch_{epoch + 1}.pt"))
+        # save_model(model.to("cpu"), path=os.path.join(save_dir, f"epoch_{epoch + 1}.pt"))
 
     return history
 
@@ -122,7 +117,7 @@ def downstream_task_train(
         print(f"Epoch val loss: {epoch_val_loss}\n")
         history["val_epoch"].append(epoch_val_loss)
 
-        save_model(model.to("cpu"), path=os.path.join(save_dir, f"epoch_{epoch + 1}.pt"))
+        # save_model(model.to("cpu"), path=os.path.join(save_dir, f"epoch_{epoch + 1}.pt"))
 
     return history
 
