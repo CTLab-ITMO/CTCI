@@ -266,43 +266,15 @@ class OpticalFlowSimilarity(nn.Module):
         self.raft_model = self.raft_model.to(self.device)
         self.cosine_sim = CosineSim(self.device)
 
-    def warp_frame(self, frame: torch.Tensor, flow: torch.Tensor) -> torch.Tensor:
-        _, _, height, width = frame.shape
-
-        grid_x, grid_y = torch.meshgrid(torch.arange(height), torch.arange(width))
-        grid_x = grid_x.float().to(self.device)
-        grid_y = grid_y.float().to(self.device)
-        flow_x = grid_x + flow[:, 0]
-        flow_y = grid_y + flow[:, 1]
-
-        # Normalize grid to [-1, 1]
-        grid_normalized = torch.stack(
-            [(2 * flow_y / (flow_y.max() - 1)) - 1, (2 * flow_x / (flow_x.max() - 1)) - 1], dim=-1
-        )
-
-        warped_frame = F.grid_sample(frame, grid_normalized, mode='bilinear', padding_mode='zeros')
-
-        return warped_frame
-
     def forward(
             self, frame_prev: torch.Tensor, frame_cur: torch.Tensor,
             mask_prev: torch.Tensor, mask_cur: torch.Tensor
     ) -> torch.Tensor:
-        white_noise = torch.randn(mask_prev.shape)
-
         frame_prev, frame_cur = frame_prev.to(self.device), frame_cur.to(self.device)
         mask_prev, mask_cur = mask_prev.to(self.device), mask_cur.to(self.device)
-        white_noise = white_noise.to(self.device)
-
-        noise = white_noise * mask_prev
 
         flow = self.raft_model(frame_prev, frame_cur)[-1]
-        warped_noise = self.warp_frame(noise, flow) * mask_cur
-
-        noised_mask_prev = mask_prev + noise
-        noised_mask_cur = mask_cur + warped_noise
-
-        mask_flow = self.raft_model(noised_mask_prev, noised_mask_cur)[-1]
+        mask_flow = self.raft_model(mask_prev, mask_cur)[-1]
 
         b, v, h, w = flow.shape
         flow = torch.reshape(flow, (b, h, w, v))
