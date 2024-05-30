@@ -1,67 +1,18 @@
-CTCI
+
+=======
+CTCI - Clumped texture composite images projects 
 ==============================
 
-Clumped texture composite images projects (froath, rocks and other texture images)
+Clumped texture composite images - изображения со скучкованными сложными данными, образующие текстуру. Такое изображение (или видео) подразумевает, что на одном изображении будут находиться множество объектов одного класса, находящихся в куче, т.е. перекрывая друг друга, в случайном порядке. Примерами таких данных могут являться пузыри, камни, любые одинаковые изделия на конвейере.
 
-Project Organization
-------------
+Трудностью работой с такими данными являются отсутствие разметки в свободном доступе, трудоемкость разметки, требование к высокому качеству результатов.
+Библиотека содержит методы, позволяющие автоматизировать процесс разметки с помощью методов слабой разметки, методы самообучения и переноса между доменами. 
 
-    ├── LICENSE
-    ├── Makefile           <- Makefile with commands like `make data` or `make train`
-    ├── README.md          <- The top-level README for developers using this project.
-    ├── data
-    │   ├── external       <- Data from third party sources.
-    │   ├── interim        <- Intermediate data that has been transformed.
-    │   ├── processed      <- The final, canonical data sets for modeling.
-    │   └── raw            <- The original, immutable data dump.
-    │
-    ├── docs               <- A default Sphinx project; see sphinx-doc.org for details
-    │
-    ├── models             <- Trained and serialized models, model predictions, or model summaries
-    │
-    ├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
-    │                         the creator's initials, and a short `-` delimited description, e.g.
-    │                         `1.0-jqp-initial-data-exploration`.
-    │
-    ├── references         <- Data dictionaries, manuals, and all other explanatory materials.
-    │
-    ├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
-    │   └── figures        <- Generated graphics and figures to be used in reporting
-    │
-    ├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
-    │                         generated with `pip freeze > requirements.txt`
-    │
-    ├── setup.py           <- makes project pip installable (pip install -e .) so src can be imported
-    ├── src                <- Source code for use in this project.
-    │   ├── __init__.py    <- Makes src a Python module
-    │   │
-    │   ├── data           <- Scripts to download or generate data
-    │   │   └── make_dataset.py
-    │   │
-    │   ├── features       <- Scripts to turn raw data into features for modeling
-    │   │   └── build_features.py
-    │   │
-    │   ├── models         <- Scripts to train models and then use trained models to make
-    │   │   │                 predictions
-    │   │   ├── predict_model.py
-    │   │   └── train_model.py
-    │   │
-    │   └── visualization  <- Scripts to create exploratory and results oriented visualizations
-    │       └── visualize.py
-    │
-    └── tox.ini            <- tox file with settings for running tox; see tox.readthedocs.io
-
-
-
---------
-
-<p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
-
- Установка
+# Установка
 
 # Слабая разметка
 
-Слабая разметка однородных данных реализована с использованием нейронных сетей YOLOv8 и Segment Anything, а также с помощью алгоритма сегментации водоразделом.
+Слабая разметка однородных данных реализована с использованием моделей YOLOv8 и Segment Anything, а также с помощью алгоритма сегментации водоразделом.
 
 Функционал слабой разметки расположен в модуле `src/data/weakly_segmentation/annotation.py` в методе `annotation`. Разметка выполняется для указанной в аргументах папки с данными
 
@@ -97,7 +48,6 @@ annotation(
 ```
 
 # Самообучение
-
 
 ## Алгоритмы самообучения 
 
@@ -170,6 +120,8 @@ batch_size - размер батча при обучении
 epochs - количесто эпох обучения 
 
 
+=======
+
 # Сегментация
 
 ## Конфигурационные файлы
@@ -178,7 +130,8 @@ epochs - количесто эпох обучения
 
 ## Модели сегментации
 
-Для сегментации изображений однородных данных добавлены такие модели, как: Yolov8, SegFormer, Swin+UNETR, DeepLabv3, HRNet. Данные модели расположены в директориях `src/models/<название модели>` . 
+
+Для сегментации изображений однородных данных реализованы такие модели, как: Yolov8, SegFormer, Swin+UNETR, DeepLabv3, HRNet. Данные модели расположены в директориях `src/models/<название модели>` . 
 
 Возможна инициализация модели с помощью соответствующего класса, например:
 
@@ -195,7 +148,8 @@ segformer = SegFormer(
     image_size=image_size, device=device
 )
 
-# Все модели сегментации наследуются от одного класса BaseModel
+
+Все модели сегментации наследуются от класса BaseModel.
 ```
 
 либо, с помощью метода `build_<название модели>`, например:
@@ -239,5 +193,59 @@ python src/infrastructure/models_tracking/segformer_tracking.py <config_path>
 python src/infrastructure/models_inference/segformer_export.py <config_path>
 ```
 
-Код конвертации и квантизации можно найти в модуле `src/models/inference.py` .
+Исходный код конвертации и квантизации находиться в модуле `src/models/inference.py` .
 
+
+Организация проекта
+------------
+
+    ├── LICENSE
+    ├── Makefile           <- Makefile with commands like `make data` or `make train`
+    ├── README.md          <- The top-level README for developers using this project.
+    ├── data
+    │   ├── external       <- Data from third party sources.
+    │   ├── interim        <- Intermediate data that has been transformed.
+    │   ├── processed      <- The final, canonical data sets for modeling.
+    │   └── raw            <- The original, immutable data dump.
+    │
+    ├── docs               <- A default Sphinx project; see sphinx-doc.org for details
+    │
+    ├── models             <- Trained and serialized models, model predictions, or model summaries
+    │
+    ├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
+    │                         the creator's initials, and a short `-` delimited description, e.g.
+    │                         `1.0-jqp-initial-data-exploration`.
+    │
+    ├── references         <- Data dictionaries, manuals, and all other explanatory materials.
+    │
+    ├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
+    │   └── figures        <- Generated graphics and figures to be used in reporting
+    │
+    ├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
+    │                         generated with `pip freeze > requirements.txt`
+    │
+    ├── setup.py           <- makes project pip installable (pip install -e .) so src can be imported
+    ├── src                <- Source code for use in this project.
+    │   ├── __init__.py    <- Makes src a Python module
+    │   │
+    │   ├── data           <- Scripts to download or generate data
+    │   │   └── make_dataset.py
+    │   │
+    │   ├── features       <- Scripts to turn raw data into features for modeling
+    │   │   └── build_features.py
+    │   │
+    │   ├── models         <- Scripts to train models and then use trained models to make
+    │   │   │                 predictions
+    │   │   ├── predict_model.py
+    │   │   └── train_model.py
+    │   │
+    │   └── visualization  <- Scripts to create exploratory and results oriented visualizations
+    │       └── visualize.py
+    │
+    └── tox.ini            <- tox file with settings for running tox; see tox.readthedocs.io
+
+
+
+--------
+
+<p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>

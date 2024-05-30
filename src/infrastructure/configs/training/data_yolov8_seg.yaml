@@ -1,0 +1,7 @@
+path: ./bubbles_split/
+train: test/images/
+val: valid/images/
+
+nc: 1
+names:
+  0: bubble
