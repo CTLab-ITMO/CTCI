@@ -107,7 +107,6 @@ if __name__ == "__main__":
     sam_checkpoint = sys.argv[4]
     sam_model_type = sys.argv[5]
 
-    target_length = 1024
     narrowing = 0.20
     erode_iterations = 1
     processes_num = 3
@@ -117,8 +116,7 @@ if __name__ == "__main__":
 
     annotation(
         data_dir, folder,
-        custom_yolo_checkpoint_path, sam_checkpoint, sam_model_type,
-        target_length=target_length,  narrowing=narrowing,
+        custom_yolo_checkpoint_path, sam_checkpoint, sam_model_type, narrowing=narrowing,
         erode_iterations=erode_iterations, processes_num=processes_num, prompt_points=prompt_points,
         device=device
     )
