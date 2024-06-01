@@ -155,7 +155,26 @@ trainer = Trainer(
 python src/infrastructure/models_tracking/segformer_tracking.py <config_path>
 ```
 
-### Адель
+### ADELE
+Библиотека поддерживает [Adaptive Early-Learning Correction for Segmentation from Noisy Annotations](https://arxiv.org/abs/2110.03740). Для использования достаточно создать датасет **без аугментаций**, то есть без афинных преобразований, но в том виде, в котором модель будет получать изображения на инференсе. В класс тренировщика необходимо будет передавать отдельно инициализированный датасет из тренировочных файлов. В файле конфигураций необходимо добавить шаг, через который будет применяться метод. 
+
+```python
+# В файле трекинга добавить следующие строки
+
+from src.models.utils.config import read_yaml_config
+from src.features.segmentation.dataset import get_train_dataset_by_config
+
+config_handler = read_yaml_config(config_path)
+adele_dataset = get_train_dataset_by_config(
+        config_handler,
+        transform=tr, # стандартные преобразования
+        augmentation_transform=None
+    )
+adele_dataset.return_names = True
+```
+
+
+
 
 # Экспорт в ONNX
 
