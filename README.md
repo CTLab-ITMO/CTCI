@@ -123,8 +123,8 @@ epochs - количесто эпох обучения
 
 | Исходное изорбражение  | Barlow twins | MoCo | 
 | ------------- | ------------- | -------------| 
-| ![](data\orig\1.png)  | ![](data\bt\1.png)  | ![](data\moco\1.png) |
-| ![](data\orig\15.png)  | ![](data\bt\15.png)  | ![](data\moco\15.png) |
+| ![](data/orig/1.png)  | ![](data/bt/1.png)  | ![](data/moco/1.png) |
+| ![](data/orig/15.png)  | ![](data/bt/15.png)  | ![](data/moco/15.png) |
 
 
 
