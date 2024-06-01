@@ -1,5 +1,4 @@
 
-=======
 CTCI - Clumped texture composite images projects 
 ==============================
 
