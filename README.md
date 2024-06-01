@@ -180,6 +180,20 @@ trainer = Trainer(
 python src/infrastructure/models_tracking/segformer_tracking.py <config_path>
 ```
 
+
+## Обучение моделей
+
+Для inference YOLOv8 необходимо пройти в директорию CTCI/src/models/yolov8 и запустить в командной строке скрипт:
+```shell
+python3 CTCI/src/models/yolov8/<task_script.py> <path to input image> <path to output image> <path to model weights>
+```
+
+
+```bash
+python src/infrastructure/models_tracking/segformer_tracking.py <config_path>
+```
+
+
 ### Адель
 
 # Экспорт в ONNX
