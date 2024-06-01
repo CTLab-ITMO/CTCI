@@ -139,12 +139,9 @@ segformer = SegFormer(
 
 [//]: # (я не шарю за хтмл поэтому оставлю это здесь)
 
-<style>
-big-style {font-size: large; font-weight: bold}
-</style>
 
 <details>
-    <summary> <big-style> Segformer </big-style> </summary>
+    <summary> Segformer </summary>
 
 Инициализация Segformer'а из файла конфигурации.
 ```python
@@ -158,7 +155,7 @@ big-style {font-size: large; font-weight: bold}
 
 
 <details>
-    <summary> <big-style> Swin-UNETR </big-style> </summary>
+    <summary> Swin-UNETR  </summary>
 
 Инициализация Segformer'а из файла конфигурации.
 ```python
@@ -172,7 +169,7 @@ big-style {font-size: large; font-weight: bold}
 
 
 <details>
-    <summary> <big-style> HRNet </big-style> </summary>
+    <summary>  HRNet  </summary>
 
 Инициализация Segformer'а из файла конфигурации.
 ```python
@@ -185,7 +182,7 @@ big-style {font-size: large; font-weight: bold}
 </details>
 
 <details>
-    <summary> <big-style> DeepLabV3 </big-style> </summary>
+    <summary>  DeepLabV3  </summary>
 
 Инициализация Segformer'а из файла конфигурации.
 ```python
