@@ -133,8 +133,8 @@ segformer = SegFormer(
 либо, с помощью метода `build_<название модели>`, например:
 
 ```python
- config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
- model = build_segformer(config_handler)
+config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
+model = build_segformer(config_handler)
 ```
 
 [//]: # (я не шарю за хтмл поэтому оставлю это здесь)
@@ -143,10 +143,11 @@ segformer = SegFormer(
 <details>
     <summary> Segformer </summary>
 
-Инициализация Segformer'а из файла конфигурации.
+Инициализация Segformer из файла конфигурации.
 ```python
- config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
- model = build_segformer(config_handler)
+from src.models.segformer.model import build_segformer
+config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
+model = build_segformer(config_handler)
 ```
 Результаты обучения модели:
 ![Segformer performance](data/readme/segformer_output_video_masked.gif)
@@ -157,10 +158,11 @@ segformer = SegFormer(
 <details>
     <summary> Swin-UNETR  </summary>
 
-Инициализация Segformer'а из файла конфигурации.
+Инициализация Swin-UNETR из файла конфигурации.
 ```python
- config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
- model = build_swin(config_handler)
+from src.models.swin.model import build_swin
+config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
+model = build_swin(config_handler)
 ```
 Результаты обучения модели:
 ![Swin performance](data/readme/swinv2_output_video_masked.gif)
@@ -171,10 +173,11 @@ segformer = SegFormer(
 <details>
     <summary>  HRNet  </summary>
 
-Инициализация Segformer'а из файла конфигурации.
+Инициализация HRNet из файла конфигурации.
 ```python
- config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
- model = build_hrnet(config_handler)
+from src.models.hrnet.model import build_hrnet
+config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
+model = build_hrnet(config_handler)
 ```
 Результаты обучения модели:
 ![HRNet performance](data/readme/hrnet_w18_small_v2_output_video_masked.gif)
@@ -184,10 +187,11 @@ segformer = SegFormer(
 <details>
     <summary>  DeepLabV3  </summary>
 
-Инициализация Segformer'а из файла конфигурации.
+Инициализация DeepLabV3 из файла конфигурации.
 ```python
- config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
- model = build_deeplab(config_handler)
+from src.models.deeplab.model import build_deeplab
+config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
+model = build_deeplab(config_handler)
 ```
 Результаты обучения модели:
 ![DeepLab performance](data/readme/resnet34-run2_output_video_masked.gif)
