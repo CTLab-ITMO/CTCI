@@ -98,7 +98,7 @@ annotation(
 ![Original - SAM - Watershed - Both](data/readme/Image.png)
 
 Результаты аннотации на различных данных. Важно отметить, что алгоритм не работает в режиме реального времени, медиа показывает визуализацию.
-![SAM + Watershed performance](https://drive.google.com/file/d/1gPvqJA4DloDo5JXQeN3A1rsrVmZd5E_G/view?usp=drive_link)
+![SAM + Watershed performance](data/readme/images_masks_output_video_masked.gif)
 
 # Самообучение
 
