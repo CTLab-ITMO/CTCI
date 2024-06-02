@@ -43,8 +43,12 @@ annotation(
     erode_iterations=erode_iterations, processes_num=processes_num, prompt_points=prompt_points,
     device=device
 )
-
 ```
+Результаты аннотации:
+![Original - SAM - Watershed - Both](data/readme/Image.png)
+
+Результаты аннотации на различных данных. Важно отметить, что алгоритм не работает в режиме реального времени, медиа показывает визуализацию.
+![SAM + Watershed performance](data/readme/images_masks_output_video_masked.gif)
 
 # Самообучение
 
@@ -163,9 +167,72 @@ segformer = SegFormer(
 либо, с помощью метода `build_<название модели>`, например:
 
 ```python
- config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
- model = build_segformer(config_handler)
+config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
+model = build_segformer(config_handler)
 ```
+
+[//]: # (я не шарю за хтмл поэтому оставлю это здесь)
+
+
+<details>
+    <summary> Segformer </summary>
+
+Инициализация Segformer из файла конфигурации.
+```python
+from src.models.segformer.model import build_segformer
+config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
+model = build_segformer(config_handler)
+```
+Результаты обучения модели:
+![Segformer performance](data/readme/segformer_output_video_masked.gif)
+
+</details>
+
+
+<details>
+    <summary> Swin-UNETR  </summary>
+
+Инициализация Swin-UNETR из файла конфигурации.
+```python
+from src.models.swin.model import build_swin
+config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
+model = build_swin(config_handler)
+```
+Результаты обучения модели:
+![Swin performance](data/readme/swinv2_output_video_masked.gif)
+
+</details>
+
+
+<details>
+    <summary>  HRNet  </summary>
+
+Инициализация HRNet из файла конфигурации.
+```python
+from src.models.hrnet.model import build_hrnet
+config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
+model = build_hrnet(config_handler)
+```
+Результаты обучения модели:
+![HRNet performance](data/readme/hrnet_w18_small_v2_output_video_masked.gif)
+
+</details>
+
+<details>
+    <summary>  DeepLabV3  </summary>
+
+Инициализация DeepLabV3 из файла конфигурации.
+```python
+from src.models.deeplab.model import build_deeplab
+config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
+model = build_deeplab(config_handler)
+```
+Результаты обучения модели:
+![DeepLab performance](data/readme/resnet34-run2_output_video_masked.gif)
+
+</details>
+
+
 
 ## Обучение моделей
 
@@ -189,7 +256,26 @@ trainer = Trainer(
 python src/infrastructure/models_tracking/segformer_tracking.py <config_path>
 ```
 
-### Адель
+### ADELE
+Библиотека поддерживает [Adaptive Early-Learning Correction for Segmentation from Noisy Annotations](https://arxiv.org/abs/2110.03740). Для использования достаточно создать датасет **без аугментаций**, то есть без аффинных преобразований, но в том виде, в котором модель будет получать изображения на инференсе. В класс тренировщика необходимо будет передавать отдельно инициализированный датасет из тренировочных файлов. В файле конфигураций необходимо добавить шаг, через который будет применяться метод. 
+
+```python
+# В файле трекинга добавить следующие строки
+
+from src.models.utils.config import read_yaml_config
+from src.features.segmentation.dataset import get_train_dataset_by_config
+
+config_handler = read_yaml_config(config_path)
+adele_dataset = get_train_dataset_by_config(
+        config_handler,
+        transform=tr, # стандартные преобразования
+        augmentation_transform=None
+    )
+adele_dataset.return_names = True
+```
+
+
+
 
 # Экспорт в ONNX
 
