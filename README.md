@@ -255,6 +255,19 @@ trainer = Trainer(
 ```bash
 python src/infrastructure/models_tracking/segformer_tracking.py <config_path>
 ```
+### YOLOv8
+
+Для inference YOLOv8 необходимо пройти в директорию CTCI/src/models/yolov8 и запустить в командной строке скрипт:
+```shell
+python3 CTCI/src/models/yolov8/<task_script.py> <path to input image> <path to output image> <path to model weights>
+```
+
+
+```bash
+python src/infrastructure/models_tracking/segformer_tracking.py <config_path>
+```
+
+
 
 ### ADELE
 Библиотека поддерживает [Adaptive Early-Learning Correction for Segmentation from Noisy Annotations](https://arxiv.org/abs/2110.03740). Для использования достаточно создать датасет **без аугментаций**, то есть без аффинных преобразований, но в том виде, в котором модель будет получать изображения на инференсе. В класс тренировщика необходимо будет передавать отдельно инициализированный датасет из тренировочных файлов. В файле конфигураций необходимо добавить шаг, через который будет применяться метод. 
@@ -273,8 +286,6 @@ adele_dataset = get_train_dataset_by_config(
     )
 adele_dataset.return_names = True
 ```
-
-
 
 
 # Экспорт в ONNX
