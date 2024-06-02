@@ -23,8 +23,12 @@ import sys
 from src.data.weakly_segmentation.annotation import annotation
 
 
-data_dir = sys.argv[1]  # Директория с неразмеченными данными
-folder = sys.argv[2]    # Папка, с неразмеченными данными
+data_dir = sys.argv[1]  # Директория, в которой лежат папки для разметки.
+folder = sys.argv[2]    # Название папки, которую надо разметить
+                        # ├──data_dir
+                        #         ├── folder1
+                        #         ├── folder2
+                        #         ....
 
 custom_yolo_checkpoint_path = sys.argv[3]  # Путь до весов модели YOLOv8
 sam_checkpoint = sys.argv[4]  # Путь до весов модели SAM
