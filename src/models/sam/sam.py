@@ -36,7 +36,7 @@ from ultralytics import YOLO
 
 from src.models.watershed.watershed import perform_watershed
 from src.data.weakly_segmentation.masks import masks_narrowing, unite_masks
-from src.models.yolov8_detector.yolo import yolov8_detect
+from src.models.yolov8.yolo import yolov8_detect
 
 
 def load_sam_predictor(checkpoint_path: str, model_type: str, device: str = "cpu") -> SamPredictor:
