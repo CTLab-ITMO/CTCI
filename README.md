@@ -1,4 +1,5 @@
 
+
 CTCI - Однородные текстурные данные
 ==============================
 
@@ -141,7 +142,27 @@ python src/models/moco/train_moco.py images_path masks_path out_dir batch_size e
 | ![](data/orig/15.png)  | ![](data/bt/15.png)  | ![](data/moco/15.png) |
 
 
-=======
+## Запуск моделей 
+Barlow twins 
+
+
+```bash
+python src/models/barlow_twins/unet/inference_bt_unet images tar_dir height width
+```
+
+**MoCo**
+
+
+```bash
+python src/models/moco/inference_moco images tar_dir height width
+```
+
+images - директория с фотографиями для обработки
+
+tar_dir - директория результатов работы нейросети
+
+height, width - размер изображений 
+
 
 # Сегментация
 
@@ -195,8 +216,6 @@ model = build_segformer(config_handler)
 
 Результаты обучения модели:
 ![Segformer performance](data/readme/segformer_output_video_masked.gif)
-
-
 
 
 
