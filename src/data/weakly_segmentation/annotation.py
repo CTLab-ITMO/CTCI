@@ -33,7 +33,7 @@ import os
 import sys
 import torch
 
-from src.models.yolov8_detector.yolo import load_yolov8_detector
+from src.models.yolov8.yolo import load_yolov8_detector
 from src.models.sam.sam import load_sam_predictor, segment_images_from_folder
 
 

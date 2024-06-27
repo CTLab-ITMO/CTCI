@@ -147,7 +147,7 @@ def tracking_experiment(
     """
     random_seed = config_handler.read('random_seed')
     set_seed(random_seed)
-    adele_dataloader = None  # TODO: fix adele
+    adele_dataloader = None
 
     train_batch_size = config_handler.read('dataloader', 'train_batch_size')
     val_batch_size = config_handler.read('dataloader', 'val_batch_size')
@@ -179,14 +179,15 @@ def tracking_experiment(
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=optimizer_lr, betas=betas, weight_decay=weight_decay)
 
-    scheduler = lr_scheduler.SequentialLR(
-        optimizer,
-        schedulers=[
-            lr_scheduler.LinearLR(optimizer),
-            lr_scheduler.CosineAnnealingLR(optimizer, T_max=2000),
-        ],
-        milestones=[2]
-    )
+    if not scheduler:
+        scheduler = lr_scheduler.SequentialLR(
+            optimizer,
+            schedulers=[
+                lr_scheduler.LinearLR(optimizer),
+                lr_scheduler.CosineAnnealingLR(optimizer, T_max=2000),
+            ],
+            milestones=[2]
+        )
     # TODO: fix scheduler
     #scheduler = lr_scheduler.PolynomialLR(optimizer, total_iters=8, power=0.9)
 

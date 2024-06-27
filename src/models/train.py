@@ -188,7 +188,7 @@ class Trainer:
             self,
             train_dataloader: torch.utils.data.DataLoader,
             val_dataloader: torch.utils.data.DataLoader,
-            epoch_num=5, use_adele=False, adele_dataloader=None
+            epoch_num=5, use_adele=False, adele_dataloader=None, adele_epoch=None
     ):
         """
         Train the model.
@@ -199,6 +199,7 @@ class Trainer:
             epoch_num (int): Number of epochs to train. Default is 5.
             use_adele (bool): Whether to use Adele correction. Default is False.
             adele_dataloader (torch.utils.data.DataLoader): DataLoader for Adele correction. Default is None.
+            adele_epoch: how often to update adele correction
 
         Returns:
             tuple: Tuple containing training history and computed metrics.
@@ -225,7 +226,7 @@ class Trainer:
                     save_model(self.model, self.save_dir, "best.pt")
                 self.metrics_num[metric_name].append(metric_num)
 
-            if use_adele:
+            if use_adele and (epoch + 1) % adele_epoch == 0:
                 self.run_adele(adele_dataloader)
                 train_dataloader.dataset.use_adele = True
 
