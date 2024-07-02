@@ -217,9 +217,14 @@ class TemporalConsistency(nn.Module):
             self, frame_prev: torch.Tensor, frame_cur: torch.Tensor,
             mask_prev: torch.Tensor, mask_cur: torch.Tensor
     ) -> torch.Tensor:
+        frame_prev = frame_prev.to(self.device)
+        frame_cur = frame_cur.to(self.device)
+        mask_prev = mask_prev.to(self.device)
+        mask_cur = mask_cur.to(self.device)
+
         # Calculating optical flow (with raft)
         with torch.no_grad():
-            flow = self.raft_model(frame_prev.to(self.device), frame_cur.to(self.device))[5]
+            flow = self.raft_model(frame_prev, frame_cur)[5]
 
         # Calculating temporal consistency
         warped_frame = self.warp_frame(mask_prev, flow)
@@ -323,7 +328,7 @@ class ObjectsRecall(nn.Module):
 
         TP = 0
         for center in centers:
-            if mask[center[1]][center[0]] != 0:
+            if mask[center[1]][center[0]].any() != 0:
                 TP += 1
 
         recall = TP / TPFN
