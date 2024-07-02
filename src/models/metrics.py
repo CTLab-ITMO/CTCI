@@ -10,6 +10,9 @@ import torch.nn as nn
 import torchvision
 import torch.nn.functional as F
 
+from src.features.preprocessing import preprocess
+from src.models.watershed.markers import get_markers
+
 
 class IoUMetric(nn.Module):
     """
@@ -286,6 +289,49 @@ class OpticalFlowSimilarity(nn.Module):
 
     def __str__(self):
         return "optical_flow_similarity"
+
+
+class ObjectsRecall(nn.Module):
+    def __init__(self, device='cpu'):
+        super().__init__()
+        self.device = device
+
+    def find_contours_centers(self, contours):
+        centers = []
+        for contour in contours:
+            M = cv2.moments(contour)
+
+            if M["m00"] != 0:
+                cx = int(M["m10"] / M["m00"])
+                cy = int(M["m01"] / M["m00"])
+
+                centers.append(np.array([cx, cy]))
+
+        return np.array(centers)
+
+    def forward(
+            self, image: np.array, mask: np.array
+    ):
+        preprocessed_image = preprocess(image)
+        markers = get_markers('all', preprocessed_image)
+        markers = cv2.cvtColor(markers, cv2.COLOR_BGR2GRAY)
+        contours, hierarchy = cv2.findContours(markers,
+                                               cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        centers = self.find_contours_centers(contours)
+
+        TPFN = centers.shape[0]
+
+        TP = 0
+        for center in centers:
+            if mask[center[1]][center[0]] != 0:
+                TP += 1
+
+        recall = TP / TPFN
+
+        return recall
+
+    def __str__(self):
+        return "objects_recall"
 
 
 class ReportMetrics:
