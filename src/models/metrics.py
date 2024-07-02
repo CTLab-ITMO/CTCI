@@ -315,7 +315,7 @@ class ObjectsRecall(nn.Module):
         return np.array(centers)
 
     def forward(
-            self, image: np.array, mask: np.array
+            self, image: np.array, mask: np.array, unmoving_mask: np.array
     ):
         preprocessed_image = preprocess(image)
         markers = get_markers('all', preprocessed_image)
@@ -323,6 +323,12 @@ class ObjectsRecall(nn.Module):
         contours, hierarchy = cv2.findContours(markers,
                                                cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         centers = self.find_contours_centers(contours)
+        new_centers = []
+        for center in centers:
+            if unmoving_mask[center[1]][center[0]] != 0:
+                new_centers.append(center)
+        new_centers = np.array(new_centers)
+        centers = new_centers
 
         TPFN = centers.shape[0]
 
