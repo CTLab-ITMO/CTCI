@@ -19,7 +19,7 @@ import sys
 import torch
 import timm
 
-from src.models.hrnet.model import HRNetModel
+from src.models.hrnet.hrnet import HRNetModel
 from src.models.inference import export_model_onnx, quantize_onnx
 from src.models.utils.config import read_yaml_config
 

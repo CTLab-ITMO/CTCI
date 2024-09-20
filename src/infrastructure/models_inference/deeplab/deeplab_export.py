@@ -18,7 +18,7 @@ import sys
 import torch
 import segmentation_models_pytorch as smp
 
-from src.models.deeplab.model import DeepLab
+from src.models.deeplab.deeplab import DeepLab
 from src.models.inference import export_model_onnx, quantize_onnx
 from src.models.utils.config import read_yaml_config
 

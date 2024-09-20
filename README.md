@@ -207,9 +207,11 @@ model = build_segformer(config_handler)
     <summary> Segformer </summary>
 
 Инициализация Segformer из файла конфигурации.
+
 ```python
-from src.models.segformer.model import build_segformer
-config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
+from src.models.segformer.segformer import build_segformer
+
+config_handler = read_yaml_config(config_path)  # обработчик конфигурационных файлов
 model = build_segformer(config_handler)
 ```
 
@@ -241,9 +243,11 @@ model = build_swin(config_handler)
     <summary>  HRNet  </summary>
 
 Инициализация HRNet из файла конфигурации.
+
 ```python
-from src.models.hrnet.model import build_hrnet
-config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
+from src.models.hrnet.hrnet import build_hrnet
+
+config_handler = read_yaml_config(config_path)  # обработчик конфигурационных файлов
 model = build_hrnet(config_handler)
 ```
 Результаты обучения модели:
@@ -255,9 +259,11 @@ model = build_hrnet(config_handler)
     <summary>  DeepLabV3  </summary>
 
 Инициализация DeepLabV3 из файла конфигурации.
+
 ```python
-from src.models.deeplab.model import build_deeplab
-config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
+from src.models.deeplab.deeplab import build_deeplab
+
+config_handler = read_yaml_config(config_path)  # обработчик конфигурационных файлов
 model = build_deeplab(config_handler)
 ```
 Результаты обучения модели:

@@ -4,7 +4,7 @@ import os.path as osp
 from torch.utils.data import DataLoader
 
 from src.features.segmentation.dataset import SegmentationDataset
-from src.models.segformer.model import build_segformer
+from src.models.segformer.segformer import build_segformer
 from src.models.metrics import Recall, Precision, Accuracy, DiceMetric, IoUMetric, ReportMetrics
 from src.models.utils.config import read_yaml_config
 from src.models.utils.models_settings import set_image_processor_to_datasets, set_gpu

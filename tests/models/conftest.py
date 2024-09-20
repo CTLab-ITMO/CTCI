@@ -1,7 +1,7 @@
 import pytest
 
-from src.models.segformer.model import build_segformer
-from src.models.hrnet.model import build_hrnet
+from src.models.segformer import build_segformer
+from src.models.hrnet import build_hrnet
 from src.models.swin.model import build_swin
 from src.models.utils.config import read_yaml_config
 

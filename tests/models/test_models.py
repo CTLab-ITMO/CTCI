@@ -7,8 +7,8 @@ import pytest
 import torchvision.transforms as transforms
 from transformers import SegformerForSemanticSegmentation, Swinv2Model
 
-from src.models.segformer.model import SegFormer
-from src.models.hrnet.model import HRNetModel
+from src.models.segformer import SegFormer
+from src.models.hrnet import HRNetModel
 from src.models.swin.model import Swin
 
 

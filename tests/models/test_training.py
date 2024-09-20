@@ -6,8 +6,8 @@ from torch.utils.data import DataLoader
 from transformers import SegformerForSemanticSegmentation, SegformerImageProcessor
 
 from src.features.segmentation.dataset import SegmentationDataset
-from src.models.segformer.model import SegFormer
-from src.models.hrnet.model import HRNetModel
+from src.models.segformer import SegFormer
+from src.models.hrnet import HRNetModel
 
 
 class TestTransformerTraining:
