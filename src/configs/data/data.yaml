@@ -1,0 +1,8 @@
+data_dir: 'data'
+train_dir: 'new/train'
+val_dir: 'new/val'
+batch_size: 8
+num_workers: 6
+img_size:
+  - 256
+  - 256
