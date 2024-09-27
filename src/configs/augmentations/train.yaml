@@ -1,0 +1,55 @@
+- _target_: albumentations.HorizontalFlip
+  p: 0.5
+
+- _target_: albumentations.VerticalFlip
+  p: 0.2
+
+- _target_: albumentations.CoarseDropout
+  always_apply: false
+  p: 0.3
+  max_holes: 12
+  max_height: 40
+  max_width: 40
+  min_holes: 7
+  min_height: 30
+  min_width: 30
+  fill_value: [0, 0, 0]
+  mask_fill_value: null
+
+- _target_: albumentations.PixelDropout
+  always_apply: false
+  p: 0.3
+  dropout_prob: 0.2
+  per_channel: false
+  drop_value: 0
+  mask_drop_value: null
+
+- _target_: albumentations.Perspective
+  scale: [0.05, 0.1]
+  keep_size: true
+  interpolation: 1
+  p: 0.5
+
+- _target_: albumentations.Rotate
+  limit: 25
+
+- _target_: albumentations.GaussianBlur
+  p: 0.3
+
+- _target_: albumentations.GaussNoise
+  always_apply: false
+  p: 0.5
+  var_limit: [10.0, 50.0]
+  per_channel: true
+  mean: 0
+
+- _target_: albumentations.ImageCompression
+  quality_lower: 80
+  quality_upper: 100
+  p: 0.5
+
+- _target_: albumentations.RandomResizedCrop
+  scale: [0.8, 1.0]
+  height: ${data.img_size.0}
+  width: ${data.img_size.1}
+  always_apply: true

@@ -1,0 +1,3 @@
+- _target_: albumentations.Resize
+  height: ${data.img_size.0}
+  width: ${data.img_size.1}

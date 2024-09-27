@@ -1,0 +1,3 @@
+project_name: ctci
+experiment_name: ctci-training
+n_epochs: 30

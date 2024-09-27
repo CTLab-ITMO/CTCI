@@ -1,0 +1,12 @@
+defaults:
+  - data: data
+  - experiment: experiment
+  - module: module
+  - trainer: trainer
+  - override hydra/hydra_logging: none
+  - override hydra/job_logging: none
+
+
+hydra:
+  run:
+    dir: ../outputs

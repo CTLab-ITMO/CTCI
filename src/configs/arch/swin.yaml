@@ -1,0 +1,3 @@
+_target_: transformers.Swinv2Model.from_pretrained
+model_name: 'microsoft/swinv2-tiny-patch4-window8-256'
+num_labels: 2
