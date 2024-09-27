@@ -101,7 +101,7 @@ train(model_q, model_k, device, train_loader, queue, optimizer, epoch)
 ### Script for training the model based on Barlow Twins
 
 ```bash
-python src/models/'barlow twins'/barlow_twins.py images_path masks_path target_height target_width batch_size epochs
+python src/models/'barlow_twins'/barlow_twins.py images_path masks_path target_height target_width batch_size epochs
 ```
 
 ```images_path``` - path to the images 

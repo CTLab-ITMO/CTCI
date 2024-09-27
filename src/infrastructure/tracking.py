@@ -34,7 +34,7 @@ def tracking_run(
     Tracks a single run within an experiment using MLflow.
 
     Args:
-        trainer (Trainer): Trainer object containing the model, optimizer, and other training parameters.
+        trainer (Trainer): Trainer object containing the model, optimizer, and others training parameters.
         train_dataloader (DataLoader): DataLoader for the training dataset.
         val_dataloader (DataLoader): DataLoader for the validation dataset.
         adele_dataloader (DataLoader): DataLoader for the ADELE dataset.

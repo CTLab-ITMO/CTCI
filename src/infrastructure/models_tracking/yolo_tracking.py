@@ -11,7 +11,7 @@ Usage:
 
 import sys
 
-from src.models.yolov8_segmentation.model import load_yolov8_segment, init_yolov8_segment, train_yolov8_segment
+from src.models.yolov8_segmentation.yolov8 import load_yolov8_segment, init_yolov8_segment, train_yolov8_segment
 from src.models.utils.config import read_yaml_config
 
 

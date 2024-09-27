@@ -21,7 +21,7 @@ from src.features.segmentation.dataset import get_train_dataset_by_config, get_v
 from src.features.segmentation.augmentation import get_augmentations_from_config, get_preprocess_from_config
 from src.models.deeplab import build_deeplab
 from src.infrastructure.tracking import tracking_experiment
-from src.models.utils.config import read_yaml_config
+from src.configs.config import read_yaml_config
 
 
 if __name__ == "__main__":

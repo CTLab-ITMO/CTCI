@@ -4,7 +4,7 @@ Model Export Script
 This script is used for exporting a trained segmentation model to ONNX format and optionally quantizing the model.
 
 The script takes a YAML configuration file as input, which specifies the paths to the trained model checkpoint,
-input tensor shape, and other configuration parameters.
+input tensor shape, and others configuration parameters.
 
 Usage:
     python <model>_export.py <config_path>
