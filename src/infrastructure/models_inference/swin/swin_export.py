@@ -19,7 +19,7 @@ import sys
 import torch
 import transformers
 
-from src.models.swin.model import Swin
+from src.models.swin.swin import Swin
 from src.models.inference import export_model_onnx, quantize_onnx
 from src.models.utils.config import read_yaml_config
 

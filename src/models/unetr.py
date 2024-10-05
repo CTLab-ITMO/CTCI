@@ -6,7 +6,7 @@ from typing import List
 
 import torch
 
-from src.models.unetr.blocks import *
+from src.models.blocks import *
 
 
 class UNETRDecoder(nn.Module):

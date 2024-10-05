@@ -228,9 +228,11 @@ model = build_segformer(config_handler)
     <summary> Swin-UNETR  </summary>
 
 Инициализация Swin-UNETR из файла конфигурации.
+
 ```python
-from src.models.swin.model import build_swin
-config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
+from src.models.swin.swin import build_swin
+
+config_handler = read_yaml_config(config_path)  # обработчик конфигурационных файлов
 model = build_swin(config_handler)
 ```
 Результаты обучения модели:

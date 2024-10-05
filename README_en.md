@@ -199,8 +199,9 @@ Training results of the model:
 Initialization of Swin-UNETR from a configuration file.
 
 ```python
-from src.models.swin.model import build_swin
-config_handler = read_yaml_config(config_path) # Configuration file handler
+from src.models.swin.swin import build_swin
+
+config_handler = read_yaml_config(config_path)  # Configuration file handler
 model = build_swin(config_handler)
 ```
 

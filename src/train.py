@@ -4,13 +4,14 @@ from lightning import Trainer
 from lightning.pytorch.callbacks import LearningRateMonitor, ModelCheckpoint
 from omegaconf import DictConfig
 
+from src.datamodule import CTCIDataModule
 from src.lightning_module import CTCILightningModule
 
 
 @hydra.main(version_base=None, config_path='../configs', config_name='config')
 def train(cfg: DictConfig) -> None:
     lightning.seed_everything(0)
-    datamodule = ...
+    datamodule = CTCIDataModule(cfg.data_cfg, cfg.aug_cfg)
 
     checkpoint_callback = ModelCheckpoint(
         dirpath=cfg.experiment.checkpoint_dir,

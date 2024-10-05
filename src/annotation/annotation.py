@@ -69,9 +69,7 @@ def annotation(
         - If processes_num is greater than 0, performs parallel annotation using concurrent.futures.
     """
     if sam_model_type not in ["vit_b", "vit_l", "vit_h"]:
-        print("Undefined sam model type")
-        # TODO: Throw error
-        return
+        raise ValueError(f"Undefined sam model type: {sam_model_type}")
 
     detector = load_yolov8_detector(custom_yolo_checkpoint_path)
 
