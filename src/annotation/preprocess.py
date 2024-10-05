@@ -5,20 +5,22 @@ Implementation of preprocesses used to extract features from homogeneous data im
 import cv2
 import numpy as np
 
+from omegaconf import DictConfig
 
-def minmax(X, range=[0,1]):
+
+def minmax(x, span=(0, 1)):
     """
     Minmax transform.
 
     Args:
-        X (np.array): array to transform
-        range (list, optional): range to transform to. Defaults to [0,1].
+        x (np.array): array to transform
+        span (list, optional): range to transform to. Defaults to [0,1].
 
     Returns:
         np.array: scaled array
     """
-    std = (X - X.min()) / (X.max() - X.min())
-    scaled = std * (range[1] - range[0]) + range[0]
+    std = (x - x.min()) / (x.max() - x.min())
+    scaled = std * (span[1] - span[0]) + span[0]
     return scaled.astype('uint8')
 
 
@@ -92,7 +94,7 @@ def imreconstruct(marker: np.ndarray, mask: np.ndarray, radius: int = 1):
     Args:
         marker: Grayscale image where initial seed is white on black background.
         mask: Grayscale mask where the valid area is white on black background.
-        radius Can be increased to improve expansion speed while causing decreased isolation from nearby areas. 
+        radius: Can be increased to improve expansion speed while causing decreased isolation from nearby areas.
     
     Returns:
         A copy of the last expansion.
@@ -110,13 +112,13 @@ def imreconstruct(marker: np.ndarray, mask: np.ndarray, radius: int = 1):
         marker = expanded
 
 
-def morphological_transform(img):
+def morphological_transform(img, ksize=(3,3)):
     """
     Morphological transform used to extract foreground markers from bubble image.
 
     Args:
         img: image to process
-    
+        ksize: kernel size
     Returns:
         np.array: transformed image
     """
@@ -125,7 +127,7 @@ def morphological_transform(img):
 
     img_0 = img - img_open + img_closed
 
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, ksize)
 
     g_0 = cv2.morphologyEx(img_0, cv2.MORPH_OPEN, kernel)
     f_0c = imreconstruct(img_0, g_0)
@@ -136,20 +138,41 @@ def morphological_transform(img):
     return f_0cr
 
 
-def preprocess(img: np.array):
+def preprocess(img: np.array, cfg: DictConfig):
     """
     Apply preprocessing steps to a grayscale image.
 
     Args:
         img (np.array): grayscale image
-    
+        cfg (DictConfig): configuration for preprocessing
     Returns:
         np.array: processed image
     """
-    ssr_img = single_scale_retinex(img, 80).astype('float32')
-    bf = bilateral_filtering(ssr_img, 5, 75, 75)
-    morphed = morphological_transform(bf)
-    morphed = cv2.GaussianBlur(morphed, (5,5), 0)
-    m = minmax(morphed.ravel(), [0, 255]).astype('uint8')
+    ssr_img = single_scale_retinex(
+        img,
+        cfg.single_scale_retinex.sigma,
+    ).astype('float32')
+
+    bf = bilateral_filtering(
+        ssr_img,
+        cfg.bilateral_filtering.sigma,
+        cfg.bilateral_filtering.sigma_color,
+        cfg.bilateral_filtering.sigma_space,
+    )
+    morphed = morphological_transform(
+        bf,
+        cfg.morphological_transform.kernel_size,
+    )
+    morphed = cv2.GaussianBlur(
+        morphed,
+        cfg.gaussian_blur.kernel_size,
+        cfg.gaussian_blur.sigma_x,
+    )
+
+    m = minmax(
+        morphed.ravel(),
+        cfg.minmax.span
+    ).astype('uint8')
+
     i = m.reshape(img.shape)
     return i

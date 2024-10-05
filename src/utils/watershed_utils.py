@@ -7,46 +7,47 @@ import cv2
 
 def find_contours(img: np.ndarray, labels: np.ndarray, markers: np.ndarray) -> np.ndarray:
     """
-    draw a binary mask of contours between watershed labels
+    Draw a binary mask of contours between watershed labels.
 
     Args:
-        img (np.ndarray): grayscale image
-        labels (np.ndarray): watershed labels
-        markers (np.ndarray): watershed markers
+        img (np.ndarray): Grayscale image.
+        labels (np.ndarray): Watershed labels.
+        markers (np.ndarray): Watershed markers.
 
-    Return:
-        np.array: binary image of watershed labels separated by contours
+    Returns:
+        np.ndarray: Binary image of watershed labels separated by contours.
     """
 
-    black = np.zeros(img.shape, np.uint8)
+    # Initialize an empty binary mask of the same size as the input image
+    contour_mask = np.zeros(img.shape, dtype=np.uint8)
 
-    for label in np.unique(labels):
+    # Iterate over unique labels in the watershed result
+    unique_labels = np.unique(labels)
+
+    for label in unique_labels:
         if label == 0:
-            continue
-        # Create a mask
-        mask = np.zeros(markers.shape, dtype="uint8")
-        mask[labels == label] = 255
-        # Find contours and determine contour area
-        cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        cnts = cnts[0] if len(cnts) == 2 else cnts[1]
-        c = max(cnts, key=cv2.contourArea)
-        cv2.drawContours(black, [c], -1, (255, 255, 255), -1)
-        cv2.drawContours(black, [c], -1, (0, 0, 0), 2)
-    cnts = cv2.findContours(markers.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[0]
-    cv2.drawContours(black, cnts, -1, (255, 0, 0), -1)
-    return black
+            continue  # Skip the background label
 
+        # Create a mask for the current label
+        label_mask = np.zeros(markers.shape, dtype="uint8")
+        label_mask[labels == label] = 255
 
-"""
-Implementation of methods used to extract markers from bubble images.
-"""
+        # Find contours in the mask
+        contours = cv2.findContours(label_mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours = contours[0] if len(contours) == 2 else contours[1]
 
-import sys
+        # Draw the largest contour by area
+        if contours:
+            largest_contour = max(contours, key=cv2.contourArea)
+            cv2.drawContours(contour_mask, [largest_contour], -1, (255, 255, 255),
+                             thickness=cv2.FILLED)  # Fill the contour
+            cv2.drawContours(contour_mask, [largest_contour], -1, (0, 0, 0), thickness=2)  # Draw contour outline
 
-import numpy as np
-import cv2
+    # Draw external contours from the marker image
+    marker_contours, _ = cv2.findContours(markers.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    cv2.drawContours(contour_mask, marker_contours, -1, (255, 0, 0), thickness=cv2.FILLED)
 
-sys.path.append('..')
+    return contour_mask
 
 
 def _get_markers(img: np.array) -> np.array:

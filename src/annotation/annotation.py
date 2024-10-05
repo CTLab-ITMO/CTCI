@@ -33,8 +33,8 @@ import os
 import sys
 import torch
 
-from src.models.yolov8.yolo import load_yolov8_detector
-from src.models.sam import load_sam_predictor, segment_images_from_folder
+from src.annotation.yolo import load_yolov8_detector
+from src.annotation.sam import load_sam_predictor, segment_images_from_folder
 
 
 def annotation(

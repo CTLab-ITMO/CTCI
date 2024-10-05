@@ -3,6 +3,7 @@ defaults:
   - experiment: experiment
   - module: module
   - trainer: trainer
+  - preprocess: preprocess
   - override hydra/hydra_logging: none
   - override hydra/job_logging: none
 

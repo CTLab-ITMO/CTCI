@@ -34,9 +34,9 @@ from segment_anything.utils.transforms import ResizeLongestSide
 
 from ultralytics import YOLO
 
-from src.models.watershed.watershed import perform_watershed
-from src.data.weakly_segmentation.masks import masks_narrowing, unite_masks
-from src.models.yolov8.yolo import yolov8_detect
+from src.annotation.watershed import Watershed
+from src.utils.masks import masks_narrowing, unite_masks
+from src.annotation.yolo import yolov8_detect
 
 
 def load_sam_predictor(checkpoint_path: str, model_type: str, device: str = "cpu") -> SamPredictor:
@@ -127,7 +127,7 @@ def sam_segmentation(
 
 
 def yolo_sam_segmentation(
-        image, detector: YOLO, predictor: SamPredictor,
+        image, detector: YOLO, predictor: SamPredictor, wshed: Watershed,
         target_length: int = 1024, narrowing: float = 0.20, erode_iterations: float = 1,
         prompt_points: bool = True
 ):
@@ -156,7 +156,7 @@ def yolo_sam_segmentation(
         mask = yolo_sam_segmentation(image, yolo_detector, sam_predictor)
     """
     boxes = yolov8_detect(image=image, detector=detector, return_objects=False)
-    mask_watershed = perform_watershed(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+    mask_watershed = wshed.apply_watershed(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
 
     if len(boxes) != 0:
         masks_list = sam_segmentation(image=image, predictor=predictor, boxes=boxes, prompt_points=prompt_points,
@@ -182,7 +182,7 @@ def segment_image_from_dir(
         masks_list,
         source_dir: str,
         output_dir: str,
-        detector: YOLO, predictor: SamPredictor,
+        detector: YOLO, predictor: SamPredictor, wshed: Watershed,
         target_length: int = 1024,
         narrowing: float = 0.20,
         erode_iterations: int = 1,
@@ -217,7 +217,7 @@ def segment_image_from_dir(
     print(f"Image {image_name}")
     image = cv2.imread(os.path.join(source_dir, image_name))
     mask = yolo_sam_segmentation(
-        image, detector, predictor,
+        image, detector, predictor, wshed,
         target_length=target_length,
         narrowing=narrowing,
         erode_iterations=erode_iterations,
@@ -235,7 +235,7 @@ def segment_image_from_dir(
 def segment_images_from_folder(
         source_dir,
         output_dir,
-        detector, predictor,
+        detector, predictor, wshed,
         target_length=1024,
         narrowing=0.20,
         erode_iterations=1,
@@ -284,7 +284,7 @@ def segment_images_from_folder(
                     masks_list,
                     source_dir,
                     output_dir,
-                    detector, predictor,
+                    detector, predictor, wshed,
                     target_length=target_length,
                     narrowing=narrowing,
                     erode_iterations=erode_iterations,
@@ -298,7 +298,7 @@ def segment_images_from_folder(
                 (
                     segment_image_from_dir, image_name, masks_list,
                     source_dir, output_dir,
-                    detector, predictor,
+                    detector, predictor, wshed,
                     target_length, narrowing, erode_iterations, prompt_points
                 )
                 for image_name in images_list if image_name not in masks_list

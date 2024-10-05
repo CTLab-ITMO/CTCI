@@ -5,13 +5,6 @@ from PIL import Image
 import torch.nn as nn
 
 
-def restore_image_from_logits(logits, size):
-    upsampled_logits = nn.functional.interpolate(logits, size=size, mode="bilinear",
-                                                 align_corners=False)
-    predicted_mask = upsampled_logits.argmax(dim=1)
-    return predicted_mask
-
-
 def draw_results(model, images_dir='.\\data\\test_data\\bubbles', show_plot=False):
     images_list = os.listdir(images_dir)
     figs = {image_name: [] for image_name in images_list}

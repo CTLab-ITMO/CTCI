@@ -5,8 +5,6 @@ This module provides utility functions for working with directories.
 import os
 import os.path as osp
 
-import torch
-
 
 def check_dir(directory: str) -> bool:
     """
