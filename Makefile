@@ -1,9 +1,8 @@
 .PHONY: *
 
-VENV=/venv
+VENV=./venv
 PYTHON=$(VENV)/bin/python3
-PYTHON_VER=3.10
-DEVICE=gpu
+PYTHON_VER=3.9
 
 NAME=ctci-train
 TAG=latest
@@ -15,8 +14,9 @@ venv:
 
 install_all: venv
 		@echo "=== Install common dependencies ==="
-		$(PYTHON) -m pip install -r --no-cache-dir requirements/requirements-$(DEVICE).txt
+		$(PYTHON) -m pip install -r requirements.txt
 
+# ======================= ANNOTATION ========================
 
 # ========================= TRAINING ========================
 run_training:

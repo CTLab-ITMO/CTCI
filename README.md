@@ -168,53 +168,45 @@ height, width - размер изображений
 
 ## Конфигурационные файлы
 
-Для удобства обучения и использования моделей, мы используем конфигурационные файлы, примеры которых можно найти в директории `src/infrastructure/configs` . Мы рекомендуем придерживаться структуры, указанной в них.
+Мы используем hydra для конфигурации проекта. Все файлы конфигураций находятся в папке `configs`. Ниже приведена структура этой папки:
+```
+└── configs/
+    ├── arch/
+    │   ├── deeplabv3.yaml
+    │   └── ...
+    ├── augmentations/
+    │   ├── train.yaml
+    │   └── valid.yaml
+    ├── data/
+    │   └── data.yaml
+    ├── experiment/
+    │   └── experiment.yaml
+    ├── module/
+    │   └── module.yaml
+    ├── trainer/
+    │   └── trainer.yaml
+    ├── config.yaml
+    └── preprocess.yaml
+```
 
 ## Модели сегментации
 
-Для сегментации изображений однородных данных реализованы такие модели, как: Yolov8, SegFormer, Swin+UNETR, DeepLabv3, HRNet. Данные модели расположены в директориях `src/models/<название модели>` . 
-
-Возможна инициализация модели с помощью соответствующего класса, например:
-
-```python
-net = transformers.SegformerForSemanticSegmentation.from_pretrained(
-    f"nvidia/{model_name}-{model_type}-finetuned-ade-512-512",
-    num_labels=1,
-    image_size=image_size_height,
-    ignore_mismatched_sizes=True
-)
-
-segformer = SegFormer(
-    net=net, mask_head=final_layer, loss_fn=loss_fn,
-    image_size=image_size, device=device
-)
-
-
-Все модели сегментации наследуются от класса ```BaseModel```.
+Для сегментации изображений однородных данных реализованы такие модели, как: SegFormer, Swin+UNETR, DeepLabv3, HRNet. Модели инициализируются из файла конфигурации. Добавьте нужную вам модель в `configs/arch` и измените файл config.yaml. Проект поддерживает timm, pytorch-segmentation-models, transformers.
+Если модели не нужно реализовать отдельную логику метода `forward`, достаточно добавить файл конфигурации в таком виде:
+```yaml
+_target_: segmentation_models_pytorch.DeepLabV3Plus
+encoder_name: resnet34
+in_channels: 3
+classes: 1
 ```
 
-либо, с помощью метода `build_<название модели>`, например:
-
-```python
-config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
-model = build_segformer(config_handler)
-```
+Возможна инициализация модели с помощью соответствующего класса.
 
 [//]: # (я не шарю за хтмл поэтому оставлю это здесь)
 
 
 <details>
     <summary> Segformer </summary>
-
-Инициализация Segformer из файла конфигурации.
-
-```python
-from src.models.segformer.segformer import build_segformer
-
-config_handler = read_yaml_config(config_path)  # обработчик конфигурационных файлов
-model = build_segformer(config_handler)
-```
-
 
 Результаты обучения модели:
 ![Segformer performance](data/readme/segformer_output_video_masked.gif)
@@ -227,14 +219,6 @@ model = build_segformer(config_handler)
 <details>
     <summary> Swin-UNETR  </summary>
 
-Инициализация Swin-UNETR из файла конфигурации.
-
-```python
-from src.models.swin.swin import build_swin
-
-config_handler = read_yaml_config(config_path)  # обработчик конфигурационных файлов
-model = build_swin(config_handler)
-```
 Результаты обучения модели:
 ![Swin performance](data/readme/swinv2_output_video_masked.gif)
 
@@ -244,14 +228,6 @@ model = build_swin(config_handler)
 <details>
     <summary>  HRNet  </summary>
 
-Инициализация HRNet из файла конфигурации.
-
-```python
-from src.models.hrnet.hrnet import build_hrnet
-
-config_handler = read_yaml_config(config_path)  # обработчик конфигурационных файлов
-model = build_hrnet(config_handler)
-```
 Результаты обучения модели:
 ![HRNet performance](data/readme/hrnet_w18_small_v2_output_video_masked.gif)
 
@@ -260,51 +236,22 @@ model = build_hrnet(config_handler)
 <details>
     <summary>  DeepLabV3  </summary>
 
-Инициализация DeepLabV3 из файла конфигурации.
-
-```python
-from src.models.deeplab.deeplab import build_deeplab
-
-config_handler = read_yaml_config(config_path)  # обработчик конфигурационных файлов
-model = build_deeplab(config_handler)
-```
 Результаты обучения модели:
 ![DeepLab performance](data/readme/resnet34-run2_output_video_masked.gif)
 
 </details>
 
 
-<details>
-
-    <summary>  YOLOv8  </summary>
-Для inference YOLOv8 необходимо перейти в директорию CTCI/src/models/yolov8 и запустить в командной строке скрипт:
-```shell
-python3 CTCI/src/models/yolov8/<task_script.py> <path to input image> <path to output image> <path to model weights>
-```
-</details>
-
-
 ## Обучение моделей
 
-Для обучения или дообучения моделей добавлен класс тренировщика `Trainer` , расположенный в модуле `src/models/train.py` :
+Для того чтобы запустить обучение моделей, 
 
-```python
-trainer = Trainer(
-    model=model,
-    optimizer=optimizer,
-    scheduler=scheduler,
-    metrics=metrics,
-    main_metric_name=main_metric_name,
-    save_dir=model_save_dir,
-    device=device
-)
+```bash
+make run_training
 ```
 
 В директории `src/infrastructure/models_tracking`  расположены скрипты, позволяющие обучить или дообучить модели “из коробки” с использованием конфигурационного файла. Пример использования:
 
-```bash
-python src/infrastructure/models_tracking/segformer_tracking.py <config_path>
-```
 
 
 

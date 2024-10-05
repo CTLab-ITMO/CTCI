@@ -2,7 +2,7 @@
 data/
 checkpoints/
 outputs/
-!src/configs/data
+configs/data
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -27,6 +27,7 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+venv/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
