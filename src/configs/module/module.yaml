@@ -1,6 +1,7 @@
 defaults:
   - arch: deeplabv3
 
+num_classes: 1
 threshold: 0.2
 optimizer:
   _target_: torch.optim.AdamW

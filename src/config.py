@@ -12,7 +12,6 @@ class LossConfig(_BaseValidatedConfig):
     name: str
     weight: float
     loss_fn: str
-    loss_kwargs: dict
 
 
 class AugmentationConfig(_BaseValidatedConfig):
@@ -26,11 +25,17 @@ class DataConfig(_BaseValidatedConfig):
     num_workers: int = 6
     pin_memory: bool = True
     num_samples: int = 1024
+    data_dir: str = 'data'
+    train_folder: str = 'train'
+    valid_folder: str = 'val'
+    test_folder: tp.Optional[str] = None
+    # by default images_dir and masks_dir should have names images and masks
 
 
 class ModuleConfig(_BaseValidatedConfig):
     model: tp.Dict[str, tp.Any]  # type: ignore
     threshold: float
+    num_classes: int
 
     lr: float
     optimizer: str
@@ -54,6 +59,7 @@ class ExperimentConfig(_BaseValidatedConfig):
 
     data_config: DataConfig
     trainer_config: TrainerConfig
+    aug_config: tp.Optional[AugmentationConfig]
 
     @classmethod
     def from_yaml(cls, path: str) -> 'ExperimentConfig':

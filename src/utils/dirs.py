@@ -7,8 +7,6 @@ import os.path as osp
 
 import torch
 
-from src.models.base_model import BaseModel
-
 
 def check_dir(directory: str) -> bool:
     """
@@ -31,20 +29,6 @@ def create_folder(directory: str) -> None:
         directory (str): Path to the directory to be created.
     """
     os.mkdir(directory)
-
-
-def save_model(model: BaseModel, directory: str, weights_name: str) -> None:
-    """
-    Save a PyTorch model to a directory.
-
-    Args:
-        model (torch.nn.Module): PyTorch model to be saved.
-        directory (str): Path to the directory where the model will be saved.
-        weights_name (str): Name of the file to save the model weights.
-    """
-    if not check_dir(directory):
-        create_folder(directory)
-    torch.save(model.state_dict(), osp.join(directory, weights_name))
 
 
 def determine_run_folder(directory: str) -> str:

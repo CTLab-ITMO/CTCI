@@ -11,7 +11,7 @@ from src.losses import get_losses
 from src.metrics import get_classification_metrics, get_segmentation_metrics
 
 
-class CTCILigtningModule(LightningModule):
+class CTCILightningModule(LightningModule):
     def __init__(self, cfg: ModuleConfig) -> None:
         super().__init__()
         self.cfg = cfg
@@ -24,8 +24,6 @@ class CTCILigtningModule(LightningModule):
         self._cls_loss_fn = get_losses(cfg.cls_losses)
         self.thresh = cfg.threshold
 
-        # TODO: make beautiful classification + segmentation aggregator
-        # or init from config?
         cls_metrics = get_classification_metrics(
             num_classes=cfg.num_classes,
             num_labels=cfg.num_classes,
@@ -33,8 +31,8 @@ class CTCILigtningModule(LightningModule):
             average='macro',
             threshold=0.7,
         )
-        # названий нет, поэтому обозначим цифрами
-        seg_metrics = get_segmentation_metrics(labels=['1'])
+        seg_metrics = get_segmentation_metrics()
+
         self._val_cls_metrics = cls_metrics.clone(prefix='val_')
         self._test_cls_metrics = cls_metrics.clone(prefix='test_')
         self._val_seg_metrics = seg_metrics.clone(prefix='val_')
@@ -63,7 +61,7 @@ class CTCILigtningModule(LightningModule):
         )
         self._train_loss.reset()
 
-    def validation_step(self, batch: Tensor) -> Dict:
+    def validation_step(self, batch: Tensor) -> Tensor:
         images, targets = batch
         logits = self.model(images)
         loss = self._calculate_loss(logits, targets, 'valid_')
@@ -91,7 +89,7 @@ class CTCILigtningModule(LightningModule):
         self._val_cls_metrics.reset()
         self._val_seg_metrics.reset()
 
-    def test_step(self, batch: Tensor) -> Dict:
+    def test_step(self, batch: Tensor) -> Tensor:
         images, targets = batch
         logits = self.model(images)
 

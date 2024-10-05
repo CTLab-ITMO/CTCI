@@ -1,6 +1,7 @@
-data_dir: 'data'
-train_dir: 'new/train'
-val_dir: 'new/val'
+data_path: 'data/new'
+train_folder: 'train'
+valid_folder: 'valid'
+adele_folder: 'corrections'
 batch_size: 8
 num_workers: 6
 img_size:
