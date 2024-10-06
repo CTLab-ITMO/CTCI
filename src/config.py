@@ -60,9 +60,10 @@ class ExperimentConfig(_BaseValidatedConfig):
     experiment_name: str
     track_in_clearml: bool
 
-    data_config: DataConfig
-    trainer_config: TrainerConfig
-    aug_config: tp.Optional[AugmentationConfig]
+    data: DataConfig
+    module: ModuleConfig
+    trainer: TrainerConfig
+    aug: tp.Optional[AugmentationConfig]
 
     @classmethod
     def from_yaml(cls, path: str) -> 'ExperimentConfig':

@@ -16,7 +16,7 @@ from src.callbacks import (
 @hydra.main(version_base=None, config_path='../configs', config_name='config')
 def train(cfg: DictConfig) -> None:
     lightning.seed_everything(0)
-    datamodule = CTCIDataModule(cfg.data_cfg, cfg.aug_cfg)
+    datamodule = CTCIDataModule(cfg.data, cfg.aug)
 
     checkpoint_callback = ModelCheckpoint(
         dirpath=cfg.experiment.checkpoint_dir,
@@ -37,8 +37,8 @@ def train(cfg: DictConfig) -> None:
     if cfg.data_cfg.adele_correction:
         callbacks.append(
             AdeleCallback(
-                correction_dataloader=create_adele_dataloader(cfg.data_cfg),
-                save_dir=cfg.data_cfg.adele_dir,
+                correction_dataloader=create_adele_dataloader(cfg.data),
+                save_dir=cfg.data.adele_dir,
                 )
             )
 
