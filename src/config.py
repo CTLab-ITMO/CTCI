@@ -63,7 +63,7 @@ class ExperimentConfig(_BaseValidatedConfig):
     data: DataConfig
     module: ModuleConfig
     trainer: TrainerConfig
-    aug: tp.Optional[AugmentationConfig]
+    augmentations: tp.Optional[AugmentationConfig]
 
     @classmethod
     def from_yaml(cls, path: str) -> 'ExperimentConfig':
