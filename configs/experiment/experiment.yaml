@@ -1,3 +1,4 @@
 project_name: ctci
 experiment_name: ctci-training
 track_in_clearml: True
+checkpoints: ./checkpoints
