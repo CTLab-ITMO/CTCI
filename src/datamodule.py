@@ -20,6 +20,7 @@ class CTCIDataModule(LightningDataModule):
         self.save_hyperparameters(logger=False)
 
         self.data_path = self.cfg.data_dir
+        self.adele_dir = self.cfg.adele_dir if self.cfg.adele_correction else None
 
         self.data_train: Optional[SegmentationDataset] = None
         self.data_val: Optional[SegmentationDataset] = None
@@ -33,6 +34,7 @@ class CTCIDataModule(LightningDataModule):
                 images_folder=osp.join(self.data_path, self.cfg.train_folder, 'images'),
                 masks_folder=osp.join(self.data_path, self.cfg.train_folder, 'masks'),
                 transform=self._train_transforms,
+                adele_dir=self.adele_dir,
             )
             self.data_val = SegmentationDataset(
                 images_folder=osp.join(self.data_path, self.cfg.valid_folder, 'images'),

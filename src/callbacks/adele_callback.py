@@ -1,7 +1,11 @@
+import os
+import os.path as osp
 import torch
 from torchvision.transforms import functional as vfunc
 import pytorch_lightning as pl
-import os
+
+from src.dataset import SegmentationDataset
+from src.config import DataConfig
 
 
 class AdeleCallback(pl.Callback):
@@ -71,3 +75,16 @@ def _interpolate_img(image, scale, size):
         size = list(map(lambda x: int(x * scale), size))
         return vfunc.resize(image, size=size)
     return vfunc.resize(image, size=size)
+
+
+def create_adele_dataloader(cfg: DataConfig):
+    dataset = SegmentationDataset(
+            images_folder=osp.join(cfg.data_path, cfg.train_folder, 'images'),
+            masks_folder=osp.join(cfg.data_path, cfg.train_folder, 'masks'),
+            return_names=True,
+        )
+    return torch.utils.data.Dataloader(
+        dataset,
+        batch_size=8,
+        shuffle=False,
+    )

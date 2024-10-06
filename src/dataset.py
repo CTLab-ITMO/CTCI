@@ -45,9 +45,9 @@ class SegmentationDataset(Dataset):
             self,
             images_folder: str,
             masks_folder: str,
-            transform=None,
-            use_adele=False,
-            return_names=False
+            adele_dir: str = None,
+            transform = None,
+            return_names = False,
     ):
         """
         Initializes the SegmentationDataset.
@@ -67,16 +67,11 @@ class SegmentationDataset(Dataset):
 
         self.images_list = os.listdir(self.images_folder)
         self.masks_list = os.listdir(self.masks_folder)
-
-        self.use_adele = use_adele
+        self.adele_dir = adele_dir
         self.return_names = return_names
 
         assert len(self.images_list) == len(self.masks_list), "some images or masks are missing"
 
-    def _correct_mask(self, mask, image_name):
-        corrected = read_label(image_name)
-        cond = corrected == 255
-        return np.where(cond, corrected, mask)
 
     def _read_image_and_mask(self, image_name):
         """
@@ -110,8 +105,12 @@ class SegmentationDataset(Dataset):
             res = self.transform(image, mask)
             image, mask = res['image'], res['mask']
 
-        if self.use_adele:
-            mask = self._correct_mask(mask, self.images_list[idx])
+        if self.adele_dir and osp.isdir(self.adele_dir):
+            correction = cv2.imread(
+                osp.join(self.adele_dir, self.images_list[idx]),
+                cv2.IMREAD_GRAYSCALE
+                )
+            mask = np.where(correction == 255, correction, mask)
 
         if self.return_names:
             return image, mask, self.images_list[idx]

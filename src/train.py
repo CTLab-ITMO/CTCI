@@ -8,8 +8,10 @@ from src.datamodule import CTCIDataModule
 from src.lightning_module import CTCILightningModule
 from src.callbacks import (
     ClearMLCallback,
-    AdeleCallback
+    AdeleCallback,
+    create_adele_dataloader
 )
+
 
 @hydra.main(version_base=None, config_path='../configs', config_name='config')
 def train(cfg: DictConfig) -> None:
@@ -31,6 +33,14 @@ def train(cfg: DictConfig) -> None:
 
     if cfg.track_in_clearml:
         callbacks.append(ClearMLCallback(cfg))
+
+    if cfg.data_cfg.adele_correction:
+        callbacks.append(
+            AdeleCallback(
+                correction_dataloader=create_adele_dataloader(cfg.data_cfg),
+                save_dir=cfg.data_cfg.adele_dir,
+                )
+            )
 
     model = CTCILightningModule(cfg=cfg.module)
 
