@@ -6,7 +6,10 @@ from omegaconf import DictConfig
 
 from src.datamodule import CTCIDataModule
 from src.lightning_module import CTCILightningModule
-
+from src.callbacks import (
+    ClearMLCallback,
+    AdeleCallback
+)
 
 @hydra.main(version_base=None, config_path='../configs', config_name='config')
 def train(cfg: DictConfig) -> None:
@@ -25,6 +28,9 @@ def train(cfg: DictConfig) -> None:
         LearningRateMonitor(logging_interval='step'),
         checkpoint_callback,
     ]
+
+    if cfg.track_in_clearml:
+        callbacks.append(ClearMLCallback(cfg))
 
     model = CTCILightningModule(cfg=cfg.module)
 

@@ -56,6 +56,7 @@ class TrainerConfig(_BaseValidatedConfig):
 class ExperimentConfig(_BaseValidatedConfig):
     project_name: str
     experiment_name: str
+    track_in_clearml: bool
 
     data_config: DataConfig
     trainer_config: TrainerConfig

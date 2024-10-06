@@ -10,15 +10,13 @@ from src.config import ExperimentConfig
 from src.logger import LOGGER
 
 
-class ClearMLTracking(Callback):
+class ClearMLCallback(Callback):
     def __init__(
         self,
         cfg: ExperimentConfig,
-        label_enumeration: Optional[Dict[str, int]] = None,
     ):
         super().__init__()
         self.cfg = cfg
-        self.label_enumeration = label_enumeration
         self.task: Optional[Task] = None
         self.output_model: Optional[OutputModel] = None
 
