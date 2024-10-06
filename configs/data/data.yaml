@@ -1,0 +1,11 @@
+data_path: 'data/new'
+train_folder: 'train'
+valid_folder: 'valid'
+adele_folder: 'corrections'
+batch_size: 8
+num_workers: 6
+img_size:
+  - 256
+  - 256
+adele_correction: False
+adele_dir: data/corrected_masks

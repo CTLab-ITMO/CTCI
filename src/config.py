@@ -28,10 +28,10 @@ class DataConfig(_BaseValidatedConfig):
     data_dir: str = 'data'
     train_folder: str = 'train'
     valid_folder: str = 'val'
+    # by default images_dir and masks_dir should have names images and masks
     test_folder: tp.Optional[str] = None
     adele_correction: bool
     adele_dir: str
-    # by default images_dir and masks_dir should have names images and masks
 
 
 class ModuleConfig(_BaseValidatedConfig):
@@ -59,7 +59,6 @@ class ExperimentConfig(_BaseValidatedConfig):
     project_name: str
     experiment_name: str
     track_in_clearml: bool
-    adele_correction: bool
 
     data_config: DataConfig
     trainer_config: TrainerConfig
