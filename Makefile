@@ -20,7 +20,7 @@ install_all: venv
 
 # ========================= TRAINING ========================
 run_training:
-		$(PYTHON) -m src.train
+		$(PYTHON) -m src.train $(ARGS)
 
 # ========================== docker =========================
 build:

@@ -4,4 +4,4 @@ net:
   pretrained_model_name_or_path: "nvidia/segformer-b2-finetuned-ade-512-512"
   num_labels: 2
   ignore_mismatched_sizes: True
-  image_size: ${data.image_size}
+  image_size: ${data.img_size}

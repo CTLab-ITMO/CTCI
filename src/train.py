@@ -31,10 +31,10 @@ def train(cfg: DictConfig) -> None:
         checkpoint_callback,
     ]
 
-    if cfg.track_in_clearml:
+    if cfg.experiment.track_in_clearml:
         callbacks.append(ClearMLCallback(cfg))
 
-    if cfg.data_cfg.adele_correction:
+    if cfg.data.adele_correction:
         callbacks.append(
             AdeleCallback(
                 correction_dataloader=create_adele_dataloader(cfg.data),

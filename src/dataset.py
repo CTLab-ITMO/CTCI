@@ -72,7 +72,6 @@ class SegmentationDataset(Dataset):
 
         assert len(self.images_list) == len(self.masks_list), "some images or masks are missing"
 
-
     def _read_image_and_mask(self, image_name):
         """
         Reads an image and its corresponding mask.
@@ -102,7 +101,7 @@ class SegmentationDataset(Dataset):
         image, mask = self._read_image_and_mask(self.images_list[idx])
 
         if self.transform:
-            res = self.transform(image, mask)
+            res = self.transform(image=image, mask=mask)
             image, mask = res['image'], res['mask']
 
         if self.adele_dir and osp.isdir(self.adele_dir):

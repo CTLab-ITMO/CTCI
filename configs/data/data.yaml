@@ -1,4 +1,4 @@
-data_path: 'data/new'
+data_dir: 'data/split'
 train_folder: 'train'
 valid_folder: 'valid'
 adele_folder: 'corrections'
@@ -7,5 +7,6 @@ num_workers: 6
 img_size:
   - 256
   - 256
+pin_memory: True
 adele_correction: False
 adele_dir: data/corrected_masks

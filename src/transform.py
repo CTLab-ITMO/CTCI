@@ -22,6 +22,12 @@ def cv_image_to_tensor(img: NDArray[float], normalize: bool = True) -> Tensor:
     return to_tensor(image=img)['image']
 
 
+def mask_image_to_tensor(mask: NDArray[float], transpose_mask=True) -> Tensor:
+    ops = [ToTensorV2(transpose_mask=transpose_mask)]
+    to_tensor = albu.Compose(ops)
+    return to_tensor(mask=mask)['mask']
+
+
 def denormalize(
     img: NDArray[float],
     mean: Tuple[float, ...] = (0.485, 0.456, 0.406),

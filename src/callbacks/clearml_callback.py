@@ -4,16 +4,15 @@ from typing import Dict, Optional
 from clearml import OutputModel, Task
 from lightning import Callback, LightningModule, Trainer
 from lightning.pytorch.callbacks import ModelCheckpoint
-from omegaconf import OmegaConf
+from omegaconf import OmegaConf, DictConfig
 
-from src.config import ExperimentConfig
 from src.logger import LOGGER
 
 
 class ClearMLCallback(Callback):
     def __init__(
         self,
-        cfg: ExperimentConfig,
+        cfg: DictConfig,
     ):
         super().__init__()
         self.cfg = cfg
@@ -37,11 +36,11 @@ class ClearMLCallback(Callback):
             task_name=self.cfg.experiment.experiment_name,
             # If `output_uri=True` uses default ClearML output URI,
             # can use string value to specify custom storage URI like S3.
-            output_uri=True,
+            # output_uri=True,
         )
         self.cfg = OmegaConf.to_container(self.cfg, resolve=True)  # Converts to a Python dict
         self.task.connect_configuration(configuration=self.cfg)
-        self.output_model = OutputModel(task=self.task, label_enumeration=self.label_enumeration)
+        self.output_model = OutputModel(task=self.task)
 
 
 def select_checkpoint_for_export(trainer: Trainer) -> str:

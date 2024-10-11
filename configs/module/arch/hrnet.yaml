@@ -1,5 +1,5 @@
 _target_: src.models.HRNetModel
-image_size: ${data.image_size}
+image_size: ${data.img_size}
 net:
   _target_: timm.create_model
   model_name: hrnet_w18_small_v2

@@ -16,7 +16,7 @@ class CTCILightningModule(LightningModule):
         super().__init__()
         self.cfg = cfg
 
-        self.model = self._instantiate_model(self.cfg.model)
+        self.model = self._instantiate_model(self.cfg.arch)
 
         self._train_loss = MeanMetric()
         self._valid_loss = MeanMetric()
