@@ -1,7 +1,7 @@
 defaults:
   - arch: deeplabv3
 
-num_channels: 1
+num_channels: 3
 num_classes: 1
 threshold: 0.2
 

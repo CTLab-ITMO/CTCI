@@ -1,3 +1,4 @@
+import os.path as osp
 import hydra
 import lightning
 from lightning import Trainer
@@ -9,7 +10,7 @@ from src.lightning_module import CTCILightningModule
 from src.callbacks import (
     ClearMLCallback,
     AdeleCallback,
-    create_adele_dataloader
+    create_adele_dataloader,
 )
 
 
@@ -21,7 +22,7 @@ def train(cfg: DictConfig) -> None:
     checkpoint_callback = ModelCheckpoint(
         dirpath=cfg.experiment.checkpoint_dir,
         save_top_k=3,
-        monitor='valid_f1',
+        monitor='val_f1',
         mode='max',
         every_n_epochs=1,
     )
@@ -37,8 +38,11 @@ def train(cfg: DictConfig) -> None:
     if cfg.data.adele_correction:
         callbacks.append(
             AdeleCallback(
-                correction_dataloader=create_adele_dataloader(cfg.data),
-                save_dir=cfg.data.adele_dir,
+                correction_dataloader=create_adele_dataloader(
+                    cfg.data,
+                    cfg.augmentations.valid,
+                ),
+                save_dir=osp.join(cfg.data.data_dir, cfg.data.adele_dir),
                 )
             )
 
@@ -49,7 +53,6 @@ def train(cfg: DictConfig) -> None:
         callbacks=callbacks,
     )
     trainer.fit(model=model, datamodule=datamodule)
-    trainer.test(model=model, datamodule=datamodule)
 
 
 if __name__ == '__main__':

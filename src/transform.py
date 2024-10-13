@@ -19,13 +19,16 @@ def cv_image_to_tensor(img: NDArray[float], normalize: bool = True) -> Tensor:
     if normalize:
         ops.insert(0, albu.Normalize())
     to_tensor = albu.Compose(ops)
-    return to_tensor(image=img)['image']
+    return to_tensor(image=img.astype(np.float32))['image']
 
 
-def mask_image_to_tensor(mask: NDArray[float], transpose_mask=True) -> Tensor:
-    ops = [ToTensorV2(transpose_mask=transpose_mask)]
+def mask_to_tensor(img: NDArray[float], normalize: bool = True) -> Tensor:
+    ops = [ToTensorV2()]
+    img = np.expand_dims(img, 2)
+    if normalize:
+        img = img / 255
     to_tensor = albu.Compose(ops)
-    return to_tensor(mask=mask)['mask']
+    return to_tensor(image=img.astype(np.float32))['image']
 
 
 def denormalize(

@@ -4,6 +4,7 @@ from typing import Optional
 from lightning import LightningDataModule
 from torch.utils.data import DataLoader
 
+from src.constants import PROJECT_ROOT
 from src.config import AugmentationConfig, DataConfig
 from src.dataset import SegmentationDataset
 from src.transform import get_transforms
@@ -19,8 +20,8 @@ class CTCIDataModule(LightningDataModule):
 
         self.save_hyperparameters(logger=False)
 
-        self.data_path = self.cfg.data_dir
-        self.adele_dir = self.cfg.adele_dir if self.cfg.adele_correction else None
+        self.data_path = osp.join(PROJECT_ROOT, self.cfg.data_dir)
+        self.adele_dir = osp.join(self.data_path, self.cfg.adele_dir) if self.cfg.adele_correction else None
 
         self.data_train: Optional[SegmentationDataset] = None
         self.data_val: Optional[SegmentationDataset] = None
@@ -41,10 +42,10 @@ class CTCIDataModule(LightningDataModule):
                 masks_folder=osp.join(self.data_path, self.cfg.valid_folder, 'masks'),
                 transform=self._valid_transforms,
             )
-        elif stage == 'test' and self.cfg.test_folder is not None:
+        elif stage == 'test' and self.cfg.test_folder:
             self.data_test = SegmentationDataset(
                 images_folder=osp.join(self.data_path, self.cfg.test_folder, 'images'),
-                masks_folder=osp.join(self.data_path, self.cfg.train_folder, 'masks'),
+                masks_folder=osp.join(self.data_path, self.cfg.test_folder, 'masks'),
                 transform=self._valid_transforms,
             )
         self.initialized = True

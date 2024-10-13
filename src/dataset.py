@@ -20,8 +20,9 @@ import os
 import os.path as osp
 
 import cv2
-import numpy as np
 from torch.utils.data import Dataset
+from src.transform import cv_image_to_tensor, mask_to_tensor
+from src.utils.masks import apply_correction
 
 
 class SegmentationDataset(Dataset):
@@ -46,8 +47,8 @@ class SegmentationDataset(Dataset):
             images_folder: str,
             masks_folder: str,
             adele_dir: str = None,
-            transform = None,
-            return_names = False,
+            transform=None,
+            return_names=False,
     ):
         """
         Initializes the SegmentationDataset.
@@ -104,17 +105,16 @@ class SegmentationDataset(Dataset):
             res = self.transform(image=image, mask=mask)
             image, mask = res['image'], res['mask']
 
-        if self.adele_dir and osp.isdir(self.adele_dir):
-            correction = cv2.imread(
-                osp.join(self.adele_dir, self.images_list[idx]),
-                cv2.IMREAD_GRAYSCALE
-                )
-            mask = np.where(correction == 255, correction, mask)
+        if self.adele_dir and bool(os.listdir(self.adele_dir)):
+            mask = apply_correction(
+                mask,
+                correction_path=osp.join(self.adele_dir, self.images_list[idx]),
+            )
 
         if self.return_names:
-            return image, mask, self.images_list[idx]
+            return cv_image_to_tensor(image), mask_to_tensor(mask), self.images_list[idx]
 
-        return image, mask
+        return cv_image_to_tensor(image), mask_to_tensor(mask)
     
     def __len__(self):
         """

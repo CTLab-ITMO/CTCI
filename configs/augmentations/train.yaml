@@ -53,6 +53,3 @@ train:
     height: ${data.img_size.0}
     width: ${data.img_size.1}
     always_apply: true
-
-  - _target_: albumentations.pytorch.ToTensorV2
-    transpose_mask: True

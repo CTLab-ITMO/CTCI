@@ -76,3 +76,13 @@ def masks_narrowing(masks, narrowing=0.1):
         masks_narrowed.append(mask_narrowed)
 
     return masks_narrowed
+
+
+def apply_correction(target, correction_path):
+    correction = cv2.imread(
+        correction_path,
+        cv2.IMREAD_GRAYSCALE
+    )
+    cond = correction == 255
+    mask = np.where(cond, cond, target)
+    return mask
