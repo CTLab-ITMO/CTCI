@@ -234,36 +234,36 @@ train(model_q, model_k, device, train_loader, queue, optimizer, epoch)
 ### Скрипт обучения модели на основе Barlow Twins
 
 ```bash
-python src/models/'barlow_twins'/barlow_twins.py images_path masks_path target_height target_width batch_size epochs
+python src/ssl/models/barlow_twins/barlow_twins.py images_path masks_path target_height target_width batch_size epochs
 ```
 
-```images_path``` - путь к изображениям 
+`images_path` - путь к изображениям 
 
-```masks_path``` - путь к маскам
+`masks_path` - путь к маскам
 
-```target_height``` - итоговая высота изображения
+`target_height` - итоговая высота изображения
 
-```target_width``` - итоговая ширина изображения 
+`target_width` - итоговая ширина изображения 
 
-```batch_size```  - размер батча при обучении 
+`batch_size`  - размер батча при обучении 
 
-```epochs`` - количество эпох обучения 
+`epochs` - количество эпох обучения 
 
 ### Скрипт обучения для моделей на основе MoCo (Momentum contrast) 
 
 ```bash
-python src/models/moco/train_moco.py images_path masks_path out_dir batch_size epochs
+python src/ssl/models/moco/train_moco.py images_path masks_path out_dir batch_size epochs
 ```
 
-`images_path``` - путь к изображениям 
+`images_path` - путь к изображениям 
 
-```masks_path``` - путь к маскам
+`masks_path` - путь к маскам
 
-```out_dir``` - путь сохранения результата 
+`out_dir` - путь сохранения результата 
 
-```batch_size``` - размер батча при обучении 
+`batch_size` - размер батча при обучении 
 
-```epochs``` - количесто эпох обучения 
+`epochs` - количесто эпох обучения 
 
 ## Результаты работы алгоритмов самообучения 
 
@@ -274,25 +274,24 @@ python src/models/moco/train_moco.py images_path masks_path out_dir batch_size e
 
 
 ## Запуск моделей 
-Barlow twins 
-
+**Barlow twins**
 
 ```bash
-python src/models/barlow_twins/unet/inference_bt_unet images tar_dir height width
+python src/ssl/models/barlow_twins/unet/inference_bt_unet images tar_dir height width
 ```
 
 **MoCo**
 
 
 ```bash
-python src/models/moco/inference_moco images tar_dir height width
+python src/ssl/models/moco/inference_moco images tar_dir height width
 ```
 
-images - директория с фотографиями для обработки
+`images` - директория с фотографиями для обработки
 
-tar_dir - директория результатов работы нейросети
+`tar_dir` - директория результатов работы нейросети
 
-height, width - размер изображений
+`height, width` - размер изображений
 
 
 Организация проекта
