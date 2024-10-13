@@ -4,7 +4,6 @@ defaults:
   - experiment: experiment
   - module: module
   - trainer: trainer
-  - preprocess: preprocess
   - augmentations:
     - train
     - valid

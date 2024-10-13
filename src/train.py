@@ -14,7 +14,7 @@ from src.callbacks import (
 )
 
 
-@hydra.main(version_base=None, config_path='../configs', config_name='config')
+@hydra.main(version_base=None, config_path='../configs', config_name='training')
 def train(cfg: DictConfig) -> None:
     lightning.seed_everything(0)
     datamodule = CTCIDataModule(cfg.data, cfg.augmentations)

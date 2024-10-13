@@ -155,7 +155,7 @@ def preprocess(img: np.array, cfg: DictConfig):
 
     bf = bilateral_filtering(
         ssr_img,
-        cfg.bilateral_filtering.sigma,
+        cfg.bilateral_filtering.diameter,
         cfg.bilateral_filtering.sigma_color,
         cfg.bilateral_filtering.sigma_space,
     )

@@ -17,6 +17,8 @@ install_all: venv
 		$(PYTHON) -m pip install -r requirements.txt
 
 # ======================= ANNOTATION ========================
+run_annotation:
+		$(PYTHON) src/annotation/data_annotation.py $(ARGS)
 
 # ========================= TRAINING ========================
 run_training:

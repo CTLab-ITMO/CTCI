@@ -240,7 +240,7 @@ def segment_images_from_folder(
         narrowing=0.20,
         erode_iterations=1,
         processes_num=0,
-        prompt_points=True
+        prompt_points=True,
 ):
     """
     Perform segmentation on images in a source directory and save the results to an output directory.
