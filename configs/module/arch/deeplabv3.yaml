@@ -1,0 +1,4 @@
+_target_: segmentation_models_pytorch.DeepLabV3Plus
+encoder_name: resnet34
+in_channels: ${module.num_channels}
+classes: ${module.num_classes}
