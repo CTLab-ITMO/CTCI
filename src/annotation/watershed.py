@@ -63,7 +63,7 @@ def _apply_watershed(data: list) -> tuple:
     return labels, markers
 
 
-def init_watershed(config_path='../configs', config_name='preprocess'):
-    with initialize(config_path=config_path):
+def init_watershed(config_path='../configs', config_name='preprocess', version_base=None):
+    with initialize(version_base=version_base, config_path=config_path):
         wshed = Watershed(cfg=compose(config_name))
     return wshed
