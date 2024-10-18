@@ -101,7 +101,7 @@ train(model_q, model_k, device, train_loader, queue, optimizer, epoch)
 ### Script for training the model based on Barlow Twins
 
 ```bash
-python src/models/'barlow twins'/barlow_twins.py images_path masks_path target_height target_width batch_size epochs
+python src/models/'barlow_twins'/barlow_twins.py images_path masks_path target_height target_width batch_size epochs
 ```
 
 ```images_path``` - path to the images 
@@ -181,8 +181,9 @@ model = build_segformer(config_handler)
 Initialization of Segformer from a configuration file.
 
 ```python
-from src.models.segformer.model import build_segformer
-config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
+from src.models.segformer.segformer import build_segformer
+
+config_handler = read_yaml_config(config_path)  # обработчик конфигурационных файлов
 model = build_segformer(config_handler)
 ```
 
@@ -198,8 +199,9 @@ Training results of the model:
 Initialization of Swin-UNETR from a configuration file.
 
 ```python
-from src.models.swin.model import build_swin
-config_handler = read_yaml_config(config_path) # Configuration file handler
+from src.models.swin.swin import build_swin
+
+config_handler = read_yaml_config(config_path)  # Configuration file handler
 model = build_swin(config_handler)
 ```
 
@@ -214,10 +216,11 @@ Training results of the model:
     <summary>  HRNet  </summary>
 
 Initialization of HRNet from a configuration file.
-    
+
 ```python
-from src.models.hrnet.model import build_hrnet
-config_handler = read_yaml_config(config_path) # Configuration file handler
+from src.models.hrnet.hrnet import build_hrnet
+
+config_handler = read_yaml_config(config_path)  # Configuration file handler
 model = build_hrnet(config_handler)
 ```
 
@@ -232,8 +235,9 @@ Training results of the model:
 Initialization of DeepLabV3 from a configuration file.
 
 ```python
-from src.models.deeplab.model import build_deeplab
-config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
+from src.models.deeplab.deeplab import build_deeplab
+
+config_handler = read_yaml_config(config_path)  # обработчик конфигурационных файлов
 model = build_deeplab(config_handler)
 ```
 

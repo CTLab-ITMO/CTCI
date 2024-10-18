@@ -1,0 +1,30 @@
+defaults:
+  - arch: unet
+
+num_channels: 3
+num_classes: 1
+threshold: 0.2
+
+optimizer:
+  _target_: torch.optim.AdamW
+  lr: 1e-3
+  weight_decay: 1e-5
+
+scheduler:
+  _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+  T_max: 10
+  eta_min: 1e-5
+
+cls_losses:
+  - name: bce
+    weight: 0.3
+    loss_fn:
+      _target_: torch.nn.BCEWithLogitsLoss
+
+seg_losses:
+  - name: dice
+    weight: 0.7
+    loss_fn:
+      _target_: segmentation_models_pytorch.losses.DiceLoss
+      mode: binary
+      from_logits: true

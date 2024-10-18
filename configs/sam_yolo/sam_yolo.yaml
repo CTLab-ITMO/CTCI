@@ -1,0 +1,9 @@
+yolo_checkpoint_path: 'models/annotation/best.pt'
+sam:
+  checkpoint_path: 'models/annotation/sam_vit_h_4b8939.pth'
+  model_type: 'vit_h'
+
+target_length: 1024
+narrowing: 0.20
+erode_iterations: 1
+prompt_points: False
