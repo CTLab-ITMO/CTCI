@@ -84,8 +84,6 @@ target/
 
 # exclude data from source control by default
 /data/
-/models/
-/notebooks/
 /src/mlruns/
 /mlruns/
 /runs/
@@ -96,6 +94,9 @@ target/
 # vim
 *.swp
 *.swo
+
+*.pt
+*.pth
 
 # Mypy cache
 .mypy_cache/
