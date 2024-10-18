@@ -25,6 +25,7 @@ def train(cfg: DictConfig) -> None:
         monitor='val_f1',
         mode='max',
         every_n_epochs=1,
+        save_weights_only=True,
     )
 
     callbacks = [
