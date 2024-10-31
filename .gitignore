@@ -1,7 +1,9 @@
 =======
-/data/
-/checkpoints/
-
+data/
+checkpoints/
+outputs/
+!configs/data
+lightning_logs
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -26,10 +28,11 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+venv/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+#  before PyInstaller builds the exe, so as to inject date/ssl infos into it.
 *.manifest
 *.spec
 
@@ -81,8 +84,6 @@ target/
 
 # exclude data from source control by default
 /data/
-/models/
-/notebooks/
 /src/mlruns/
 /mlruns/
 /runs/
@@ -93,6 +94,9 @@ target/
 # vim
 *.swp
 *.swo
+
+*.pt
+*.pth
 
 # Mypy cache
 .mypy_cache/

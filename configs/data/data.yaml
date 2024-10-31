@@ -1,0 +1,12 @@
+data_dir: 'data/small_split'
+train_folder: 'train'
+valid_folder: 'valid'
+test_folder: null
+batch_size: 4
+num_workers: 6
+img_size:
+  - 128
+  - 128
+pin_memory: True
+adele_correction: False
+adele_dir: 'corrected_masks'

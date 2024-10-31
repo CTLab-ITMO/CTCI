@@ -44,7 +44,7 @@ master_doc = 'index'
 project = u'CTCI'
 
 # The version info for the project you're documenting, acts as replacement for
-# |version| and |release|, also used in various other places throughout the
+# |version| and |release|, also used in various ssl places throughout the
 # built documents.
 #
 # The short X.Y version.
@@ -231,7 +231,7 @@ man_pages = [
 texinfo_documents = [
     ('index', 'ctci', u'CTCI Documentation',
      u"s70c3", 'CTCI',
-     'Clumped texture composite images projects (froath, rocks and other texture images)', 'Miscellaneous'),
+     'Clumped texture composite images projects (froath, rocks and ssl texture images)', 'Miscellaneous'),
 ]
 
 # Documents to append as an appendix to all manuals.

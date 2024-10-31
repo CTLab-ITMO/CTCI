@@ -16,52 +16,185 @@ Clumped texture composite images - изображения со скучкова�
 2. Перейдите в директорию проект
    ```cd CTCI```
 3. Установите зависимости
-```pip -r install requirements.txt```
+```make install_all```
 4. Скачайте веса из [папки](https://disk.yandex.ru/client/disk/Веса%20CTCI) и поместите их рядом с выполняемым кодом.
+
+
+## Конфигурационные файлы
+
+Мы используем hydra для конфигурации проекта. Все файлы конфигураций находятся в папке `configs`. Ниже приведена структура этой папки:
+```
+└── configs/
+    ├── augmentations/           # конфигурации аугментаций
+    │   ├── train.yaml
+    │   └── valid.yaml
+    ├── data/                    # конфигурации датамодуля и коррекции масок
+    │   └── data.yaml
+    ├── experiment/              # конфигурации эксперимента
+    │   └── experiment.yaml
+    ├── module/                  # конфигурации модуля модели
+    │   ├── arch/                # конфигурации архитектуры модели
+    │   │   ├── deeplabv3.yaml  
+    │   │   └── ...
+    │   └── module.yaml
+    ├── preprocess/              # конфигурации водораздела
+    │   └── preprocess.yaml
+    ├── sam_yolo/                # конфигурации моделей SAM и YOLO для аннотации
+    │   └── sam_yolo.yaml
+    ├── trainer/                 # конфигурации класса обучения
+    │   └── trainer.yaml
+    ├── config.yaml
+    └── annotation.yaml
+```
+В папках `sam_yolo` и `preprocess` находятся конфигурации для слабой разметки. Они объединяются файлом `annotation.yaml`.
+Для задачи обучения сегментационных моделей используются все остальные папки, которые объединяются файлом `config.yaml`.
+
 # Слабая разметка
 
 Слабая разметка однородных данных реализована с использованием моделей YOLOv8 и Segment Anything, а также с помощью алгоритма сегментации водоразделом. YOLOv8 используется для поисков маркеров, соответствующих крупным пузырям, SAM для поиска контуров крупных пузырей, водораздел для поиска контуров мелких пузырей. 
 
-Функционал слабой разметки расположен в модуле `src/data/weakly_segmentation/annotation.py` в методе `annotation`. Разметка выполняется для указанной в аргументах папки с данными
+Функционал слабой разметки расположен в модуле `src/annotation/data_annotation.py` в методе `run_annotation`. Разметка выполняется для указанной в файле конфигураций папки.
+
+Файл конфигураций для моделей SAM и YOLOv8:
+```yaml
+yolo_checkpoint_path: 'models/annotation/best.pt'
+sam:
+  checkpoint_path: 'models/annotation/sam_vit_h_4b8939.pth'
+  model_type: 'vit_h'
+
+target_length: 1024
+narrowing: 0.20
+erode_iterations: 1
+prompt_points: False
+```
+Файл конфигураций водораздела:
+```yaml
+single_scale_retinex:
+  sigma: 80
+bilateral_filtering:
+  diameter: 5
+  sigma_color: 75
+  sigma_space: 75
+morphological_transform:
+  kernel_size: [3, 3]
+gaussian_blur:
+  kernel_size: [5, 5]
+  sigma_x: 0
+minmax:
+  span: [0, 255]
+
+```
+
 
 Пример использования:
 
-```python
-import sys
-
-from src.data.weakly_segmentation.annotation import annotation
-
-
-data_dir = sys.argv[1]  # Директория, в которой лежат папки для разметки.
-folder = sys.argv[2]    # Название папки, которую надо разметить
-                        # ├──data_dir
-                        #         ├── folder1
-                        #         ├── folder2
-                        #         ....
-
-custom_yolo_checkpoint_path = sys.argv[3]  # Путь до весов модели YOLOv8
-sam_checkpoint = sys.argv[4]  # Путь до весов модели SAM
-sam_model_type = sys.argv[5]  # Тип модели SAM
-
-narrowing = 0.20  # Значение сужения масок сегменатации. Предотвращает сливание масок однородных объектов
-erode_iterations = 1  # Количество итераций эрозии 
-processes_num = 3  # Количество параллельных процессов сегментации изображений
-prompt_points = False  # Использование точек в промпте SAM
-
-device = "cpu"  # Девайс, на котором выполняется разметка
-
-annotation(
-    data_dir, folder,
-    custom_yolo_checkpoint_path, sam_checkpoint, sam_model_type, narrowing=narrowing,
-    erode_iterations=erode_iterations, processes_num=processes_num, prompt_points=prompt_points,
-    device=device
-)
+```bash
+make run_annotation
 ```
+Через переменную `ARGS` можно передавать и переопределять любые параметры в конфигурациях. Например, так можно передать другой путь к весам модели SAM:
+
+```bash
+make run_annotation ARGS="sam_yolo.sam.checkpoint_path={ваш путь}"
+```
+
 Результаты аннотации:
 ![Original - SAM - Watershed - Both](data/readme/Image.png)
 
-Результаты аннотации на различных данных. Важно отметить, что алгоритм не работает в режиме реального времени, медиа показывает визуализацию.
+Результаты аннотации на разнообразных данных. Важно отметить, что алгоритм не работает в режиме реального времени, медиа показывает визуализацию.
 ![SAM + Watershed performance](data/readme/images_masks_output_video_masked.gif)
+
+## Обучение моделей 
+
+# Сегментация
+
+Обучение моделей запускаются следующей командой:
+
+```bash
+make run_training
+```
+Чтобы запустить обучение модели определенной архитектуры, убедитесь, что файл конфигурации для этой архитектуры находится в `configs/module/arch`.
+Запустить обучение можно следующим образом:
+
+```bash
+make run_training ARGS="module/arch={ваша архитектура}.yaml"
+```
+Библиотека поддерживает логирование в ClearML. В файле конфигураций `configs/experiment/experiment.yaml` есть переменная `track_in_clearml`, с помощью которой можно включить поддержку ClearML. Прежде, чем запускать обучение, обязательно необходимо инициализировать ClearML [согласно документации](https://clear.ml/docs/latest/docs/getting_started/ds/ds_first_steps/).
+
+## Модели сегментации
+
+Для сегментации изображений однородных данных реализованы такие модели, как: SegFormer, Swin+UNETR, DeepLabv3, HRNet. Модели инициализируются из файла конфигурации. Добавьте нужную вам модель в `configs/arch` и измените файл config.yaml. Проект поддерживает timm, pytorch-segmentation-models, transformers.
+Если модели не нужно реализовать отдельную логику метода `forward`, достаточно добавить файл конфигурации в таком виде:
+```yaml
+_target_: segmentation_models_pytorch.DeepLabV3Plus
+encoder_name: resnet34
+in_channels: ${module.num_channels}
+classes: ${module.num_classes}
+```
+Если для вашей модели нужно реализовывать отдельную логику, достаточно передать путь для инициализации как в примере. Например, так выглядит файл конфигураций HRNet, в которой в качестве аргумента принимается сама модель из `timm` и дополнительные аргументы для инициализации класса-обертки:
+```yaml
+_target_: src.models.HRNetModel
+image_size: ${data.img_size}
+net:
+  _target_: timm.create_model
+  model_name: hrnet_w18_small_v2
+  features_only: true
+  pretrained: true
+```
+
+
+## Обучение моделей
+
+Для того чтобы запустить обучение моделей, выполните следующую команду: 
+
+```bash
+make run_training
+```
+
+### ADELE
+Библиотека поддерживает [Adaptive Early-Learning Correction for Segmentation from Noisy Annotations](https://arxiv.org/abs/2110.03740). В файле конфигураций `configs/dta/data.yaml` за это отвечает переменная `adele_correction`. 
+Функционал реализован в качестве callback для тренировщика. На локальный диск в процессе обучения в папку рядом с тренировочными данными, определенную параметром `adele_dir`, будут сохраняться скорректированные маски.
+
+
+## Результаты обучения
+
+[//]: # (я не шарю за хтмл поэтому оставлю это здесь)
+
+
+<details>
+    <summary> Segformer </summary>
+
+Результаты обучения модели:
+![Segformer performance](data/readme/segformer_output_video_masked.gif)
+
+
+
+</details>
+
+
+<details>
+    <summary> Swin-UNETR  </summary>
+
+Результаты обучения модели:
+![Swin performance](data/readme/swinv2_output_video_masked.gif)
+
+</details>
+
+
+<details>
+    <summary>  HRNet  </summary>
+
+Результаты обучения модели:
+![HRNet performance](data/readme/hrnet_w18_small_v2_output_video_masked.gif)
+
+</details>
+
+<details>
+    <summary>  DeepLabV3  </summary>
+
+Результаты обучения модели:
+![DeepLab performance](data/readme/resnet34-run2_output_video_masked.gif)
+
+</details>
 
 # Самообучение
 
@@ -98,41 +231,39 @@ train(model_q, model_k, device, train_loader, queue, optimizer, epoch)
 
 ```
 
-## Обучение моделей 
-
 ### Скрипт обучения модели на основе Barlow Twins
 
 ```bash
-python src/models/'barlow twins'/barlow_twins.py images_path masks_path target_height target_width batch_size epochs
+python src/ssl/models/barlow_twins/barlow_twins.py images_path masks_path target_height target_width batch_size epochs
 ```
 
-```images_path``` - путь к изображениям 
+`images_path` - путь к изображениям 
 
-```masks_path``` - путь к маскам
+`masks_path` - путь к маскам
 
-```target_height``` - итоговая высота изображения
+`target_height` - итоговая высота изображения
 
-```target_width``` - итоговая ширина изображения 
+`target_width` - итоговая ширина изображения 
 
-```batch_size```  - размер батча при обучении 
+`batch_size`  - размер батча при обучении 
 
-```epochs`` - количество эпох обучения 
+`epochs` - количество эпох обучения 
 
 ### Скрипт обучения для моделей на основе MoCo (Momentum contrast) 
 
 ```bash
-python src/models/moco/train_moco.py images_path masks_path out_dir batch_size epochs
+python src/ssl/models/moco/train_moco.py images_path masks_path out_dir batch_size epochs
 ```
 
-`images_path``` - путь к изображениям 
+`images_path` - путь к изображениям 
 
-```masks_path``` - путь к маскам
+`masks_path` - путь к маскам
 
-```out_dir``` - путь сохранения результата 
+`out_dir` - путь сохранения результата 
 
-```batch_size``` - размер батча при обучении 
+`batch_size` - размер батча при обучении 
 
-```epochs``` - количесто эпох обучения 
+`epochs` - количесто эпох обучения 
 
 ## Результаты работы алгоритмов самообучения 
 
@@ -143,193 +274,24 @@ python src/models/moco/train_moco.py images_path masks_path out_dir batch_size e
 
 
 ## Запуск моделей 
-Barlow twins 
-
+**Barlow twins**
 
 ```bash
-python src/models/barlow_twins/unet/inference_bt_unet images tar_dir height width
+python src/ssl/models/barlow_twins/unet/inference_bt_unet images tar_dir height width
 ```
 
 **MoCo**
 
 
 ```bash
-python src/models/moco/inference_moco images tar_dir height width
+python src/ssl/models/moco/inference_moco images tar_dir height width
 ```
 
-images - директория с фотографиями для обработки
+`images` - директория с фотографиями для обработки
 
-tar_dir - директория результатов работы нейросети
+`tar_dir` - директория результатов работы нейросети
 
-height, width - размер изображений 
-
-
-# Сегментация
-
-## Конфигурационные файлы
-
-Для удобства обучения и использования моделей, мы используем конфигурационные файлы, примеры которых можно найти в директории `src/infrastructure/configs` . Мы рекомендуем придерживаться структуры, указанной в них.
-
-## Модели сегментации
-
-Для сегментации изображений однородных данных реализованы такие модели, как: Yolov8, SegFormer, Swin+UNETR, DeepLabv3, HRNet. Данные модели расположены в директориях `src/models/<название модели>` . 
-
-Возможна инициализация модели с помощью соответствующего класса, например:
-
-```python
-net = transformers.SegformerForSemanticSegmentation.from_pretrained(
-    f"nvidia/{model_name}-{model_type}-finetuned-ade-512-512",
-    num_labels=1,
-    image_size=image_size_height,
-    ignore_mismatched_sizes=True
-)
-
-segformer = SegFormer(
-    net=net, mask_head=final_layer, loss_fn=loss_fn,
-    image_size=image_size, device=device
-)
-
-
-Все модели сегментации наследуются от класса ```BaseModel```.
-```
-
-либо, с помощью метода `build_<название модели>`, например:
-
-```python
-config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
-model = build_segformer(config_handler)
-```
-
-[//]: # (я не шарю за хтмл поэтому оставлю это здесь)
-
-
-<details>
-    <summary> Segformer </summary>
-
-Инициализация Segformer из файла конфигурации.
-```python
-from src.models.segformer.model import build_segformer
-config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
-model = build_segformer(config_handler)
-```
-
-
-Результаты обучения модели:
-![Segformer performance](data/readme/segformer_output_video_masked.gif)
-
-
-
-</details>
-
-
-<details>
-    <summary> Swin-UNETR  </summary>
-
-Инициализация Swin-UNETR из файла конфигурации.
-```python
-from src.models.swin.model import build_swin
-config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
-model = build_swin(config_handler)
-```
-Результаты обучения модели:
-![Swin performance](data/readme/swinv2_output_video_masked.gif)
-
-</details>
-
-
-<details>
-    <summary>  HRNet  </summary>
-
-Инициализация HRNet из файла конфигурации.
-```python
-from src.models.hrnet.model import build_hrnet
-config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
-model = build_hrnet(config_handler)
-```
-Результаты обучения модели:
-![HRNet performance](data/readme/hrnet_w18_small_v2_output_video_masked.gif)
-
-</details>
-
-<details>
-    <summary>  DeepLabV3  </summary>
-
-Инициализация DeepLabV3 из файла конфигурации.
-```python
-from src.models.deeplab.model import build_deeplab
-config_handler = read_yaml_config(config_path) # обработчик конфигурационных файлов
-model = build_deeplab(config_handler)
-```
-Результаты обучения модели:
-![DeepLab performance](data/readme/resnet34-run2_output_video_masked.gif)
-
-</details>
-
-
-<details>
-
-    <summary>  YOLOv8  </summary>
-Для inference YOLOv8 необходимо перейти в директорию CTCI/src/models/yolov8 и запустить в командной строке скрипт:
-```shell
-python3 CTCI/src/models/yolov8/<task_script.py> <path to input image> <path to output image> <path to model weights>
-```
-</details>
-
-
-## Обучение моделей
-
-Для обучения или дообучения моделей добавлен класс тренировщика `Trainer` , расположенный в модуле `src/models/train.py` :
-
-```python
-trainer = Trainer(
-    model=model,
-    optimizer=optimizer,
-    scheduler=scheduler,
-    metrics=metrics,
-    main_metric_name=main_metric_name,
-    save_dir=model_save_dir,
-    device=device
-)
-```
-
-В директории `src/infrastructure/models_tracking`  расположены скрипты, позволяющие обучить или дообучить модели “из коробки” с использованием конфигурационного файла. Пример использования:
-
-```bash
-python src/infrastructure/models_tracking/segformer_tracking.py <config_path>
-```
-
-
-
-### ADELE
-Библиотека поддерживает [Adaptive Early-Learning Correction for Segmentation from Noisy Annotations](https://arxiv.org/abs/2110.03740). Для использования достаточно создать датасет **без аугментаций**, то есть без аффинных преобразований, но в том виде, в котором модель будет получать изображения на инференсе. В класс тренировщика необходимо будет передавать отдельно инициализированный датасет из тренировочных файлов. В файле конфигураций необходимо добавить шаг, через который будет применяться метод. 
-
-```python
-# В файле трекинга добавить следующие строки
-
-from src.models.utils.config import read_yaml_config
-from src.features.segmentation.dataset import get_train_dataset_by_config
-
-config_handler = read_yaml_config(config_path)
-adele_dataset = get_train_dataset_by_config(
-        config_handler,
-        transform=tr, # стандартные преобразования
-        augmentation_transform=None
-    )
-adele_dataset.return_names = True
-```
-
-
-# Экспорт в ONNX
-
-Описанные выше модели могут быть экспортированы в onnx формат для дальнейшего запуска в любом окружении, поддерживающем onnx-runtime. 
-
-Экспорт каждой из моделей можно выполнить с использованием заготовленных скриптов, расположенных в директории `src/infrastructure/models_inference` . Например:
-
-```bash
-python src/infrastructure/models_inference/segformer_export.py <config_path>
-```
-
-Исходный код конвертации и квантизации находиться в модуле `src/models/inference.py` .
+`height, width` - размер изображений
 
 
 Организация проекта
@@ -343,6 +305,8 @@ python src/infrastructure/models_inference/segformer_export.py <config_path>
     │   ├── interim        <- Intermediate data that has been transformed.
     │   ├── processed      <- The final, canonical data sets for modeling.
     │   └── raw            <- The original, immutable data dump.
+    │
+    ├── configs            <- Configuration files for project
     │
     ├── docs               <- A default Sphinx project; see sphinx-doc.org for details
     │
@@ -362,21 +326,6 @@ python src/infrastructure/models_inference/segformer_export.py <config_path>
     │
     ├── setup.py           <- makes project pip installable (pip install -e .) so src can be imported
     ├── src                <- Source code for use in this project.
-    │   ├── __init__.py    <- Makes src a Python module
-    │   │
-    │   ├── data           <- Scripts to download or generate data
-    │   │   └── make_dataset.py
-    │   │
-    │   ├── features       <- Scripts to turn raw data into features for modeling
-    │   │   └── build_features.py
-    │   │
-    │   ├── models         <- Scripts to train models and then use trained models to make
-    │   │   │                 predictions
-    │   │   ├── predict_model.py
-    │   │   └── train_model.py
-    │   │
-    │   └── visualization  <- Scripts to create exploratory and results oriented visualizations
-    │       └── visualize.py
     │
     └── tox.ini            <- tox file with settings for running tox; see tox.readthedocs.io
 
