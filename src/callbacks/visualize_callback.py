@@ -63,9 +63,12 @@ class VisualizationCallback(pl.Callback):
         plt.close(fig)
 
     def _overlay_mask(self, image, mask):
-        """Helper function to overlay a binary mask on an image."""
-        overlay = image.copy()
         if mask.ndim == 2:
-            mask = mask[:, :, None]  # Add channel dimension
-        overlay = (overlay * (1 - self.alpha) + mask * self.alpha).clip(0, 1)
+            mask = mask[:, :, None]
+        elif mask.shape[0] == 1:
+            mask = mask.squeeze(0)[:, :, None]
+
+        mask = mask.repeat(3, axis=-1)
+        overlay = (image * (1 - self.alpha) + mask * self.alpha).clip(0, 1)
         return overlay
+
