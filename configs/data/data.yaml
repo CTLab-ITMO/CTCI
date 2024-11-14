@@ -1,4 +1,4 @@
-data_dir: 'data/weak'
+data_dir: 'data/new'
 train_folder: 'train'
 valid_folder: 'valid'
 test_folder: null

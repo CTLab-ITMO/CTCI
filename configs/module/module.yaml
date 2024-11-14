@@ -1,5 +1,5 @@
 defaults:
-  - arch: unet
+  - arch: swin
 
 num_channels: 3
 num_classes: 1
