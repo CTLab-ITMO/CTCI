@@ -22,7 +22,8 @@ import os.path as osp
 import cv2
 from torch.utils.data import Dataset
 from src.transform import cv_image_to_tensor, mask_to_tensor
-from src.utils.masks import apply_correction
+from src.utils.masks import apply_correction, binarize_mask
+from src.logger import LOGGER
 
 
 class SegmentationDataset(Dataset):
@@ -68,10 +69,20 @@ class SegmentationDataset(Dataset):
 
         self.images_list = os.listdir(self.images_folder)
         self.masks_list = os.listdir(self.masks_folder)
+
+        self._clean_names()
+
         self.adele_dir = adele_dir
         self.return_names = return_names
 
         assert len(self.images_list) == len(self.masks_list), "some images or masks are missing"
+
+    def _clean_names(self):
+        LOGGER.info("Cleaning names...")
+        for name in self.images_list:
+            if name.startswith("."):
+                self.images_list.remove(name)
+                self.masks_list.remove(name)
 
     def _read_image_and_mask(self, image_name):
         """
@@ -86,8 +97,7 @@ class SegmentationDataset(Dataset):
         image = cv2.imread(osp.join(self.images_folder, image_name))
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         mask = cv2.imread(osp.join(self.masks_folder, image_name), cv2.IMREAD_GRAYSCALE)
-
-        return image, mask
+        return image, binarize_mask(mask)
 
     def __getitem__(self, idx):
         """

@@ -56,6 +56,8 @@ def train(cfg: DictConfig) -> None:
         callbacks=callbacks,
     )
     trainer.fit(model=model, datamodule=datamodule)
+    # if cfg.data.test_folder:
+    #     trainer.test(model=model, datamodule=datamodule)
 
 
 if __name__ == '__main__':
