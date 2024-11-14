@@ -1,4 +1,4 @@
-import pytorch_lightning as pl
+import lightning.pytorch as pl
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
