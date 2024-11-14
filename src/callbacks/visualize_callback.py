@@ -24,7 +24,7 @@ class VisualizationCallback(pl.Callback):
         # Get a batch of validation data
         val_dataloader = trainer.datamodule.val_dataloader()
         val_batch = next(iter(val_dataloader))
-        images = val_batch["image"]
+        images = val_batch[0]
 
         images = images.to(pl_module.device)
 
