@@ -28,15 +28,15 @@ class VisualizationCallback(pl.Callback):
         fig, axes = plt.subplots(self.max_images, 3, figsize=(15, 5 * self.max_images))
         for i in range(min(self.max_images, len(images))):
             image = images[i].cpu().permute(1, 2, 0).numpy()
-            image = (image - image.min()) / (image.max() - image.min())  # Normalize for display
-            pred_mask = predictions[i].cpu().numpy()
+            image = (image - image.min()) / (image.max() - image.min())
+
+            pred_mask = predictions[i].cpu().numpy().squeeze() * 255
             overlay = self._overlay_mask(image, pred_mask)
 
-            # Plot original, prediction, and overlay
             axes[i, 0].imshow(image)
             axes[i, 0].set_title("Original Image")
             axes[i, 0].axis("off")
-            axes[i, 1].imshow(pred_mask.squeeze(), cmap="Blues")
+            axes[i, 1].imshow(pred_mask, cmap="gray")
             axes[i, 1].set_title("Prediction")
             axes[i, 1].axis("off")
             axes[i, 2].imshow(overlay)
