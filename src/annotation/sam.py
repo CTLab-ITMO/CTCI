@@ -276,33 +276,18 @@ def segment_images_from_folder(
     images_list = os.listdir(source_dir)
     masks_list = os.listdir(output_dir)
 
-    if processes_num == 0:
-        for image_name in tqdm(images_list):
-            with torch.no_grad():
-                segment_image_from_dir(
-                    image_name,
-                    masks_list,
-                    source_dir,
-                    output_dir,
-                    detector, predictor, wshed,
-                    target_length=target_length,
-                    narrowing=narrowing,
-                    erode_iterations=erode_iterations,
-                    prompt_points=prompt_points
-                )
-    else:
+    for image_name in tqdm(images_list):
         with torch.no_grad():
-            executor = concurrent.futures.ProcessPoolExecutor(processes_num)
-            futures = [
-                executor.submit
-                (
-                    segment_image_from_dir, image_name, masks_list,
-                    source_dir, output_dir,
-                    detector, predictor, wshed,
-                    target_length, narrowing, erode_iterations, prompt_points
-                )
-                for image_name in images_list if image_name not in masks_list
-            ]
-            concurrent.futures.wait(futures)
+            segment_image_from_dir(
+                image_name,
+                masks_list,
+                source_dir,
+                output_dir,
+                detector, predictor, wshed,
+                target_length=target_length,
+                narrowing=narrowing,
+                erode_iterations=erode_iterations,
+                prompt_points=prompt_points
+            )
 
     print(f"Images from the directory {source_dir} were segmented!")

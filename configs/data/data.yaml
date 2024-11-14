@@ -1,4 +1,4 @@
-data_dir: 'data/small_split'
+data_dir: 'data/weak'
 train_folder: 'train'
 valid_folder: 'valid'
 test_folder: null

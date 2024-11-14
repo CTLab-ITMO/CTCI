@@ -10,6 +10,7 @@ from src.lightning_module import CTCILightningModule
 from src.callbacks import (
     ClearMLCallback,
     AdeleCallback,
+    VisualizationCallback,
     create_adele_dataloader,
 )
 
@@ -30,6 +31,7 @@ def train(cfg: DictConfig) -> None:
 
     callbacks = [
         LearningRateMonitor(logging_interval='step'),
+        VisualizationCallback(),
         checkpoint_callback,
     ]
 

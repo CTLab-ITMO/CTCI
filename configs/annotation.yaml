@@ -6,7 +6,7 @@ defaults:
   - override hydra/job_logging: none
 
 data_dir: 'data'
-folder: 'gt/images'
+folder: 'rocks/uchali_halved'
 device: 'cpu'
 processes_num: 0
 
