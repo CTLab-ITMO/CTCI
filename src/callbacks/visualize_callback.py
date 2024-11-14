@@ -1,5 +1,6 @@
 import lightning.pytorch as pl
 import torch
+import numpy as np
 import matplotlib.pyplot as plt
 
 
@@ -23,14 +24,14 @@ class VisualizationCallback(pl.Callback):
         with torch.no_grad():
             predictions = pl_module(images)
             predictions = torch.sigmoid(predictions)
-            predictions = predictions > 0.5
+            predictions = predictions > 0.6
 
         fig, axes = plt.subplots(self.max_images, 3, figsize=(15, 5 * self.max_images))
         for i in range(min(self.max_images, len(images))):
             image = images[i].cpu().permute(1, 2, 0).numpy()
             image = (image - image.min()) / (image.max() - image.min())
 
-            pred_mask = predictions[i].cpu().numpy().squeeze() * 255
+            pred_mask = predictions[i].cpu().numpy().squeeze()
             overlay = self._overlay_mask(image, pred_mask)
 
             axes[i, 0].imshow(image)
@@ -50,10 +51,10 @@ class VisualizationCallback(pl.Callback):
     def _overlay_mask(self, image, mask):
         if mask.ndim == 2:
             mask = mask[:, :, None]
-        elif mask.shape[0] == 1:
-            mask = mask.squeeze(0)[:, :, None]
 
-        mask = mask.repeat(3, axis=-1)
-        overlay = (image * (1 - self.alpha) + mask * self.alpha).clip(0, 1)
+        darkened_image = image * self.alpha
+        overlay = darkened_image.copy()
+
+        overlay[:, :, 0] = np.maximum(overlay[:, :, 0], mask.squeeze())
+
         return overlay
-
