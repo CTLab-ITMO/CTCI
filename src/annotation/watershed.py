@@ -43,6 +43,14 @@ class Watershed:
         return black
 
 
+def _peak_local_max(markers, distance_map):
+    local_max = peak_local_max(distance_map, min_distance=5, labels=markers)
+    peak_mask = np.zeros(distance_map.shape, dtype=bool)
+    peak_mask[tuple(local_max.T)] = True
+    peak_markers = ndimage.label(peak_mask)[0]
+    return peak_markers
+
+
 def _apply_watershed(data: list) -> tuple:
     """
     Extract labels for bubbles using watershed algorithm.
@@ -55,10 +63,7 @@ def _apply_watershed(data: list) -> tuple:
     """
     markers, area = data
     distance_map = ndimage.distance_transform_edt(markers)
-    local_max = peak_local_max(distance_map, min_distance=5, labels=markers)
-    peak_mask = np.zeros(distance_map.shape, dtype=bool)
-    peak_mask[tuple(local_max.T)] = True
-    peak_markers = ndimage.label(peak_mask)[0]
+    peak_markers = _peak_local_max(markers, distance_map)
     labels = watershed(-distance_map, peak_markers, mask=area)
     return labels, markers
 
