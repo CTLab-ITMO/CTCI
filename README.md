@@ -107,6 +107,27 @@ make run_annotation ARGS="sam_yolo.sam.checkpoint_path={ваш путь}"
 
 # Сегментация
 
+## Подготовка датасета
+
+Если ваш датасет был размечен с помощью слабой аннотации и в результате получились две папки: `your_data_folder` с изображениями и `{your_data_folder}_masks` с масками, они будут автоматически разделены на `train/val/test` и сохранены в папке `dst_folder`. Если `dst_folder` изначально пуста, исходный датасет будет находиться в папке `your_data_folder`. Обратите внимание, что указанная папка должна располагаться внутри проекта.
+```yaml
+data_dir: 'your_data_folder'       # папка с изображениями
+dst_folder: null                   # папка, где будут лежать train/val/test
+train_folder: 'train'
+valid_folder: 'val'
+test_folder: 'test'
+batch_size: 4
+num_workers: 6
+img_size:
+  - 128
+  - 128
+pin_memory: True
+adele_correction: False
+adele_dir: 'corrected_masks'
+```
+
+## Обучение
+
 Обучение моделей запускаются следующей командой:
 
 ```bash
