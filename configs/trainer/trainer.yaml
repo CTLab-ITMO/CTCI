@@ -1,5 +1,5 @@
 fast_dev_run: False
-accelerator: cuda
+accelerator: mps
 log_every_n_steps: 100
 max_epochs: 2
 min_epochs: 2
