@@ -17,6 +17,7 @@ class Watershed:
     def __init__(self, cfg: DictConfig):
 
         self.cfg = cfg
+        self.use_preprocess = "preprocess" in cfg
 
     def apply_watershed(self, img: np.array) -> np.array:
         """
@@ -31,24 +32,20 @@ class Watershed:
         Returns:
             np.array: image of bubble masks separated by contours
         """
-        i = preprocess(img, self.cfg)
-        smkr = get_markers('small', i)
+        gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+        if self.use_preprocess:
+            gray_img = preprocess(gray_img, self.cfg.preprocess)
+
+        smkr = get_markers('small', gray_img)
         bsmkr = cv2.dilate(smkr,
                            cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 5)),
                            iterations=5)
 
         labels, markers = _apply_watershed(data=[smkr, bsmkr])
-        black = find_contours(img, labels, markers)
+        black = find_contours(gray_img, labels, markers)
 
         return black
-
-
-def _peak_local_max(markers, distance_map):
-    local_max = peak_local_max(distance_map, min_distance=5, labels=markers)
-    peak_mask = np.zeros(distance_map.shape, dtype=bool)
-    peak_mask[tuple(local_max.T)] = True
-    peak_markers = ndimage.label(peak_mask)[0]
-    return peak_markers
 
 
 def _apply_watershed(data: list) -> tuple:
@@ -63,12 +60,15 @@ def _apply_watershed(data: list) -> tuple:
     """
     markers, area = data
     distance_map = ndimage.distance_transform_edt(markers)
-    peak_markers = _peak_local_max(markers, distance_map)
+    local_max = peak_local_max(distance_map, min_distance=5, labels=markers)
+    peak_mask = np.zeros(distance_map.shape, dtype=bool)
+    peak_mask[tuple(local_max.T)] = True
+    peak_markers = ndimage.label(peak_mask)[0]
     labels = watershed(-distance_map, peak_markers, mask=area)
     return labels, markers
 
 
-def init_watershed(config_path='../configs/preprocess', config_name='preprocess', version_base=None):
+def init_watershed(config_path='../configs/watershed', config_name='watershed', version_base=None):
     with initialize(version_base=version_base, config_path=config_path):
         wshed = Watershed(cfg=compose(config_name))
     return wshed

@@ -137,7 +137,7 @@ def watershed_segmentation(image: np.ndarray, wshed: Watershed) -> np.ndarray:
     Returns:
         numpy.ndarray: Segmented mask using the Watershed algorithm.
     """
-    return wshed.apply_watershed(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+    return wshed.apply_watershed(image)
 
 
 def yolo_sam_segmentation(

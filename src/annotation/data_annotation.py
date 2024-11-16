@@ -68,9 +68,9 @@ def run_annotation(cfg: DictConfig) -> None:
         # Load SAM predictor
         predictor = load_sam_predictor(device=cfg.device, **sy_cfg.sam)
 
-    # Load Watershed if preprocess is defined in config
-    if "preprocess" in cfg:
-        watershed_cfg = cfg.preprocess
+    # Load Watershed if watershed is defined in config
+    if "watershed" in cfg:
+        watershed_cfg = cfg.watershed
         wshed = Watershed(watershed_cfg)
 
     # Ensure at least one segmentation method is defined
