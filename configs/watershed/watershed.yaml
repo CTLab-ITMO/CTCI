@@ -1,3 +1,4 @@
+thresh: 60
 preprocess:
   single_scale_retinex:
     sigma: 80

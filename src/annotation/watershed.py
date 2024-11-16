@@ -37,7 +37,7 @@ class Watershed:
         if self.use_preprocess:
             gray_img = preprocess(gray_img, self.cfg.preprocess)
 
-        smkr = get_markers('small', gray_img)
+        smkr = get_markers('small', gray_img, self.cfg.thresh)
         bsmkr = cv2.dilate(smkr,
                            cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 5)),
                            iterations=5)
