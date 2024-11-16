@@ -6,9 +6,8 @@ defaults:
   - override hydra/job_logging: none
 
 data_dir: 'data'
-folder: 'rocks/uchali_halved'
+folder: 'pores/low'
 device: 'cpu'
-processes_num: 0
 
 hydra:
   run:

@@ -126,11 +126,25 @@ def sam_segmentation(
     return masks_list
 
 
+def watershed_segmentation(image: np.ndarray, wshed: Watershed) -> np.ndarray:
+    """
+    Perform image segmentation using the Watershed algorithm.
+
+    Args:
+        image (numpy.ndarray): Input grayscale image for segmentation.
+        wshed (Watershed): Instance of the Watershed class.
+
+    Returns:
+        numpy.ndarray: Segmented mask using the Watershed algorithm.
+    """
+    return wshed.apply_watershed(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+
+
 def yolo_sam_segmentation(
-        image, detector: YOLO, predictor: SamPredictor, wshed: Watershed,
-        target_length: int = 1024, narrowing: float = 0.20, erode_iterations: float = 1,
-        prompt_points: bool = True
-):
+        image: np.ndarray, detector: YOLO, predictor: SamPredictor,
+        target_length: int = 1024, narrowing: float = 0.20,
+        erode_iterations: int = 1, prompt_points: bool = True
+) -> np.ndarray:
     """
     Perform image segmentation using YOLOv8 and Segment Anything Model (SAM).
 
@@ -142,152 +156,122 @@ def yolo_sam_segmentation(
             Defaults to 1024 pixels.
         narrowing (float, optional): Narrowing factor for SAM masks. Defaults to 0.20.
         erode_iterations (int, optional): Number of iterations for eroding the final mask. Defaults to 1.
+        prompt_points (bool, optional): Whether to use prompt points for SAM. Defaults to True.
 
     Returns:
         numpy.ndarray: Segmented mask combining YOLOv8 and SAM predictions.
 
     Notes:
-        - The function detects objects using YOLOv8 and performs segmentation using SAM.
+        - Detects objects using YOLOv8 and performs segmentation using SAM.
         - SAM segmentation is applied only if YOLOv8 detects objects.
-        - The final mask is a combination of SAM and watershed segmentation.
         - The mask is further eroded using morphological operations.
 
     Example:
         mask = yolo_sam_segmentation(image, yolo_detector, sam_predictor)
     """
     boxes = yolov8_detect(image=image, detector=detector, return_objects=False)
-    mask_watershed = wshed.apply_watershed(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
 
     if len(boxes) != 0:
         masks_list = sam_segmentation(image=image, predictor=predictor, boxes=boxes, prompt_points=prompt_points,
                                       target_length=target_length)
-        masks_united = []
-        for masks in masks_list:
-            masks_united.append(unite_masks(masks))
+        masks_united = [unite_masks(masks) for masks in masks_list]
         masks_narrowed = masks_narrowing(masks_united, narrowing=narrowing)
         mask_sam = unite_masks(masks_narrowed)
     else:
-        mask_sam = np.zeros_like(mask_watershed)
-
-    mask = unite_masks([mask_sam, mask_watershed])
+        mask_sam = np.zeros(image.shape[:2], dtype=np.uint8)
 
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-    mask_final = cv2.erode(mask, kernel, iterations=erode_iterations)
+    mask_final = cv2.erode(mask_sam, kernel, iterations=erode_iterations)
 
     return mask_final
 
 
-def segment_image_from_dir(
-        image_name: str,
-        masks_list,
-        source_dir: str,
-        output_dir: str,
-        detector: YOLO, predictor: SamPredictor, wshed: Watershed,
-        target_length: int = 1024,
-        narrowing: float = 0.20,
-        erode_iterations: int = 1,
-        prompt_points=True
-):
+def combined_segmentation(
+    image, detector=None, predictor=None, wshed=None,
+    target_length=None, narrowing=None, erode_iterations=None, prompt_points=None
+) -> np.ndarray:
     """
-    Perform segmentation on an image from a source directory and save the result to an output directory.
+    Combine YOLO + SAM and Watershed segmentation results based on availability.
 
     Args:
-        image_name (str): Name of the image file to be segmented.
-        masks_list (list): List of already segmented image names to avoid duplicate segmentation.
-        source_dir (str): Directory containing the source images.
-        output_dir (str): Directory where the segmented masks will be saved.
-        detector: YOLOv8 object detector.
-        predictor (SamPredictor): Instance of the predictor class for the SAM model.
-        target_length (int, optional): Target length for resizing the longest side of the image.
-            Defaults to 1024 pixels.
-        narrowing (float, optional): Narrowing factor for SAM masks. Defaults to 0.20.
-        erode_iterations (int, optional): Number of iterations for eroding the final mask. Defaults to 1.
+        image (numpy.ndarray): Input image for segmentation.
+        detector (YOLO, optional): YOLOv8 object detector. Defaults to None.
+        predictor (SamPredictor, optional): SAM predictor instance. Defaults to None.
+        wshed (Watershed, optional): Watershed instance. Defaults to None.
+        target_length (int, optional): Target length for resizing in SAM. Defaults to None.
+        narrowing (float, optional): Narrowing factor for SAM masks. Defaults to None.
+        erode_iterations (int, optional): Number of erosion iterations for masks. Defaults to None.
+        prompt_points (bool, optional): Whether to use prompt points in SAM. Defaults to None.
 
     Returns:
-        None
+        numpy.ndarray: Combined segmentation mask.
 
-    Notes:
-        - If the image has already been segmented (present in masks_list), the function returns early.
-        - Prints progress information during segmentation.
-        - Saves the segmented mask to the output directory with the same name as the input image.
+    Raises:
+        ValueError: If no valid segmentation method is provided.
     """
-    if image_name in masks_list:
-        return
+    mask_sam = None
+    mask_watershed = None
 
-    print(f"Image {image_name}")
-    image = cv2.imread(os.path.join(source_dir, image_name))
-    mask = yolo_sam_segmentation(
-        image, detector, predictor, wshed,
-        target_length=target_length,
-        narrowing=narrowing,
-        erode_iterations=erode_iterations,
-        prompt_points=prompt_points
-    )
+    # Apply YOLO + SAM segmentation if components are available
+    if detector and predictor:
+        mask_sam = yolo_sam_segmentation(
+            image=image, detector=detector, predictor=predictor,
+            target_length=target_length, narrowing=narrowing,
+            erode_iterations=erode_iterations, prompt_points=prompt_points
+        )
 
-    cv2.imwrite(
-        filename=os.path.join(output_dir, image_name),
-        img=mask
-    )
+    # Apply Watershed segmentation if configured
+    if wshed:
+        mask_watershed = watershed_segmentation(image=image, wshed=wshed)
 
-    print(f"Image {image_name} were segmented!")
+    # Combine masks if both methods are available
+    if mask_sam is not None and mask_watershed is not None:
+        return unite_masks([mask_sam, mask_watershed])
+    elif mask_sam is not None:
+        return mask_sam
+    elif mask_watershed is not None:
+        return mask_watershed
+    else:
+        raise ValueError("No valid segmentation method provided.")
 
 
 def segment_images_from_folder(
-        source_dir,
-        output_dir,
-        detector, predictor, wshed,
-        target_length=1024,
-        narrowing=0.20,
-        erode_iterations=1,
-        processes_num=0,
-        prompt_points=True,
+    source_dir, output_dir, detector=None, predictor=None, wshed=None,
+    target_length=None, narrowing=None, erode_iterations=None, prompt_points=None
 ):
     """
-    Perform segmentation on images in a source directory and save the results to an output directory.
+    Segments images in a folder using combined YOLO + SAM and Watershed segmentation.
 
     Args:
-        source_dir (str): Directory containing the source images.
-        output_dir (str): Directory where the segmented masks will be saved.
-        detector: YOLOv8 object detector.
-        predictor (SamPredictor): Instance of the predictor class for the SAM model.
-        target_length (int, optional): Target length for resizing the longest side of the image.
-            Defaults to 1024 pixels.
-        narrowing (float, optional): Narrowing factor for SAM masks. Defaults to 0.20.
-        erode_iterations (int, optional): Number of iterations for eroding the final mask. Defaults to 1.
-        processes_num (int, optional): Number of parallel processes for segmentation.
-            Defaults to 0 (sequential processing).
+        source_dir (str): Path to the input images directory.
+        output_dir (str): Path to save the segmented masks.
+        detector (YOLO, optional): YOLO object detector instance.
+        predictor (SamPredictor, optional): SAM predictor instance.
+        wshed (Watershed, optional): Watershed instance.
+        target_length (int, optional): Target length for resizing in SAM. Defaults to None.
+        narrowing (float, optional): Narrowing factor for SAM masks. Defaults to None.
+        erode_iterations (int, optional): Number of erosion iterations for masks. Defaults to None.
+        prompt_points (bool, optional): Whether to use prompt points in SAM. Defaults to None.
 
     Returns:
-        None
-
-    Notes:
-        - Prints progress information during segmentation.
-        - Saves the segmented masks to the output directory.
-        - If processes_num is set to 0, performs sequential segmentation (allows using debug mode).
-        - If processes_num is greater than 0, performs parallel segmentation using concurrent.futures.
+        None: Saves segmented masks to the output directory.
     """
-    if not os.path.isdir(source_dir):
-        print("No such directory")
-        return "No such directory"
+    os.makedirs(output_dir, exist_ok=True)
 
-    if not os.path.isdir(output_dir):
-        os.mkdir(output_dir)
+    if detector is None and predictor is None and wshed is None:
+        raise ValueError("At least one segmentation method (YOLO + SAM or Watershed) must be provided.")
 
-    images_list = os.listdir(source_dir)
-    masks_list = os.listdir(output_dir)
+    for image_name in os.listdir(source_dir):
+        image_path = os.path.join(source_dir, image_name)
+        image = cv2.imread(image_path)
 
-    for image_name in tqdm(images_list):
-        with torch.no_grad():
-            segment_image_from_dir(
-                image_name,
-                masks_list,
-                source_dir,
-                output_dir,
-                detector, predictor, wshed,
-                target_length=target_length,
-                narrowing=narrowing,
-                erode_iterations=erode_iterations,
-                prompt_points=prompt_points
-            )
+        # Perform combined segmentation
+        mask = combined_segmentation(
+            image, detector=detector, predictor=predictor, wshed=wshed,
+            target_length=target_length, narrowing=narrowing,
+            erode_iterations=erode_iterations, prompt_points=prompt_points
+        )
 
-    print(f"Images from the directory {source_dir} were segmented!")
+        # Save the generated mask
+        mask_path = os.path.join(output_dir, f"{os.path.splitext(image_name)[0]}_mask.png")
+        cv2.imwrite(mask_path, mask)
