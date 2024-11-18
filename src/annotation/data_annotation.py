@@ -41,35 +41,53 @@ from src.annotation.sam import load_sam_predictor, segment_images_from_folder
 
 @hydra.main(version_base=None, config_path='../../configs', config_name='annotation')
 def run_annotation(cfg: DictConfig) -> None:
-    watershed_cfg = cfg.preprocess
-    sy_cfg = cfg.sam_yolo
-
-    if sy_cfg.sam.model_type not in ["vit_b", "vit_l", "vit_h"]:
-        raise ValueError(f"Undefined sam model type: {sy_cfg.sam.model_type}")
-
-    detector = load_yolov8_detector(sy_cfg.yolo_checkpoint_path)
-
-    if cfg.device != "cpu":
-        torch.cuda.empty_cache()
-        torch.backends.cuda.matmul.allow_tf32 = False
-        torch.backends.cudnn.benchmark = True
-
-    predictor = load_sam_predictor(device=cfg.device, **sy_cfg.sam)
-
     source_dir = os.path.join(cfg.data_dir, cfg.folder)
     output_dir = os.path.join(cfg.data_dir, cfg.folder + "_masks")
 
-    wshed = Watershed(watershed_cfg)
+    detector = None
+    predictor = None
+    wshed = None
 
+    # Validate and load YOLO + SAM components if present in config
+    if "sam_yolo" in cfg:
+        sy_cfg = cfg.sam_yolo
+
+        # Validate SAM model type
+        if sy_cfg.sam.model_type not in ["vit_b", "vit_l", "vit_h"]:
+            raise ValueError(f"Undefined SAM model type: {sy_cfg.sam.model_type}")
+
+        # Load YOLOv8 detector
+        detector = load_yolov8_detector(sy_cfg.yolo_checkpoint_path)
+
+        # Optimize PyTorch for GPU if applicable
+        if cfg.device != "cpu":
+            torch.cuda.empty_cache()
+            torch.backends.cuda.matmul.allow_tf32 = False
+            torch.backends.cudnn.benchmark = True
+
+        # Load SAM predictor
+        predictor = load_sam_predictor(device=cfg.device, **sy_cfg.sam)
+
+    # Load Watershed if watershed is defined in config
+    if "watershed" in cfg:
+        watershed_cfg = cfg.watershed
+        wshed = Watershed(watershed_cfg)
+
+    # Ensure at least one segmentation method is defined
+    if detector is None and wshed is None:
+        raise ValueError("At least one segmentation method (Watershed or YOLO + SAM) must be defined in the config.")
+
+    # Segment images
     segment_images_from_folder(
-        source_dir,
-        output_dir,
-        detector, predictor, wshed,
-        processes_num=cfg.processes_num,
-        target_length=sy_cfg.target_length,
-        narrowing=sy_cfg.narrowing,
-        erode_iterations=sy_cfg.erode_iterations,
-        prompt_points=sy_cfg.prompt_points
+        source_dir=source_dir,
+        output_dir=output_dir,
+        detector=detector,
+        predictor=predictor,
+        wshed=wshed,
+        target_length=sy_cfg.target_length if "sam_yolo" in cfg else None,
+        narrowing=sy_cfg.narrowing if "sam_yolo" in cfg else None,
+        erode_iterations=sy_cfg.erode_iterations if "sam_yolo" in cfg else None,
+        prompt_points=sy_cfg.prompt_points if "sam_yolo" in cfg else None,
     )
 
 

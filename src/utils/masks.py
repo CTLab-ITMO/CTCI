@@ -86,3 +86,7 @@ def apply_correction(target, correction_path):
     cond = correction == 255
     mask = np.where(cond, cond, target)
     return mask
+
+
+def binarize_mask(mask, threshold=127):
+    return (np.where(mask > threshold, 255, 0)).astype(np.uint8)

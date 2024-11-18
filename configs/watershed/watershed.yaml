@@ -1,0 +1,15 @@
+thresh: 60
+preprocess:
+  single_scale_retinex:
+    sigma: 80
+  bilateral_filtering:
+    diameter: 5
+    sigma_color: 75
+    sigma_space: 75
+  morphological_transform:
+    kernel_size: [3, 3]
+  gaussian_blur:
+    kernel_size: [5, 5]
+    sigma_x: 0
+  minmax:
+    span: [0, 255]

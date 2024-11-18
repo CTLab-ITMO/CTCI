@@ -1,7 +1,8 @@
-data_dir: 'data/small_split'
+data_dir: 'data/new'
+dst_folder: null
 train_folder: 'train'
-valid_folder: 'valid'
-test_folder: null
+valid_folder: 'val'
+test_folder: 'test'
 batch_size: 4
 num_workers: 6
 img_size:

@@ -50,7 +50,7 @@ def find_contours(img: np.ndarray, labels: np.ndarray, markers: np.ndarray) -> n
     return contour_mask
 
 
-def _get_markers(img: np.array) -> np.array:
+def _get_markers(img: np.array, thresh: int) -> np.array:
     """
     The threshold is set for a preprocessed image and is not meant to be changed.
 
@@ -60,7 +60,7 @@ def _get_markers(img: np.array) -> np.array:
     Returns:
         np.array: binary image of thresholded markers
     """
-    _, all = cv2.threshold(img, 60, 255, cv2.THRESH_BINARY)
+    _, all = cv2.threshold(img, thresh, 255, cv2.THRESH_BINARY)
     return all
 
 
@@ -97,7 +97,7 @@ def _get_small_markers(markers: np.array) -> np.array:
     return np.where(inv_big == 255, markers, 0)
 
 
-def get_markers(marker_type: str, img: np.array) -> np.array:
+def get_markers(marker_type: str, img: np.array, thresh: int = 60) -> np.array:
     """
     Extract bubble markers by threshold.
 
@@ -109,7 +109,7 @@ def get_markers(marker_type: str, img: np.array) -> np.array:
         np.array: binary image of markers
     """
 
-    markers = _get_markers(img)
+    markers = _get_markers(img, thresh)
 
     if marker_type == 'all':
         return markers

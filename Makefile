@@ -2,14 +2,14 @@
 
 VENV=./venv
 PYTHON=$(VENV)/bin/python3
-PYTHON_VER=3.9
+PYTHON_VER=3.10
 
 NAME=ctci-train
 TAG=latest
 
 # ================== LOCAL WORKSPACE SETUP ==================
 venv:
-		python3 -m venv $(VENV)
+		python$(PYTHON_VER) -m venv $(VENV)
 		@echo 'Path to Python executable $(shell pwd)/$(PYTHON)'
 
 install_all: venv

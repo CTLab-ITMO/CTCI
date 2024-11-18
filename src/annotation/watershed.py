@@ -17,6 +17,7 @@ class Watershed:
     def __init__(self, cfg: DictConfig):
 
         self.cfg = cfg
+        self.use_preprocess = "preprocess" in cfg
 
     def apply_watershed(self, img: np.array) -> np.array:
         """
@@ -31,14 +32,18 @@ class Watershed:
         Returns:
             np.array: image of bubble masks separated by contours
         """
-        i = preprocess(img, self.cfg)
-        smkr = get_markers('small', i)
+        gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+        if self.use_preprocess:
+            gray_img = preprocess(gray_img, self.cfg.preprocess)
+
+        smkr = get_markers('small', gray_img, self.cfg.thresh)
         bsmkr = cv2.dilate(smkr,
                            cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 5)),
                            iterations=5)
 
         labels, markers = _apply_watershed(data=[smkr, bsmkr])
-        black = find_contours(img, labels, markers)
+        black = find_contours(gray_img, labels, markers)
 
         return black
 
@@ -63,7 +68,7 @@ def _apply_watershed(data: list) -> tuple:
     return labels, markers
 
 
-def init_watershed(config_path='../configs/preprocess', config_name='preprocess', version_base=None):
+def init_watershed(config_path='../configs/watershed', config_name='watershed', version_base=None):
     with initialize(version_base=version_base, config_path=config_path):
         wshed = Watershed(cfg=compose(config_name))
     return wshed
