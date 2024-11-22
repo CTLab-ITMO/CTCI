@@ -14,10 +14,6 @@ def get_transforms(aug_cfg: DictConfig) -> albu.Compose:
     return albu.Compose([hydra.utils.instantiate(aug) for aug in augmentations])
 
 
-def rename_state_dict_keys(state_dict: dict):
-    return {key.replace('model.', ''): value for key, value in state_dict.items()}
-
-
 def cv_image_to_tensor(img: NDArray[float], normalize: bool = True) -> Tensor:
     ops = [ToTensorV2()]
     if normalize:
