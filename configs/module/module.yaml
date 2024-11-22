@@ -1,9 +1,10 @@
 defaults:
-  - arch: unet
+  - arch: swin
 
 num_channels: 3
 num_classes: 1
 threshold: 0.2
+pretrained_path: 'checkpoints/epoch=11-step=40848.ckpt'
 
 optimizer:
   _target_: torch.optim.AdamW

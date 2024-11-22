@@ -9,6 +9,8 @@ from torchmetrics import MeanMetric
 from src.config import ModuleConfig
 from src.losses import get_losses
 from src.metrics import get_classification_metrics, get_segmentation_metrics
+from src.utils.model_utils import load_model
+from src.logger import LOGGER
 
 
 class CTCILightningModule(LightningModule):
@@ -17,6 +19,10 @@ class CTCILightningModule(LightningModule):
         self.cfg = cfg
 
         self.model = self._instantiate_model(self.cfg.arch)
+
+        if 'pretrained_path' in self.cfg and self.cfg.pretrained_path:
+            LOGGER.info('Loading pretrained from {}'.format(self.cfg.pretrained_path))
+            self.model.load_state_dict(load_model(self.cfg.pretrained_path))
 
         self._train_loss = MeanMetric()
         self._valid_loss = MeanMetric()
