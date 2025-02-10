@@ -1,15 +1,18 @@
 thresh: 60
+marker_type: small
+min_distance: 10
+watershed_label_type: image
 preprocess:
   single_scale_retinex:
-    sigma: 80
+    sigma: 50
   bilateral_filtering:
-    diameter: 5
+    diameter: 9
     sigma_color: 75
     sigma_space: 75
   morphological_transform:
-    kernel_size: [3, 3]
-  gaussian_blur:
     kernel_size: [5, 5]
-    sigma_x: 0
+  gaussian_blur:
+    kernel_size: [7, 7]
+    sigma_x: 2
   minmax:
     span: [0, 255]

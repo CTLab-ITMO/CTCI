@@ -40,6 +40,18 @@ def unite_masks(masks):
     return combined_mask.astype(np.uint8) * 255
 
 
+def suppress_watershed_with_yolosam(mask_yolo_sam, mask_watershed):
+    contours, _ = cv2.findContours(mask_yolo_sam, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    suppression_mask = np.zeros_like(mask_watershed)
+    cv2.drawContours(suppression_mask, contours, -1, 255, thickness=cv2.FILLED)
+    suppression_mask = cv2.dilate(suppression_mask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 5)),
+                           iterations=3)
+
+    updated_watershed = cv2.bitwise_and(mask_watershed, cv2.bitwise_not(suppression_mask))
+
+    return updated_watershed
+
+
 def masks_narrowing(masks, narrowing=0.1):
     """
     Narrows the provided binary masks by applying distance transformation and thresholding.

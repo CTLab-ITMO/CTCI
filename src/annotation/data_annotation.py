@@ -84,6 +84,7 @@ def run_annotation(cfg: DictConfig) -> None:
         detector=detector,
         predictor=predictor,
         wshed=wshed,
+        combination_type=cfg.combination_type,
         target_length=sy_cfg.target_length if "sam_yolo" in cfg else None,
         narrowing=sy_cfg.narrowing if "sam_yolo" in cfg else None,
         erode_iterations=sy_cfg.erode_iterations if "sam_yolo" in cfg else None,
