@@ -6,8 +6,20 @@ This module provides functions for working with YOLOv8 object detection.
 
 import matplotlib.pyplot as plt
 import cv2
+from sahi.predict import get_sliced_prediction
+from sahi import AutoDetectionModel
 
 from ultralytics import YOLO
+
+
+def load_yolo_sahi_detector(checkpoint_path: str):
+    detection_model = AutoDetectionModel.from_pretrained(
+        model_type="ultralytics",
+        model_path=checkpoint_path,
+        confidence_threshold=0.3,
+        device="cpu",  # or 'cuda:0'
+    )
+    return detection_model
 
 
 def load_yolov8_detector(checkpoint_path: str):
@@ -23,6 +35,24 @@ def load_yolov8_detector(checkpoint_path: str):
     """
     detector = YOLO(checkpoint_path)
     return detector
+
+
+def yolo_sahi_detect(image, detector, return_objects=False):
+    h, w = image.shape[:2]
+    result = get_sliced_prediction(
+        image,
+        detector,
+        slice_height=h//2,
+        slice_width=w//2,
+        overlap_height_ratio=0.2,
+        overlap_width_ratio=0.2,
+    )
+    object_prediction_list = result.object_prediction_list
+    boxes = []
+    for object_prediction in object_prediction_list:
+        boxes.append(object_prediction.bbox.to_xyxy())
+
+    return boxes
 
 
 def yolov8_detect(image, detector, return_objects=False):

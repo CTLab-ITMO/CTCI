@@ -36,7 +36,7 @@ from ultralytics import YOLO
 
 from src.annotation.watershed import Watershed
 from src.utils.masks import masks_narrowing, unite_masks, suppress_watershed_with_yolosam
-from src.annotation.yolo import yolov8_detect
+from src.annotation.yolo import yolov8_detect, yolo_sahi_detect, load_yolo_sahi_detector
 
 
 def load_sam_predictor(checkpoint_path: str, model_type: str, device: str = "cpu") -> SamPredictor:
@@ -169,7 +169,7 @@ def yolo_sam_segmentation(
     Example:
         mask = yolo_sam_segmentation(image, yolo_detector, sam_predictor)
     """
-    boxes = yolov8_detect(image=image, detector=detector, return_objects=False)
+    boxes = yolo_sahi_detect(image=image, detector=detector, return_objects=False)
 
     if len(boxes) != 0:
         masks_list = sam_segmentation(image=image, predictor=predictor, boxes=boxes, prompt_points=prompt_points,

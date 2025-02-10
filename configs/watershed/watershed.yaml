@@ -1,7 +1,7 @@
 thresh: 60
 marker_type: small
 min_distance: 10
-watershed_label_type: image
+watershed_label_type: marker_area
 preprocess:
   single_scale_retinex:
     sigma: 50
