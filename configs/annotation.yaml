@@ -6,7 +6,7 @@ defaults:
   - override hydra/job_logging: none
 
 data_dir: 'data'
-folder: 'covdor'
+folder: 'covdor_generated'
 device: 'cpu'
 combination_type: 'sam_first'
 

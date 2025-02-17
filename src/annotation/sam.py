@@ -264,6 +264,9 @@ def segment_images_from_folder(
         raise ValueError("At least one segmentation method (YOLO + SAM or Watershed) must be provided.")
 
     for image_name in os.listdir(source_dir):
+        if image_name.startswith("."):
+            continue
+
         image_path = os.path.join(source_dir, image_name)
         image = cv2.imread(image_path)
 
