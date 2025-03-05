@@ -35,7 +35,7 @@ import torch
 from omegaconf import DictConfig
 
 from src.annotation.watershed import Watershed
-from src.annotation.yolo import load_yolov8_detector
+from src.annotation.yolo import load_yolov8_detector, load_yolo_sahi_detector
 from src.annotation.sam import load_sam_predictor, segment_images_from_folder
 
 
@@ -57,7 +57,8 @@ def run_annotation(cfg: DictConfig) -> None:
             raise ValueError(f"Undefined SAM model type: {sy_cfg.sam.model_type}")
 
         # Load YOLOv8 detector
-        detector = load_yolov8_detector(sy_cfg.yolo_checkpoint_path)
+        #detector = load_yolov8_detector(sy_cfg.yolo_checkpoint_path)
+        detector = load_yolo_sahi_detector(sy_cfg.yolo_checkpoint_path)
 
         # Optimize PyTorch for GPU if applicable
         if cfg.device != "cpu":
@@ -84,6 +85,7 @@ def run_annotation(cfg: DictConfig) -> None:
         detector=detector,
         predictor=predictor,
         wshed=wshed,
+        combination_type=cfg.combination_type,
         target_length=sy_cfg.target_length if "sam_yolo" in cfg else None,
         narrowing=sy_cfg.narrowing if "sam_yolo" in cfg else None,
         erode_iterations=sy_cfg.erode_iterations if "sam_yolo" in cfg else None,

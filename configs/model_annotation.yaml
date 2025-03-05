@@ -1,0 +1,9 @@
+defaults:
+  - _self_
+  - module: arch/swin
+
+folder: data/images2/test/images
+pretrained_path: 'checkpoints/epoch=11-step=40848.ckpt'
+conf: 0.6
+data:
+  img_size: [128, 128]

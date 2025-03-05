@@ -52,12 +52,10 @@ def train(cfg: DictConfig) -> None:
     model = CTCILightningModule(cfg=cfg.module)
 
     trainer = Trainer(
-        **dict(cfg.trainer),
+        **dict(cfg.trainer.init),
         callbacks=callbacks,
     )
-    trainer.fit(model=model, datamodule=datamodule)
-    # if cfg.data.test_folder:
-    #     trainer.test(model=model, datamodule=datamodule)
+    trainer.fit(**dict(cfg.trainer.fit), model=model, datamodule=datamodule)
 
 
 if __name__ == '__main__':

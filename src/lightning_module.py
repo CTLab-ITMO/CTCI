@@ -9,6 +9,8 @@ from torchmetrics import MeanMetric
 from src.config import ModuleConfig
 from src.losses import get_losses
 from src.metrics import get_classification_metrics, get_segmentation_metrics
+from src.utils.model_utils import load_model
+from src.logger import LOGGER
 
 
 class CTCILightningModule(LightningModule):
@@ -17,6 +19,10 @@ class CTCILightningModule(LightningModule):
         self.cfg = cfg
 
         self.model = self._instantiate_model(self.cfg.arch)
+
+        if 'pretrained_path' in self.cfg and self.cfg.pretrained_path:
+            LOGGER.info('Loading pretrained from {}'.format(self.cfg.pretrained_path))
+            self.model.load_state_dict(load_model(self.cfg.pretrained_path))
 
         self._train_loss = MeanMetric()
         self._valid_loss = MeanMetric()
@@ -63,12 +69,12 @@ class CTCILightningModule(LightningModule):
 
     def validation_step(self, batch: Tensor) -> Tensor:
         images, targets = batch
-        logits = self.model(images)
-        loss = self._calculate_loss(logits, targets, 'valid_')
+        probs = self.model(images)
+        loss = self._calculate_loss(probs, targets, 'valid_')
         self._valid_loss(loss)
 
-        probs = torch.sigmoid(logits)
-        self._val_cls_metrics(probs, targets)
+        # probs = torch.sigmoid(logits)
+        self._val_cls_metrics(probs.view(images.shape[0], -1), targets.view(images.shape[0], -1))
         self._val_seg_metrics(probs, targets)
         preds = torch.zeros_like(probs)
         preds[probs > self.thresh] = 1
@@ -91,10 +97,10 @@ class CTCILightningModule(LightningModule):
 
     def test_step(self, batch: Tensor) -> Tensor:
         images, targets = batch
-        logits = self.model(images)
+        probs = self.model(images)
 
-        probs = torch.sigmoid(logits)
-        self._test_cls_metrics(probs, targets)
+        # probs = torch.sigmoid(logits)
+        self._test_cls_metrics(probs.view(images.shape[0], -1), targets.view(images.shape[0], -1))
         self._test_seg_metrics(probs, targets)
 
         preds = torch.zeros_like(probs)

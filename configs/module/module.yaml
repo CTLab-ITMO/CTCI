@@ -1,9 +1,10 @@
 defaults:
-  - arch: unet
+  - arch: swin
 
 num_channels: 3
 num_classes: 1
 threshold: 0.2
+pretrained_path: 'checkpoints/epoch=11-step=40848.ckpt'
 
 optimizer:
   _target_: torch.optim.AdamW
@@ -11,15 +12,14 @@ optimizer:
   weight_decay: 1e-5
 
 scheduler:
-  _target_: torch.optim.lr_scheduler.CosineAnnealingLR
-  T_max: 10
-  eta_min: 1e-5
+  _target_: torch.optim.lr_scheduler.StepLR
+  step_size: 30
 
 cls_losses:
   - name: bce
     weight: 0.3
     loss_fn:
-      _target_: torch.nn.BCEWithLogitsLoss
+      _target_: torch.nn.BCELoss
 
 seg_losses:
   - name: dice
@@ -27,4 +27,4 @@ seg_losses:
     loss_fn:
       _target_: segmentation_models_pytorch.losses.DiceLoss
       mode: binary
-      from_logits: true
+      from_logits: false

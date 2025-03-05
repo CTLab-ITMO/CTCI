@@ -1,9 +1,9 @@
-yolo_checkpoint_path: 'models/annotation/yolo-rocks.pt'
+yolo_checkpoint_path: 'models/annotation/11rocks.pt'
 sam:
   checkpoint_path: 'models/annotation/sam_vit_b_01ec64.pth'
   model_type: 'vit_b'
 
 target_length: 1024
 narrowing: 0.20
-erode_iterations: 1
+erode_iterations: 2
 prompt_points: False

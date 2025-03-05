@@ -23,7 +23,7 @@ class VisualizationCallback(pl.Callback):
 
         with torch.no_grad():
             predictions = pl_module(images)
-            predictions = torch.sigmoid(predictions)
+            # predictions = torch.sigmoid(predictions)
             predictions = predictions > 0.6
 
         fig, axes = plt.subplots(self.max_images, 3, figsize=(15, 5 * self.max_images))

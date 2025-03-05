@@ -6,8 +6,20 @@ This module provides functions for working with YOLOv8 object detection.
 
 import matplotlib.pyplot as plt
 import cv2
+from sahi.predict import get_sliced_prediction
+from sahi import AutoDetectionModel
 
 from ultralytics import YOLO
+
+
+def load_yolo_sahi_detector(checkpoint_path: str):
+    detection_model = AutoDetectionModel.from_pretrained(
+        model_type="ultralytics",
+        model_path=checkpoint_path,
+        confidence_threshold=0.3,
+        device="cpu",  # or 'cuda:0'
+    )
+    return detection_model
 
 
 def load_yolov8_detector(checkpoint_path: str):
@@ -23,6 +35,44 @@ def load_yolov8_detector(checkpoint_path: str):
     """
     detector = YOLO(checkpoint_path)
     return detector
+
+
+def yolo_sahi_detect(image, detector, return_objects=False):
+    original_h, original_w = image.shape[:2]
+    resized_h, resized_w = original_h * 3, original_w * 3
+
+    # Resize image before prediction
+    image_resized = cv2.resize(image, (resized_w, resized_h))
+
+    # Perform object detection
+    result = get_sliced_prediction(
+        image_resized,
+        detector,
+        slice_height=resized_h // 2,
+        slice_width=resized_w // 2,
+        overlap_height_ratio=0.2,
+        overlap_width_ratio=0.2,
+    )
+
+    object_prediction_list = result.object_prediction_list
+    boxes = []
+
+    # Compute scaling factors
+    scale_x = original_w / resized_w
+    scale_y = original_h / resized_h
+
+    for object_prediction in object_prediction_list:
+        x1, y1, x2, y2 = object_prediction.bbox.to_xyxy()
+
+        # Scale bbox back to original size
+        x1 = int(x1 * scale_x)
+        y1 = int(y1 * scale_y)
+        x2 = int(x2 * scale_x)
+        y2 = int(y2 * scale_y)
+
+        boxes.append([x1, y1, x2, y2])
+
+    return boxes
 
 
 def yolov8_detect(image, detector, return_objects=False):

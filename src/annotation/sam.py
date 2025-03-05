@@ -35,8 +35,8 @@ from segment_anything.utils.transforms import ResizeLongestSide
 from ultralytics import YOLO
 
 from src.annotation.watershed import Watershed
-from src.utils.masks import masks_narrowing, unite_masks
-from src.annotation.yolo import yolov8_detect
+from src.utils.masks import masks_narrowing, unite_masks, suppress_watershed_with_yolosam
+from src.annotation.yolo import yolov8_detect, yolo_sahi_detect, load_yolo_sahi_detector
 
 
 def load_sam_predictor(checkpoint_path: str, model_type: str, device: str = "cpu") -> SamPredictor:
@@ -169,7 +169,7 @@ def yolo_sam_segmentation(
     Example:
         mask = yolo_sam_segmentation(image, yolo_detector, sam_predictor)
     """
-    boxes = yolov8_detect(image=image, detector=detector, return_objects=False)
+    boxes = yolo_sahi_detect(image=image, detector=detector, return_objects=False)
 
     if len(boxes) != 0:
         masks_list = sam_segmentation(image=image, predictor=predictor, boxes=boxes, prompt_points=prompt_points,
@@ -188,7 +188,8 @@ def yolo_sam_segmentation(
 
 def combined_segmentation(
     image, detector=None, predictor=None, wshed=None,
-    target_length=None, narrowing=None, erode_iterations=None, prompt_points=None
+    target_length=None, narrowing=None, erode_iterations=None, prompt_points=None,
+    combination_type="unite"
 ) -> np.ndarray:
     """
     Combine YOLO + SAM and Watershed segmentation results based on availability.
@@ -212,7 +213,6 @@ def combined_segmentation(
     mask_sam = None
     mask_watershed = None
 
-    # Apply YOLO + SAM segmentation if components are available
     if detector and predictor:
         mask_sam = yolo_sam_segmentation(
             image=image, detector=detector, predictor=predictor,
@@ -220,13 +220,15 @@ def combined_segmentation(
             erode_iterations=erode_iterations, prompt_points=prompt_points
         )
 
-    # Apply Watershed segmentation if configured
     if wshed:
         mask_watershed = watershed_segmentation(image=image, wshed=wshed)
 
-    # Combine masks if both methods are available
     if mask_sam is not None and mask_watershed is not None:
-        return unite_masks([mask_sam, mask_watershed])
+        if combination_type == "unite":
+            return unite_masks([mask_sam, mask_watershed])
+        elif combination_type == "sam_first":
+            mask_watershed = suppress_watershed_with_yolosam(mask_sam, mask_watershed)
+            return unite_masks([mask_sam, mask_watershed])
     elif mask_sam is not None:
         return mask_sam
     elif mask_watershed is not None:
@@ -237,7 +239,7 @@ def combined_segmentation(
 
 def segment_images_from_folder(
     source_dir, output_dir, detector=None, predictor=None, wshed=None,
-    target_length=None, narrowing=None, erode_iterations=None, prompt_points=None
+    target_length=None, narrowing=None, erode_iterations=None, prompt_points=None, combination_type="unite"
 ):
     """
     Segments images in a folder using combined YOLO + SAM and Watershed segmentation.
@@ -262,6 +264,9 @@ def segment_images_from_folder(
         raise ValueError("At least one segmentation method (YOLO + SAM or Watershed) must be provided.")
 
     for image_name in os.listdir(source_dir):
+        if image_name.startswith("."):
+            continue
+
         image_path = os.path.join(source_dir, image_name)
         image = cv2.imread(image_path)
 
@@ -269,7 +274,7 @@ def segment_images_from_folder(
         mask = combined_segmentation(
             image, detector=detector, predictor=predictor, wshed=wshed,
             target_length=target_length, narrowing=narrowing,
-            erode_iterations=erode_iterations, prompt_points=prompt_points
+            erode_iterations=erode_iterations, prompt_points=prompt_points, combination_type=combination_type,
         )
 
         # Save the generated mask
