@@ -69,12 +69,12 @@ class CTCILightningModule(LightningModule):
 
     def validation_step(self, batch: Tensor) -> Tensor:
         images, targets = batch
-        logits = self.model(images)
-        loss = self._calculate_loss(logits, targets, 'valid_')
+        probs = self.model(images)
+        loss = self._calculate_loss(probs, targets, 'valid_')
         self._valid_loss(loss)
 
-        probs = torch.sigmoid(logits)
-        self._val_cls_metrics(probs, targets)
+        # probs = torch.sigmoid(logits)
+        self._val_cls_metrics(probs.view(images.shape[0], -1), targets.view(images.shape[0], -1))
         self._val_seg_metrics(probs, targets)
         preds = torch.zeros_like(probs)
         preds[probs > self.thresh] = 1
@@ -97,10 +97,10 @@ class CTCILightningModule(LightningModule):
 
     def test_step(self, batch: Tensor) -> Tensor:
         images, targets = batch
-        logits = self.model(images)
+        probs = self.model(images)
 
-        probs = torch.sigmoid(logits)
-        self._test_cls_metrics(probs, targets)
+        # probs = torch.sigmoid(logits)
+        self._test_cls_metrics(probs.view(images.shape[0], -1), targets.view(images.shape[0], -1))
         self._test_seg_metrics(probs, targets)
 
         preds = torch.zeros_like(probs)

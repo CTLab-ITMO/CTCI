@@ -11,7 +11,7 @@ from torch import Tensor
 
 def get_transforms(aug_cfg: DictConfig) -> albu.Compose:
     augmentations = OmegaConf.to_object(aug_cfg)
-    return albu.Compose([hydra.utils.instantiate(aug) for aug in augmentations])
+    return albu.Compose([hydra.utils.instantiate(aug) for aug in augmentations], is_check_shapes=False)
 
 
 def cv_image_to_tensor(img: NDArray[float], normalize: bool = True) -> Tensor:

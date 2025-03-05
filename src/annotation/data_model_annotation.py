@@ -17,6 +17,9 @@ def run_annotation(cfg: DictConfig) -> None:
     source_dir = os.path.join(PROJECT_ROOT, cfg.folder)
     output_dir = os.path.join(PROJECT_ROOT, cfg.folder + "_masks")
 
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
     model = hydra.utils.instantiate(cfg.module)
     model.load_state_dict(load_model(cfg.pretrained_path))
     LOGGER.info(f'Loaded model from {cfg.pretrained_path}')
