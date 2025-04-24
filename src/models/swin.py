@@ -21,12 +21,12 @@ class Swin(nn.Module):
 
     """
     def __init__(
-            self, net
+            self, net, in_channels=1, out_channels=1
     ):
         super().__init__()
 
         self.net = net.encoder
-        self.mask_head = UNETRDecoder()
+        self.mask_head = UNETRDecoder(in_channels=in_channels, out_channels=out_channels)
         self.embeddings = net.get_input_embeddings()
 
     def forward(self, image: torch.Tensor) -> torch.Tensor:

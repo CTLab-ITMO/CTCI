@@ -4,6 +4,7 @@ import lightning
 from lightning import Trainer
 from lightning.pytorch.callbacks import LearningRateMonitor, ModelCheckpoint
 from omegaconf import DictConfig
+from datetime import datetime
 
 from src.datamodule import CTCIDataModule
 from src.lightning_module import CTCILightningModule
@@ -21,9 +22,11 @@ def train(cfg: DictConfig) -> None:
     datamodule = CTCIDataModule(cfg.data, cfg.augmentations)
 
     checkpoint_callback = ModelCheckpoint(
-        dirpath=cfg.experiment.checkpoint_dir,
+        dirpath=cfg.experiment.checkpoint_dir + "/" + \
+                str(cfg.module.arch.net._target_.split('.')[-1]) + "_" + \
+                datetime.now().strftime("%Y%m%d-%H%M"),
         save_top_k=3,
-        monitor='val_f1',
+        monitor='val_dice',
         mode='max',
         every_n_epochs=1,
         save_weights_only=True,

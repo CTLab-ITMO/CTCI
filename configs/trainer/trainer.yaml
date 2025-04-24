@@ -1,8 +1,8 @@
 init:
   fast_dev_run: False
-  accelerator: mps
+  accelerator: cuda
   log_every_n_steps: 100
-  max_epochs: 2
+  max_epochs: 30
   min_epochs: 2
   precision: 32
 fit:

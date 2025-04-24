@@ -33,6 +33,7 @@ import os
 import hydra
 import torch
 from omegaconf import DictConfig
+import sys
 
 from src.annotation.watershed import Watershed
 from src.annotation.yolo import load_yolov8_detector, load_yolo_sahi_detector
@@ -41,6 +42,8 @@ from src.annotation.sam import load_sam_predictor, segment_images_from_folder
 
 @hydra.main(version_base=None, config_path='../../configs', config_name='annotation')
 def run_annotation(cfg: DictConfig) -> None:
+    print(torch.cuda.is_available())
+
     source_dir = os.path.join(cfg.data_dir, cfg.folder)
     output_dir = os.path.join(cfg.data_dir, cfg.folder + "_masks")
 

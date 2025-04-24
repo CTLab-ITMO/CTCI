@@ -1,4 +1,4 @@
-data_dir: 'data/new'
+data_dir: 'data/gen/generated2'
 dst_folder: null
 train_folder: 'train'
 valid_folder: 'val'
@@ -6,8 +6,8 @@ test_folder: 'test'
 batch_size: 4
 num_workers: 6
 img_size:
-  - 128
-  - 128
+  - 256
+  - 256
 pin_memory: True
 adele_correction: False
 adele_dir: 'corrected_masks'

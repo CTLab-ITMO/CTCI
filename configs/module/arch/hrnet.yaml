@@ -5,3 +5,4 @@ net:
   model_name: hrnet_w18_small_v2
   features_only: true
   pretrained: true
+  in_chans: 3

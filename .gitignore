@@ -97,6 +97,6 @@ target/
 
 *.pt
 *.pth
-
+*.ipynb
 # Mypy cache
 .mypy_cache/

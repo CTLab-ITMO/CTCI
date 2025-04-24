@@ -7,7 +7,7 @@ defaults:
 
 data_dir: 'data'
 folder: 'covdor_generated'
-device: 'cpu'
+device: 'cuda'
 combination_type: 'sam_first'
 
 hydra:

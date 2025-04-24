@@ -16,6 +16,8 @@ def run_annotation(cfg: DictConfig) -> None:
     LOGGER.info(f'Annotating folder {cfg.folder}')
     source_dir = os.path.join(PROJECT_ROOT, cfg.folder)
     output_dir = os.path.join(PROJECT_ROOT, cfg.folder + "_masks")
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -25,15 +27,20 @@ def run_annotation(cfg: DictConfig) -> None:
     LOGGER.info(f'Loaded model from {cfg.pretrained_path}')
     conf = cfg.conf
     resize = Resize(cfg.data.img_size)
+    model = model.to('cuda')
 
     for image_name in tqdm(clean_hidden_files(os.listdir(source_dir))):
         image_path = os.path.join(source_dir, image_name)
-        image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
+        image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2GRAY)
+        resize_back = Resize((image.shape[0], image.shape[1]))
         image = cv_image_to_tensor(image).unsqueeze(0)  # add batch
         image = resize(image)
 
+        image = image.to('cuda')
+
         mask = model.predict(image, conf=conf)
-        mask = tensor_to_cv_image(mask.squeeze(0))
+        mask = resize_back(mask.cpu())
+        mask = tensor_to_cv_image(mask.squeeze(0)) * 255
 
         mask_path = os.path.join(output_dir, f"{os.path.splitext(image_name)[0]}_mask.png")
         cv2.imwrite(mask_path, mask)

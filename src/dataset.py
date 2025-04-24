@@ -79,7 +79,6 @@ class SegmentationDataset(Dataset):
 
         assert len(self.images_list) == len(self.masks_list), "some images or masks are missing"
 
-
     def _read_image_and_mask(self, image_name):
         """
         Reads an image and its corresponding mask.

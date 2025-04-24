@@ -1,6 +1,10 @@
 _target_: src.models.Swin
+in_channels: ${module.num_channels}
+out_channels:  ${module.num_classes}
 net:
   _target_: transformers.Swinv2Model.from_pretrained
   pretrained_model_name_or_path: 'microsoft/swinv2-tiny-patch4-window8-256'
   num_labels: 2
   image_size: ${data.img_size.0}
+  num_channels: ${module.num_channels}
+  ignore_mismatched_sizes: True

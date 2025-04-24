@@ -1,3 +1,4 @@
+import cv2
 import lightning.pytorch as pl
 import torch
 import numpy as np
@@ -23,8 +24,7 @@ class VisualizationCallback(pl.Callback):
 
         with torch.no_grad():
             predictions = pl_module(images)
-            # predictions = torch.sigmoid(predictions)
-            predictions = predictions > 0.6
+            predictions = predictions > 0.3
 
         fig, axes = plt.subplots(self.max_images, 3, figsize=(15, 5 * self.max_images))
         for i in range(min(self.max_images, len(images))):
@@ -49,12 +49,16 @@ class VisualizationCallback(pl.Callback):
         plt.close(fig)
 
     def _overlay_mask(self, image, mask):
-        if mask.ndim == 2:
-            mask = mask[:, :, None]
+        # Ensure both image and mask are float32 and in range [0, 1]
+        if mask.max() > 1:
+            mask = mask.astype(np.float32) / 255.0
+        else:
+            mask = mask.astype(np.float32)
 
-        darkened_image = image * self.alpha
-        overlay = darkened_image.copy()
+        if image.dtype != np.float32:
+            image = image.astype(np.float32)
 
-        overlay[:, :, 0] = np.maximum(overlay[:, :, 0], mask.squeeze())
+        if len(mask.shape) == 2 or mask.shape[2] == 1:
+            mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
 
-        return overlay
+        return cv2.addWeighted(image, 1 - self.alpha, mask, self.alpha, 0)

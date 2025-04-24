@@ -1,10 +1,9 @@
 defaults:
-  - arch: swin
+  - arch: hrnet
 
 num_channels: 3
 num_classes: 1
-threshold: 0.2
-pretrained_path: 'checkpoints/epoch=11-step=40848.ckpt'
+threshold: 0.5
 
 optimizer:
   _target_: torch.optim.AdamW
@@ -13,17 +12,17 @@ optimizer:
 
 scheduler:
   _target_: torch.optim.lr_scheduler.StepLR
-  step_size: 30
+  step_size: 15
 
 cls_losses:
   - name: bce
-    weight: 0.3
+    weight: 0.4
     loss_fn:
       _target_: torch.nn.BCELoss
 
 seg_losses:
   - name: dice
-    weight: 0.7
+    weight: 0.6
     loss_fn:
       _target_: segmentation_models_pytorch.losses.DiceLoss
       mode: binary

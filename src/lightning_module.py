@@ -35,7 +35,7 @@ class CTCILightningModule(LightningModule):
             num_labels=cfg.num_classes,
             task='binary',
             average='macro',
-            threshold=0.7,
+            threshold=0.5,
         )
         seg_metrics = get_segmentation_metrics()
 

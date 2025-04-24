@@ -52,6 +52,7 @@ def yolo_sahi_detect(image, detector, return_objects=False):
         slice_width=resized_w // 2,
         overlap_height_ratio=0.2,
         overlap_width_ratio=0.2,
+        postprocess_match_threshold=0.9,
     )
 
     object_prediction_list = result.object_prediction_list
@@ -92,7 +93,7 @@ def yolov8_detect(image, detector, return_objects=False):
         corner and (x_max, y_max) are the coordinates of the bottom-right corner.
 
     """
-    objects = detector(image)
+    objects = detector(image, conf=0.1, imgsz=1920)
 
     if return_objects:
         return objects

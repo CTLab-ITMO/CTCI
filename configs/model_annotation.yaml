@@ -1,9 +1,9 @@
 defaults:
   - _self_
-  - module: arch/swin
+  - module: arch/hrnet
 
-folder: data/images2/test/images
-pretrained_path: 'checkpoints/epoch=11-step=40848.ckpt'
-conf: 0.6
+folder: data/real_covdor
+pretrained_path: 'checkpoints\epoch=44-step=9090-v1.ckpt'
+conf: 0.7
 data:
-  img_size: [128, 128]
+  img_size: [512, 512]

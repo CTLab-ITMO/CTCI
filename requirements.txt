@@ -10,8 +10,8 @@ matplotlib~=3.8.4
 pandas == 2.2.1
 scipy == 1.13.0
 scikit-image == 0.24.0
-torch == 2.2.2
-torchvision == 0.17.2
+# torch == 2.2.2
+# torchvision == 0.17.2
 ultralytics == 8.1.35
 transformers == 4.39.1
 segmentation-models-pytorch == 0.3.3
