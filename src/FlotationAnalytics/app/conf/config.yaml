@@ -1,0 +1,8 @@
+defaults:
+  - _self_
+  - tracker: bytetrack
+
+video_path: "video/video1.mp4"
+output_dir: "output_results"
+save_frames: true
+num_sample_frames: 5

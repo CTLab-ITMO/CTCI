@@ -1,0 +1,17 @@
+streamlit
+opencv-python
+ultralytics
+timm==0.4.9
+imgaug==0.4.0
+six==1.16.0
+hub==3.0.1
+wandb
+scipy==1.10.1
+pillow==9.3.0
+numpy==1.23.4
+pandas==1.5.2
+tqdm
+matplotlib==3.6.3
+pytest
+hydra-core
+omegaconf

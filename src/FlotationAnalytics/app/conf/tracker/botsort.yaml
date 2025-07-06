@@ -1,0 +1,2 @@
+name: "BoT-SORT + YOLOv11s"
+config_file: "bot-sort.yaml"
